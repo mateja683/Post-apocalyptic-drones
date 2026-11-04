@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import type { Announcement } from "./announce";
 import type { Faction } from "../sim/types";
 import { SIDE_NAME } from "./side-style";

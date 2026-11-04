@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The four-player online battle's lobby (FFA.md "Getting in"): the host's
  * sheet (a battle code, an invite link and QR code for each friend's seat,
@@ -96,7 +96,7 @@ async function copyText(text: string, btn: HTMLElement): Promise<void> {
 
 async function shareText(url: string, btn: HTMLElement): Promise<void> {
   try {
-    await navigator.share({ title: "Ashfall Command", text: "Join my four-player Ashfall Command battle!", url });
+    await navigator.share({ title: "Atomic Deco", text: "Join my four-player Atomic Deco battle!", url });
   } catch (e) {
     if (!(e instanceof Error && e.name === "AbortError")) await copyText(url, btn);
   }

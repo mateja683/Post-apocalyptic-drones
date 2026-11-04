@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { UNITS } from "../sim/balance";
 import { mapById } from "../sim/maps";
 import { POWER_KINDS, POWER_NAMES } from "../sim/powers";

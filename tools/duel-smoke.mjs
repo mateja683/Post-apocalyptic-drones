@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Duel smoke (SOUND-DUEL.md "Dev and test modes"): two pages of the built app,
 // one browser context each, play a sound duel through the relay
 // (?duel=relay, src/versus/relay-transport.ts) instead of the air. Node is

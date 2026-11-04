@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The sound duel's lobby (SOUND-DUEL.md "The lobby", "Getting into a duel",
  * "Rematch", "Dev and test modes"): the sheet between the menu's Duel tap and
@@ -1195,7 +1195,7 @@ const canShare = (): boolean => typeof navigator !== "undefined" && typeof navig
 /** The share sheet with the invite (a dismissed sheet is no error). */
 async function shareInvite(url: string, btn: HTMLElement): Promise<void> {
   try {
-    await navigator.share({ title: "Ashfall Command", text: "Duel me in Ashfall Command!", url });
+    await navigator.share({ title: "Atomic Deco", text: "Duel me in Atomic Deco!", url });
   } catch (e) {
     if (e instanceof Error && e.name === "AbortError") return;
     await copyInvite(url, btn);

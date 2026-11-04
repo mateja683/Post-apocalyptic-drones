@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { TICK_RATE, UNITS } from "../sim/balance";
 import type { BuildingKind, Faction, FxEvent, PerSide, PowerKind, UnitKind, World } from "../sim/types";
 import { buildingCenter, hqOf } from "../sim/world";

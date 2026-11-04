@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * How each side is named and drawn, for the HUD and the presenters. Engine-
  * free. Team colours follow the side (blue is blue on every screen, MULTIPLAYER.md

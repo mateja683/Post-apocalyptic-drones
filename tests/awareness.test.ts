@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { TICK_RATE, UNITS } from "../src/sim/balance";
 import { isVisible, tickFog } from "../src/sim/fog";

@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Standalone 3D models page (models.html): every unit's card (unit-info.ts)
 // beside its in-game model, which you can turn and zoom and play through its
 // animations: the same models (three/models.ts) and rigs (three/infantry.ts,

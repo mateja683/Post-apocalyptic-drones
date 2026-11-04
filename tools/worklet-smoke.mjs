@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Worklet smoke (SOUND-DUEL.md "Worklet" > Tests): the modem's AudioWorklet,
 // built the way production builds it, decoding both ways in Chromium.
 //

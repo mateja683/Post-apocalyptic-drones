@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Screenshot tour for visual QA: menu, early game, a spectated battle.
 // Usage: node tools/shots.mjs [url] [outDir] [width] [height] [dpr]
 // Default url is the Vite dev server (npx vite --port 5173).

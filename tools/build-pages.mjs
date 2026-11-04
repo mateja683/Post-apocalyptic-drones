@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Build the current checkout at the site root, and each version tag beneath it.
 // Run after npm ci and git fetch --tags (CI checks out main with full history).
 import { execFileSync } from "node:child_process";
@@ -9,7 +10,8 @@ import { createVersionArchive, restoreVersionArchive } from "./pages-archive.mjs
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = join(root, "_site");
-const base = "/battledrones/";
+// (reskin) a project site lives at /<repository name>/: take it from CI, so a fork or rename just works
+const base = `/${(process.env.GITHUB_REPOSITORY ?? "x/battledrones").split("/")[1]}/`;
 // An empty override forces historical versions to rebuild from source.
 const cacheURL = process.env.PAGES_CACHE_URL ?? "https://simonw.github.io/battledrones/";
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();

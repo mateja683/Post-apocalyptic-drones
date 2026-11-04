@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // HUD portraits shot from the in-game 3D models (ICONS.md): public/assets/icons/<kind>.webp, and
 // red/, green/ and purple/<kind>.webp for every unit and building (the objectives are neutral). Each is the model
 // gallery's ?icon=<kind> view (tools/models.ts) framed as FRAMING says, shot on black and on white

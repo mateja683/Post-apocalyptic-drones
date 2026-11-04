@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // A game started while a cancelled duel lobby still says the end (SOUND-DUEL.md
 // "The lobby": Cancel after GO keeps the link on for 2 s, until the session
 // may close, then lets the audio go and gives the menu back its music). The

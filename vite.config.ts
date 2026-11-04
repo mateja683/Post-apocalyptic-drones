@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -110,8 +110,8 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: "Ashfall Command",
-        short_name: "Ashfall",
+        name: "Atomic Deco",
+        short_name: "Atomic Deco",
         description:
           "A mobile RTS: two armies of flying and ground drones battle for territory and resources.",
         display: "fullscreen",

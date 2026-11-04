@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Battle awareness and tempo: the engine-free rules behind the game-speed
  * chip, the "enemy inbound" warning, the off-screen hotspot arrows / jump

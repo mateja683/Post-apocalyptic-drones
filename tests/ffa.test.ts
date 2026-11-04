@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The four-player online battle (FFA.md): its wire format, and a host with
  * three friends' pages over a fake relay (rooms of two seats, latency, the

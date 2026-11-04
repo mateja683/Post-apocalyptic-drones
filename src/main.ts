@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { DIFFICULTY, type Difficulty } from "./sim/ai/commander";
 import { MAPS, isKnownMapId, mapById } from "./sim/maps";
 import { BIOMES, RANDOM_MAP_SIZE, RANDOM_PREFIX, isRandomMapId, parseRandomMapId, randomMapId, rollRandomMapId, seedCode, seedFromText } from "./sim/mapgen";
@@ -296,7 +296,7 @@ function showMenu(linkedMap?: string | null): void {
     <div class="keyart"></div>
     <button class="round menu-mute" id="menu-mute" title="Mute all">🔊</button>
     <div class="menu-inner">
-      <h1 class="logo"><small>✦ The ✦</small>ASHFALL<br/><span>COMMAND</span></h1>
+      <h1 class="logo"><small>✦ ✦ ✦</small>ATOMIC<br/><span>DECO</span></h1>
       <div class="menu-side" id="menuside">
         <button class="rankbadge" id="rankbadge"></button>
         <div class="dailyop" id="dailyop"></div>

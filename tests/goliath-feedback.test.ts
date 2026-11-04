@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The Goliath's feedback layer (GOLIATH.md): radio lines and banners for a
  * Gantry's build, rollout, modes, weapon systems and lifts; an HQ that falls

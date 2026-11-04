@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Duel audio session check (SOUND-DUEL.md "Rig", "Rematch"): the built app
 // in Chromium with a fake microphone, and navigator.audioSession stubbed the
 // way Safari keeps it. Each page's type is its own and starts "auto", but

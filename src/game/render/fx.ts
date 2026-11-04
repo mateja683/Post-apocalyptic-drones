@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { sfx, type SfxName } from "../audio";
 import type { Biome, Faction, FxEvent, Projectile, WeaponFx } from "../../sim/types";

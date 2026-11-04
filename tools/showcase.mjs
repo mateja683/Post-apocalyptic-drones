@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Visual QA: stage a close-up skirmish with every unit type and capture
 // frames mid-fight (tracers, rockets, lasers, shells, bombs, heal beams,
 // robot squads' rifle crackle and rail shots, a Condor hovering to drop).

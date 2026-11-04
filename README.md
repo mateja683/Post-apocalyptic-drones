@@ -1,6 +1,6 @@
-# Ashfall Command
+# Atomic Deco
 
-**Ashfall Command** is a personal reskin of [Battle Drones](https://github.com/simonw/battledrones)
+**Atomic Deco** is a personal reskin of [Battle Drones](https://github.com/simonw/battledrones)
 by Simon Willison, a mobile web RTS, restyled with an atomic-age, art deco,
 post-apocalyptic look: lacquered panels with brass trim, enamel buttons and a
 sun-faded battlefield. The four sides are now original factions:

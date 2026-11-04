@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Online smoke: two pages of the built app, one browser context each, play an
 // online duel through the deployed relay (relay/README.md,
 // src/versus/net-transport.ts), over the real internet.

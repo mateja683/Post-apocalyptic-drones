@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Headless smoke test: serves dist/ (or uses a given URL), boots the game
 // and drives the REAL input paths with taps: pick an opener card, construct
 // + place a building (tap moves the ghost, tapping the ghost builds), queue

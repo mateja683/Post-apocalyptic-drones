@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Cross-wiring between features built apart: calldown kill credit in the
  * presentation layers (callouts, chronicle, report, hotspots, music), the

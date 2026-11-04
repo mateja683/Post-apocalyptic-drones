@@ -1,4 +1,4 @@
-// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { SALVAGE, TICK_RATE, UNITS } from "../../sim/balance";
 import { isInfantry } from "../../sim/infantry";
