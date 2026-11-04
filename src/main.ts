@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { DIFFICULTY, type Difficulty } from "./sim/ai/commander";
 import { MAPS, isKnownMapId, mapById } from "./sim/maps";
 import { BIOMES, RANDOM_MAP_SIZE, RANDOM_PREFIX, isRandomMapId, parseRandomMapId, randomMapId, rollRandomMapId, seedCode, seedFromText } from "./sim/mapgen";
@@ -295,7 +296,7 @@ function showMenu(linkedMap?: string | null): void {
     <div class="keyart"></div>
     <button class="round menu-mute" id="menu-mute" title="Mute all">🔊</button>
     <div class="menu-inner">
-      <h1 class="logo">BATTLE<br/><span>DRONES</span></h1>
+      <h1 class="logo"><small>✦ The ✦</small>ASHFALL<br/><span>COMMAND</span></h1>
       <div class="menu-side" id="menuside">
         <button class="rankbadge" id="rankbadge"></button>
         <div class="dailyop" id="dailyop"></div>
@@ -369,7 +370,7 @@ function showMenu(linkedMap?: string | null): void {
         <button class="cta alt" id="howto">? How to play</button>
       </div>
       <div class="help" id="helpbox" hidden>${HELP_HTML}</div>
-      <p class="credits">Art generated with OpenAI gpt-image-2.5 · sound synthesised live</p>
+      <p class="credits">A reskin of <a href="https://github.com/simonw/battledrones" target="_blank" rel="noopener">Battle Drones</a> by Simon Willison (Apache 2.0) · terrain art by OpenAI gpt-image-2.5 · sound synthesised live</p>
     </div>
   `;
   hud.appendChild(menu);

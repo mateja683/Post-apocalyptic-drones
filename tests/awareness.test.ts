@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { TICK_RATE, UNITS } from "../src/sim/balance";
 import { isVisible, tickFog } from "../src/sim/fog";
@@ -23,6 +24,7 @@ import {
 } from "../src/game/awareness";
 import { BattleCallouts, type RadioLine } from "../src/game/callouts";
 import { CameraRig } from "../src/game/three/camera";
+import { SIDE_NAME } from "../src/game/side-style";
 
 const TICK_MS = 1000 / TICK_RATE;
 
@@ -165,7 +167,7 @@ describe("hotspots", () => {
     expect(r.heat.hotspots()).toMatchObject([{ kind: "fight", label: "Fight" }]);
     const hq = spawnBuilding(r.w, "hq", "red", 4, 50);
     for (let i = 0; i < 3; i++) r.tick(hit("red", hq.id, true, 5.5, 51.5));
-    expect(r.heat.hotspots().map((s) => s.label)).toContain("Red HQ");
+    expect(r.heat.hotspots().map((s) => s.label)).toContain(`${SIDE_NAME.red} HQ`);
   });
 
   it("an inbound raid already being fought shows as the fight, not twice", () => {

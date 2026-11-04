@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { discTexture } from "./textures";
 
@@ -19,7 +20,7 @@ import { discTexture } from "./textures";
  *   share one shader program, so swapping is cheap.
  */
 
-export const FOW_COLOR = 0x0b1219;
+export const FOW_COLOR = 0x14110c;
 
 /**
  * Fog colours are display-space (the fog mixes in after tone mapping), so
@@ -33,7 +34,7 @@ export const fowUniforms = {
   uFowSize: { value: new THREE.Vector2(1, 1) },
   uFowOn: { value: 1 },
   uFowColor: { value: raw(FOW_COLOR) },
-  uFowWisp: { value: raw(0x1c2a35) },
+  uFowWisp: { value: raw(0x2e271d) },
   uFowMemory: { value: new THREE.Color(0.86, 0.96, 1.12) },
   uCloudMap: { value: null as THREE.Texture | null },
   uCloudOffset: { value: new THREE.Vector2() },

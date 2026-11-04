@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { BUILDINGS, UNITS } from "../../sim/balance";
 import type { Faction, FxEvent, World } from "../../sim/types";
@@ -21,9 +22,10 @@ import type { Label } from "../three/screen";
 import type { View } from "../three/view";
 import type { EntityRenderer } from "./entities";
 import { AIR_H } from "../three/view";
+import { SIDE_HEX } from "../side-style";
 
 /** Team colours for ground rings and death pulses. */
-const TEAM: Record<Faction, number> = { blue: 0x3d8bff, red: 0xff4a3a, green: 0x34d058, purple: 0xa860ff };
+const TEAM: Record<Faction, number> = { ...SIDE_HEX };
 const TRAIL_COLOR = "#fff1c0";
 const POP_CSS = 19;
 

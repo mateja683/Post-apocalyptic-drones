@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The four-player online battle (FFA.md): its wire format, and a host with
  * three friends' pages over a fake relay (rooms of two seats, latency, the
@@ -20,6 +21,7 @@ import {
 import { RelaySocket, type NetTimers, type SocketLike } from "../src/net/relay-socket";
 import { FfaFeed, type FfaFeedEnv } from "../src/ffa/feed";
 import { Controller, setLocalSide } from "../src/game/controller";
+import { SIDE_NAME } from "../src/game/side-style";
 
 // ------------------------------------------------------------ fakes ---
 
@@ -630,7 +632,7 @@ describe("the four-player feed (what GameScene plays through)", () => {
     both(DROP_MS + 3000);
     relay.mend(seatRoom(CODE, 1));
     both(15_000);
-    expect(hp.told.alerts).toEqual(["P2 (Red) dropped: an AI plays for them until they're back", "P2 (Red) is back"]);
+    expect(hp.told.alerts).toEqual([`P2 (${SIDE_NAME.red}) dropped: an AI plays for them until they're back`, `P2 (${SIDE_NAME.red}) is back`]);
   });
 });
 

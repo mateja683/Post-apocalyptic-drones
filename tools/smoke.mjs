@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Headless smoke test: serves dist/ (or uses a given URL), boots the game
 // and drives the REAL input paths with taps: pick an opener card, construct
 // + place a building (tap moves the ghost, tapping the ghost builds), queue
@@ -42,7 +43,7 @@ const target = new URL(urlArg ?? "http://localhost:8899/");
 if (side === "red") target.searchParams.set("side", "red");
 const url = target.href;
 
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]

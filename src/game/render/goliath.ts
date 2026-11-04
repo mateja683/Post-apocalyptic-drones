@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { GOLIATH, TICK_RATE, UNITS } from "../../sim/balance";
 import { goliathReach } from "../../sim/goliath";
@@ -12,6 +13,7 @@ import type { GroundGfx } from "../three/ground-gfx";
 import { Ease } from "../three/tween";
 import type { P3, View } from "../three/view";
 import type { Fx } from "./fx";
+import { SIDE_HEX } from "../side-style";
 
 /**
  * The Goliath and its Gantry on the map (render only: it reads the sim and
@@ -50,7 +52,7 @@ export interface GoliathHost {
 }
 
 /** Team colours of rings on the ground. */
-const TEAM: Record<Faction, number> = { blue: 0x3d8bff, red: 0xff4a3a, green: 0x34d058, purple: 0xa860ff };
+const TEAM: Record<Faction, number> = { ...SIDE_HEX };
 /** A carried Goliath hangs this high (tiles, its feet clear of the ground). */
 export const LIFT_H = 0.55;
 /** A Condor carrying a Goliath flies this far above the top of it (tiles). */

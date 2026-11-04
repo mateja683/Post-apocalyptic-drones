@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Worklet smoke (SOUND-DUEL.md "Worklet" > Tests): the modem's AudioWorklet,
 // built the way production builds it, decoding both ways in Chromium.
 //
@@ -657,7 +658,7 @@ async function run(browser, base, page, kind, url) {
   return r;
 }
 
-const browser = await chromium.launch({ executablePath: ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p)) });
+const browser = await chromium.launch({ executablePath: ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p)) });
 const scratch = mkdtempSync(join(tmpdir(), "worklet-smoke-"));
 try {
   // 1. production: the project's config, a scratch entry, a scratch outDir

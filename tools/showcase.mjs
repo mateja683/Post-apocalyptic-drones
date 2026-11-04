@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Visual QA: stage a close-up skirmish with every unit type and capture
 // frames mid-fight (tracers, rockets, lasers, shells, bombs, heal beams,
 // robot squads' rifle crackle and rail shots, a Condor hovering to drop).
@@ -7,7 +8,7 @@ import { existsSync, mkdirSync } from "node:fs";
 
 const [, , url = "http://localhost:5173/", out = "/tmp/showcase"] = process.argv;
 mkdirSync(out, { recursive: true });
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]

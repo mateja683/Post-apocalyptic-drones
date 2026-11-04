@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { UNITS } from "../sim/balance";
 import { mapById } from "../sim/maps";
 import { POWER_KINDS, POWER_NAMES } from "../sim/powers";
@@ -284,7 +285,7 @@ function headHtml(ctx: ReportContext): string {
     return `<h1 class="${h.cls}">${h.title}</h1><p class="time">${h.note ? `${h.note} · ` : ""}${escapeHtml(line)}</p>`;
   }
   const vs = spec
-    ? escapeHtml(`${ctx.strategies?.blue ?? "Blue"} vs ${ctx.strategies?.red ?? "Red"}`)
+    ? escapeHtml(`${ctx.strategies?.blue ?? SIDE_NAME.blue} vs ${ctx.strategies?.red ?? SIDE_NAME.red}`)
     : `vs ${ctx.enemy.strategy} AI (${ctx.enemy.difficulty})`;
   return `<h1 class="${h.cls}">${h.title}</h1><p class="time">${h.note ? `${h.note} · ` : ""}${vs} · ${fmtTime(ctx.secs)}</p>`;
 }
@@ -347,8 +348,8 @@ export function mvpRowHtml(w: World, mvp: Record<Faction, HeroRec | null>, pov: 
   const cards: string[] = [];
   const mine = mvp[me];
   const theirs = mvp[them];
-  if (mine) cards.push(mvpCard(w, mine, spectator ? "Blue MVP" : "Your MVP", "main"));
-  if (theirs) cards.push(mvpCard(w, theirs, spectator ? "Red MVP" : "Their ace", spectator ? "main" : "minor"));
+  if (mine) cards.push(mvpCard(w, mine, spectator ? `${SIDE_NAME.blue} MVP` : "Your MVP", "main"));
+  if (theirs) cards.push(mvpCard(w, theirs, spectator ? `${SIDE_NAME.red} MVP` : "Their ace", spectator ? "main" : "minor"));
   return cards.length ? `<div class="aar-mvps">${cards.join("")}</div>` : null;
 }
 

@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { SALVAGE, TICK_RATE, UNITS } from "../../sim/balance";
 import { isInfantry } from "../../sim/infantry";
@@ -13,9 +14,10 @@ import { Ease } from "../three/tween";
 import type { View } from "../three/view";
 import type { Fx } from "./fx";
 import { TOPPLE_SLAM_MS } from "./goliath";
+import { SIDE_PALE_CSS } from "../side-style";
 
 /** A spectator's salvage pop, in the collector's colour. */
-const SALVAGE_CSS: Record<Faction, string> = { blue: "#9fd0ff", red: "#ff9a8a", green: "#a6f3b8", purple: "#d8bcff" };
+const SALVAGE_CSS: Record<Faction, string> = { ...SIDE_PALE_CSS };
 
 /**
  * Battlefield wrecks (sim: salvage.ts). A destroyed combat unit's own model

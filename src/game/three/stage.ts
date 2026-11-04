@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { Biome } from "../../sim/types";
@@ -30,18 +31,19 @@ interface Look {
   fog: FogLook;
 }
 
+// Reskin: skies dusted toward cream and suns toward late-afternoon gold, for a faded atomic-age haze.
 const LOOKS: Record<Biome, Look> = {
   temperate: {
-    bg: 0x0b100c, sky: 0xc6d8ff, ground: 0x8a8a6a, hemi: 1.45, sun: 0xfff0d8, sunI: 3.7, exposure: 1.0,
-    fog: { shroud: 0x0b1219, wisp: 0x1c2a35, memory: [0.86, 0.96, 1.12], cloud: [1, 0.92, 0.8] }
+    bg: 0x0d0f0a, sky: 0xd8d4c0, ground: 0x8e8466, hemi: 1.45, sun: 0xffe2b8, sunI: 3.6, exposure: 1.0,
+    fog: { shroud: 0x14110c, wisp: 0x2e271d, memory: [1.0, 0.97, 0.9], cloud: [1, 0.92, 0.8] }
   },
   desert: {
-    bg: 0x15110b, sky: 0xdde8ff, ground: 0xb09060, hemi: 1.4, sun: 0xffe6bf, sunI: 3.8, exposure: 0.98,
+    bg: 0x15110b, sky: 0xe4dcc8, ground: 0xb09060, hemi: 1.4, sun: 0xffdcae, sunI: 3.7, exposure: 0.98,
     fog: { shroud: 0x16130f, wisp: 0x342e27, memory: [1.06, 0.97, 0.84], cloud: [1, 0.9, 0.78] }
   },
   arctic: {
-    bg: 0x10161e, sky: 0xd8e8ff, ground: 0xa8b4c4, hemi: 1.35, sun: 0xeef4ff, sunI: 3.25, exposure: 0.95,
-    fog: { shroud: 0x0c1420, wisp: 0x21334a, memory: [0.88, 0.97, 1.14], cloud: [1, 0.9, 0.72] }
+    bg: 0x10141a, sky: 0xdce2e6, ground: 0xa8b0b8, hemi: 1.35, sun: 0xfff0dc, sunI: 3.2, exposure: 0.95,
+    fog: { shroud: 0x12141a, wisp: 0x2a2f38, memory: [0.94, 0.97, 1.04], cloud: [1, 0.9, 0.72] }
   },
   volcanic: {
     bg: 0x120b0a, sky: 0xb0a0a8, ground: 0x6a3a24, hemi: 1.5, sun: 0xffd2b0, sunI: 3.7, exposure: 1.05,
@@ -49,8 +51,8 @@ const LOOKS: Record<Biome, Look> = {
   },
   // high noon over the reef: a white-gold sun, cool sea-glass bounce light, a night-ocean shroud
   tropical: {
-    bg: 0x05202b, sky: 0xc4ecff, ground: 0x9cc4b0, hemi: 1.5, sun: 0xfff6e2, sunI: 3.9, exposure: 0.95,
-    fog: { shroud: 0x061a20, wisp: 0x15363c, memory: [0.84, 1.0, 1.1], cloud: [1, 0.93, 0.8] }
+    bg: 0x081c22, sky: 0xd4e6e0, ground: 0x9cbca8, hemi: 1.5, sun: 0xffecd0, sunI: 3.8, exposure: 0.95,
+    fog: { shroud: 0x0d1716, wisp: 0x22302c, memory: [0.94, 1.0, 0.98], cloud: [1, 0.93, 0.8] }
   }
 };
 

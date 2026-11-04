@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { DIFFICULTY, createAiState, tickAi, type AiState } from "../sim/ai/commander";
 import { BUILDINGS, ECONOMY, GOLIATH, TICK_RATE, UNITS } from "../sim/balance";
@@ -53,7 +54,7 @@ import { GroundGfx } from "./three/ground-gfx";
 import { Tweens } from "./three/tween";
 import { AIR_H, type P3, type View } from "./three/view";
 import { isMulti, sidesOf } from "../sim/sides";
-import { SIDE_NAME } from "./side-style";
+import { SIDE_METER_CSS, SIDE_NAME } from "./side-style";
 
 /** "Rush", "Rush and Boom", "Rush, Boom and Skyforce". */
 const listNames = (xs: readonly string[]): string => (xs.length <= 1 ? xs[0] ?? "" : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
@@ -70,7 +71,7 @@ const EDGE_PAD = 2;
 /** Radius of an order's waypoint ring (CSS px). */
 const WAYPOINT_PX = 7;
 /** Production meters in the producer's side colour (blue is blue on both phones of a sound duel). */
-const METER: Record<Faction, string> = { blue: "#6eb0ff", red: "#ff7a6a", green: "#5fe07f", purple: "#b98cff" };
+const METER: Record<Faction, string> = { ...SIDE_METER_CSS };
 /** Box-select dashes (CSS px), their dark rims (each 1 px longer at both ends), and none. */
 const DASH = [6, 4];
 const DASH_RIM = [8, 2];

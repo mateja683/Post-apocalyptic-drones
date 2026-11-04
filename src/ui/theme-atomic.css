@@ -1,0 +1,225 @@
+/*
+ * Ashfall Command: the atomic-age art deco reskin.
+ *
+ * Layered over style.css (itself warmed by tools/reskin/warm-css.py), so the
+ * upstream stylesheet stays mergeable. "Polished yet faded": lacquered
+ * panels with brass hairlines, cream type, enamel buttons, a sunburst behind
+ * the title, and a gently sun-bleached, grainy battlefield.
+ *
+ * Fonts (SIL Open Font License, bundled through @fontsource):
+ *   Limelight — 1930s cinema-marquee display face, for titles.
+ *   Big Shoulders Text — 1920s Chicago signage, condensed, for everything else.
+ */
+@import "@fontsource/limelight/latin-400";
+@import "@fontsource/big-shoulders-text/latin-500";
+@import "@fontsource/big-shoulders-text/latin-700";
+@import "@fontsource/big-shoulders-text/latin-800";
+
+:root {
+  --deco-display: "Limelight", "Didot", Georgia, serif;
+  --deco-text: "Big Shoulders Text", "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --brass: #c9a45c;
+  --brass-hi: #ecd49a;
+  --brass-lo: #6e5530;
+  --cream: #efe4c8;
+  --enamel: #4f9488;
+  --enamel-d: #2f5f57;
+  --lacquer: #17130e;
+
+  --panel: rgba(22, 18, 13, 0.88);
+  --panel-solid: #1a1510;
+  --line: rgba(201, 164, 92, 0.26);
+  --line-hi: rgba(226, 194, 128, 0.55);
+  --text: #efe4c8;
+  --dim: #a89c82;
+  --gold: #e8c878;
+  /* side colours (side-style.ts): Harbor League, Rust Barony, Directorate, Choir */
+  --blue: #5d93d6;
+  --red: #e07a62;
+  --side-green: #56bf8c;
+  --side-purple: #a77ade;
+  --lift: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(236, 212, 154, 0.1);
+}
+
+html,
+body {
+  background: #0e0b08;
+  font-family: var(--deco-text);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- the battlefield: sun-bleached, a little grain ---------- */
+
+#game canvas {
+  filter: sepia(0.16) saturate(0.84) contrast(0.95) brightness(1.03);
+}
+#game::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.45  0 0 0 0 0.38  0 0 0 1.4 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- menu backdrop: a sunburst over a deco skyline ---------- */
+
+.keyart {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='xMidYMax slice'><g fill='%23100d09'><path d='M0 120V86h18V70h10v-8h8v8h10v16h14V58h6V40h4v-6h4v6h4v18h6v62z'/><path d='M96 120V74h12V52h8V30l6-10 6 10v22h8v22h12v46z'/><path d='M150 120V90h10V64h20v26h10v30z'/><path d='M196 120V62h10V44h6V18h4V4h2v14h4v26h6v18h10v58z'/><path d='M244 120V80h14V60h16v20h14v40z'/><path d='M292 120V56h8V36l8-8 8 8v20h8v64z'/><path d='M336 120V84h12V68h8v-8h8v8h8v16h28v36z'/></g><g fill='%23e8c878' opacity='0.35'><rect x='201' y='70' width='2' height='3'/><rect x='211' y='82' width='2' height='3'/><rect x='104' y='60' width='2' height='3'/><rect x='118' y='88' width='2' height='3'/><rect x='300' y='66' width='2' height='3'/><rect x='312' y='92' width='2' height='3'/><rect x='52' y='72' width='2' height='3'/></g></svg>"),
+    repeating-conic-gradient(from 0deg at 50% 26%, rgba(236, 212, 154, 0.07) 0deg 4deg, transparent 4deg 9deg),
+    radial-gradient(ellipse 70% 42% at 50% 26%, rgba(240, 190, 110, 0.5), rgba(170, 96, 52, 0.22) 45%, transparent 75%),
+    linear-gradient(180deg, #3a2a1c 0%, #5a3e26 22%, #2a2018 52%, #120e0a 100%) !important;
+  background-size: 100% 46%, auto, auto, auto;
+  background-position: bottom center, center, center, center;
+  background-repeat: no-repeat;
+}
+.keyart::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(14, 11, 8, 0.25) 40%, rgba(14, 11, 8, 0.9) 78%);
+}
+@media (orientation: landscape) {
+  .keyart {
+    background-size: 100% 52%, auto, auto, auto;
+  }
+  .keyart::after {
+    background: linear-gradient(90deg, rgba(14, 11, 8, 0.05) 0%, rgba(14, 11, 8, 0.7) 55%, rgba(14, 11, 8, 0.94) 100%);
+  }
+}
+.menu {
+  background: #0e0b08;
+}
+
+/* ---------- the title ---------- */
+
+.logo {
+  font-family: var(--deco-display);
+  font-weight: 400;
+  font-size: 50px;
+  line-height: 0.95;
+  letter-spacing: 4px;
+  color: var(--cream);
+  text-shadow: 0 2px 0 #5a4220, 0 6px 24px rgba(0, 0, 0, 0.85), 0 0 36px rgba(240, 190, 110, 0.35);
+}
+.logo small {
+  display: block;
+  font-family: var(--deco-text);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 6px;
+  text-shadow: none;
+}
+.logo span {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.62em;
+  letter-spacing: 10px;
+  color: var(--gold);
+  padding: 2px 0 0 10px;
+  border-top: 1px solid rgba(201, 164, 92, 0.6);
+  border-bottom: 1px solid rgba(201, 164, 92, 0.6);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0.04em;
+}
+h2 {
+  font-family: var(--deco-display);
+  font-weight: 400;
+}
+
+/* ---------- buttons: enamel and brass ---------- */
+
+.cta {
+  font-family: var(--deco-text);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: linear-gradient(180deg, #62a89b 0%, var(--enamel) 48%, var(--enamel-d) 100%);
+  border: 1px solid var(--brass-hi);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 3px rgba(23, 19, 14, 0.55), inset 0 0 0 4px rgba(236, 212, 154, 0.45), 0 4px 14px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+}
+.cta.alt {
+  background: linear-gradient(180deg, #2a221a, #1a1510);
+  color: var(--cream);
+  border: 1px solid var(--line-hi);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.round {
+  border-color: var(--line-hi);
+  background: radial-gradient(circle at 50% 30%, #2c241a, #15110c);
+}
+
+/* segmented controls: a brass plate under the chosen one */
+.seg {
+  background: rgba(22, 18, 13, 0.88);
+  border: 1px solid var(--line-hi);
+  border-radius: 6px;
+}
+.seg button {
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.seg button.on {
+  color: #1d150b;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 60%, #9c7a3e);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* map cards: framed like museum plaques */
+.mapcard {
+  border-radius: 6px;
+  border: 1px solid var(--line-hi);
+  background: linear-gradient(180deg, rgba(34, 28, 20, 0.92), rgba(18, 15, 11, 0.92));
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.mapcard img {
+  border-radius: 3px;
+  filter: sepia(0.25) saturate(0.8);
+}
+.mapcard .mn {
+  letter-spacing: 0.04em;
+}
+.mapcard.on {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--gold), 0 6px 20px rgba(232, 200, 120, 0.22);
+}
+
+.credits a {
+  color: var(--brass);
+}
+
+/* ---------- panels and sheets: lacquer boxes with a double brass rule ---------- */
+
+.panel,
+.sheet {
+  border-radius: 8px;
+  border: 1px solid var(--brass);
+  background:
+    linear-gradient(180deg, rgba(236, 212, 154, 0.05), transparent 30%),
+    var(--panel-solid);
+  box-shadow: inset 0 0 0 4px var(--panel-solid), inset 0 0 0 5px rgba(201, 164, 92, 0.45), 0 20px 60px rgba(0, 0, 0, 0.65);
+}
+.panel h1,
+.sheet h2 {
+  font-family: var(--deco-display);
+  font-weight: 400;
+  letter-spacing: 3px;
+}
+.panel h1 {
+  color: var(--cream);
+}
+
+/* unit and building portraits: the same sun-bleach as the battlefield */
+img[src*="assets/icons/"] {
+  filter: sepia(0.14) saturate(0.86);
+}

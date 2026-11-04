@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EntityRenderer } from "../src/game/render/entities";
@@ -10,6 +11,7 @@ import { UNITS } from "../src/sim/balance";
 import { step } from "../src/sim/sim";
 import type { Faction, FxEvent, Unit, World } from "../src/sim/types";
 import { createWorld, spawnUnit } from "../src/sim/world";
+import { SIDE_HEX } from "../src/game/side-style";
 
 // The entity renderer headless: a real scene graph, a stubbed view (flat ground), no WebGL. Its light
 // pools want a canvas texture: a do-nothing canvas stands in for the DOM.
@@ -298,7 +300,7 @@ describe("an Uplink's capture bar", () => {
     return { r, frame };
   }
   const barColours = (w: World) => headless(w).frame();
-  const TEAM = { blue: 0x4fa3ff, red: 0xff5a4a, green: 0x4fd86a, purple: 0xb070ff };
+  const TEAM = SIDE_HEX;
 
   it("is the colour of the side whose bar it is on a four-player map, held or being taken", () => {
     const w = createMapWorld("compass-rose", { seed: 1, objectives: true });

@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import { finaleBanner } from "../src/game/finale";
@@ -7,6 +8,7 @@ import { clearMat, modelMat } from "../src/game/three/materials";
 import { GOLIATH, TICK_RATE, UNITS } from "../src/sim/balance";
 import type { Building, FxEvent, Unit, World } from "../src/sim/types";
 import { createWorld, spawnBuilding, spawnUnit } from "../src/sim/world";
+import { SIDE_NAME } from "../src/game/side-style";
 
 // The Goliath and Gantry views headless: a real scene graph, a stubbed view (flat ground), no WebGL
 // (as in render.test.ts). Effects are counted by name.
@@ -259,8 +261,8 @@ describe("the finale's banner", () => {
     expect(finaleBanner({ ...at, cause: "hq", winner: "red" })).toMatchObject({ key: "defeat", text: "Our HQ has fallen" });
     expect(finaleBanner({ ...at, cause: "goliath", winner: "blue" })).toMatchObject({ key: "victory", text: "Enemy Goliath destroyed" });
     expect(finaleBanner({ ...at, cause: "goliath", winner: "red" })).toMatchObject({ key: "defeat", text: "Our last Goliath has fallen" });
-    expect(finaleBanner({ ...at, spectator: true, cause: "goliath", winner: "blue" })).toMatchObject({ key: "hq-destroyed", text: "Red Goliath destroyed" });
-    expect(finaleBanner({ ...at, spectator: true, cause: "hq", winner: "red" })).toMatchObject({ key: "hq-destroyed", text: "Blue HQ destroyed" });
+    expect(finaleBanner({ ...at, spectator: true, cause: "goliath", winner: "blue" })).toMatchObject({ key: "hq-destroyed", text: `${SIDE_NAME.red} Goliath destroyed` });
+    expect(finaleBanner({ ...at, spectator: true, cause: "hq", winner: "red" })).toMatchObject({ key: "hq-destroyed", text: `${SIDE_NAME.blue} HQ destroyed` });
     expect(finaleBanner({ ...at, cause: "love", winner: "draw" })).toMatchObject({ key: "draw", sub: "It's a draw", tone: "good" });
   });
 });

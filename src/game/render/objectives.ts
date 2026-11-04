@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { OBJECTIVES, TICK_RATE } from "../../sim/balance";
 import { CRATE_NAMES, uplinkBar, uplinkPay } from "../../sim/objectives";
@@ -10,11 +11,11 @@ import { chuteGeometry, crateDef, instance, modelMesh, uplinkDef, type ModelInst
 import { Ease } from "../three/tween";
 import type { View } from "../three/view";
 import type { Fx } from "./fx";
-import { SIDE_CSS, SIDE_NAME } from "../side-style";
+import { SIDE_CSS, SIDE_HEX, SIDE_MARK_CSS, SIDE_NAME } from "../side-style";
 import { isMulti } from "../../sim/sides";
 
 /** An Uplink's pip on the minimap, in its holder's colour. */
-const MINIMAP_OWNER: Record<Faction, string> = { blue: "#4fa3ff", red: "#ff5a4a", green: "#4fd86a", purple: "#b070ff" };
+const MINIMAP_OWNER: Record<Faction, string> = { ...SIDE_MARK_CSS };
 
 /**
  * How the map objectives look and sound: the Uplink relays (a neutral
@@ -45,7 +46,7 @@ export interface ObjectiveRendererOpts {
   charted?(x: number, y: number): boolean;
 }
 
-const TEAM: Record<Faction, number> = { blue: 0x4fa3ff, red: 0xff5a4a, green: 0x4fd86a, purple: 0xb070ff };
+const TEAM: Record<Faction, number> = { ...SIDE_HEX };
 const TEAM_CSS: Record<Faction, string> = SIDE_CSS;
 const NEUTRAL = 0xe8c66a;
 const GOLD = 0xffd66e;

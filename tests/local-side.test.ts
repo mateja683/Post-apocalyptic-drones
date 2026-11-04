@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { afterEach, describe, expect, it } from "vitest";
 import { createAiState, tickAi, type StrategyName } from "../src/sim/ai/commander";
 import { worldHash } from "../src/sim/checksum";
@@ -209,7 +210,7 @@ describe("the minimap's unit blips", () => {
 
   it("look as they always did to blue's player and to a spectator", () => {
     // (the two colours the minimap drew before either side could be local: ours, then the enemy's)
-    for (const pov of ["blue", null] as const) expect([minimapDot("blue", pov), minimapDot("red", pov)]).toEqual(["#9fd0ff", "#ffb0a0"]);
+    for (const pov of ["blue", null] as const) expect([minimapDot("blue", pov), minimapDot("red", pov)]).toEqual(["#b4d2f0", "#e8a088"]); // (reskin palette, ui/hud.ts MINIMAP_SIDE)
   });
 
   it("keep side colours for red's player, with red's own army the brighter tint", () => {

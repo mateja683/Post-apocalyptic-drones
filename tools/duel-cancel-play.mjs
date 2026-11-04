@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // A game started while a cancelled duel lobby still says the end (SOUND-DUEL.md
 // "The lobby": Cancel after GO keeps the link on for 2 s, until the session
 // may close, then lets the audio go and gives the menu back its music). The
@@ -43,7 +44,7 @@ if (!base) {
   base = `http://localhost:${server.address().port}/`;
 }
 
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--autoplay-policy=no-user-gesture-required"]

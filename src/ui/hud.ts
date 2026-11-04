@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, INFANTRY as INF, LIFELINE, OBJECTIVES, POWERS, TICK_RATE, UNITS } from "../sim/balance";
 import { buildingBlocker, queuesOf, unitBlocker } from "../sim/economy";
 import { Vis } from "../sim/fog";
@@ -214,7 +215,7 @@ const SHORT: Partial<Record<UnitKind | BuildingKind, string>> = {
 
 const MINIMAP_PX = 256;
 /** Under Uncharted, unscouted ground on the minimap: solid (the usual shroud's colour, opaque). */
-const MINIMAP_SHROUD = "rgb(5,7,12)";
+const MINIMAP_SHROUD = "rgb(12,10,7)"; // (reskin: warm lacquer black)
 /**
  * Minimap marks in side colours, not friend and foe: blue is blue on both
  * phones of a sound duel. Unit blips come in two tints of each side's colour,
@@ -224,10 +225,11 @@ const MINIMAP_SHROUD = "rgb(5,7,12)";
  * dimmed by about the same step (7 L*), still clear of blue's building fill.
  */
 const MINIMAP_SIDE: Record<Faction, { building: string; own: string; foe: string; ring: string; goliath: string; goliathRim: string }> = {
-  blue: { building: "#3d8bff", own: "#9fd0ff", foe: "#78bcff", ring: "rgba(159,208,255,0.6)", goliath: "#cfe8ff", goliathRim: "#1d4f8f" },
-  red: { building: "#ff4a3a", own: "#ffccc2", foe: "#ffb0a0", ring: "rgba(255,140,120,0.6)", goliath: "#ff7a66", goliathRim: "#5a0f08" },
-  green: { building: "#2fbf55", own: "#c2f7cf", foe: "#8ee6a4", ring: "rgba(150,240,170,0.6)", goliath: "#c8ffd6", goliathRim: "#0f4d22" },
-  purple: { building: "#9a55ff", own: "#e3ccff", foe: "#c9a8ff", ring: "rgba(200,160,255,0.6)", goliath: "#e6d4ff", goliathRim: "#3a1270" }
+  // (faction palettes, side-style.ts: Harbor League cobalt, Rust Barony oxblood, Directorate verdigris, Choir violet)
+  blue: { building: "#4a83cc", own: "#b4d2f0", foe: "#8db3e0", ring: "rgba(180,210,240,0.6)", goliath: "#d6e6f6", goliathRim: "#223f6e" },
+  red: { building: "#c8553a", own: "#f6c8b6", foe: "#e8a088", ring: "rgba(232,160,136,0.6)", goliath: "#e88a6a", goliathRim: "#4a160e" },
+  green: { building: "#46ad7e", own: "#c4ecd8", foe: "#92d6b4", ring: "rgba(146,214,180,0.6)", goliath: "#d2f2e2", goliathRim: "#163f2c" },
+  purple: { building: "#9468cc", own: "#e2d2f6", foe: "#c4a6ea", ring: "rgba(196,166,234,0.6)", goliath: "#e8dcf8", goliathRim: "#341e54" }
 };
 
 /**

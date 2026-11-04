@@ -1,4 +1,40 @@
-# Battle Drones
+# Ashfall Command
+
+**Ashfall Command** is a personal reskin of [Battle Drones](https://github.com/simonw/battledrones)
+by Simon Willison, a mobile web RTS, restyled with an atomic-age, art deco,
+post-apocalyptic look: lacquered panels with brass trim, enamel buttons and a
+sun-faded battlefield. The four sides are now original factions:
+
+| Side | Faction | |
+|---|---|---|
+| Blue | **The Harbor League** | Rebuilt towns of the drowned coast, defended by citizen militia |
+| Red | **The Rust Barony** | Scrap warlords who ride the war machines of a dead army |
+| Green | **The Verdigris Directorate** | A sealed bureau of scientists, building tomorrow underground |
+| Purple | **The Choir of the Last Light** | Pilgrims of the sleeping warhead, waiting for its second dawn |
+
+## License and changes
+
+Battle Drones is licensed under the Apache License 2.0, and so is this
+derivative (see [LICENSE](LICENSE)). It is not affiliated with or endorsed by
+the original author. Changes from upstream, in summary:
+
+- Faction names, colours and palette: `src/game/side-style.ts`, with the
+  presenters' colour tables reading from it.
+- Model paint and lighting: `src/game/three/models.ts`, `stage.ts`, `materials.ts`.
+- UI theme: `src/ui/theme-atomic.css` (new), and `src/ui/style.css` recoloured by
+  `tools/reskin/warm-css.py` (new).
+- HUD portraits re-rendered from the recoloured models (`public/assets/icons/`).
+- Title, app name and credits: `index.html`, `vite.config.ts`, `src/main.ts`.
+- Tests that checked side names now read them from `side-style.ts`.
+- Fonts: Limelight and Big Shoulders Text (SIL Open Font License), via `@fontsource`.
+
+Each changed source file carries a one-line notice saying so at its top.
+
+---
+
+*The original README follows.*
+
+## Battle Drones
 
 Battle Drones is a mobile-friendly real-time strategy (RTS) game inspired by Command & Conquer: two armies of drones — flying and ground-based — battle for territory and resources.
 

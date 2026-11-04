@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -89,7 +90,7 @@ export default defineConfig({
         // There are no client-side routes. Exact precached URLs still work
         // offline, but /v1/ etc. must reach their own game and service worker.
         navigateFallback: null,
-        globPatterns: ["**/*.{js,css,html}"],
+        globPatterns: ["**/*.{js,css,html,woff2}"],
         // the battle viewer's check ahead (game/replay-check.worker.ts) carries a copy of the sim, 50 KB
         // gzipped and new with every sim change: fetched only when a replay needs checking
         globIgnores: ["**/replay-check.worker-*.js"],
@@ -109,14 +110,14 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: "Battle Drones",
-        short_name: "BattleDrones",
+        name: "Ashfall Command",
+        short_name: "Ashfall",
         description:
           "A mobile RTS: two armies of flying and ground drones battle for territory and resources.",
         display: "fullscreen",
         orientation: "any",
-        background_color: "#070a10",
-        theme_color: "#070a10",
+        background_color: "#14110c",
+        theme_color: "#14110c",
         icons: [
           // recent iOS reads the Home Screen icon from here too: PNG only, opaque
           { src: "icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },

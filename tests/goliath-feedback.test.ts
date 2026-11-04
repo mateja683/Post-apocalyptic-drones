@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The Goliath's feedback layer (GOLIATH.md): radio lines and banners for a
  * Gantry's build, rollout, modes, weapon systems and lifts; an HQ that falls
@@ -35,6 +36,7 @@ import { recapOf } from "../src/game/career";
 import { HeroPresenter } from "../src/game/hero-fx";
 import { UnitVoices } from "../src/game/voices";
 import { goliathsFielded, headline } from "../src/ui/report";
+import { SIDE_NAME } from "../src/game/side-style";
 
 // ------------------------------------------------------------ harness --
 
@@ -123,15 +125,15 @@ describe("Goliath callouts: the Gantry's build", () => {
   it("speaks like a caster to spectators, for both sides", () => {
     const r = rig({ spectator: true });
     r.at(1, build("red", "started"), build("blue", "started"));
-    expect(r.texts()).toEqual(["Red Goliath in production", "Blue Goliath in production"]);
+    expect(r.texts()).toEqual([`${SIDE_NAME.red} Goliath in production`, `${SIDE_NAME.blue} Goliath in production`]);
     r.at(60, rollout("red"));
-    expect(r.banners.at(-1)).toMatchObject({ key: "goliath-field-red", text: "Red Goliath on the field" });
+    expect(r.banners.at(-1)).toMatchObject({ key: "goliath-field-red", text: `${SIDE_NAME.red} Goliath on the field` });
     r.at(70, mode("red", "anchoring"));
-    expect(r.radio.at(-1)!.text).toBe("Red Goliath digging in");
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} Goliath digging in`);
     r.at(80, weapon("red", "mortars", "offline"));
-    expect(r.radio.at(-1)!.text).toBe("Red Goliath: mortars down");
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} Goliath: mortars down`);
     r.at(90, lift("blue", "hooked"));
-    expect(r.radio.at(-1)!.text).toBe("Blue Goliath airborne");
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.blue} Goliath airborne`);
     // never a player's line
     const all = [...r.radio.map((l) => l.text), ...r.banners.flatMap((b) => [b.text, b.sub ?? "", b.say ?? ""])];
     expect(all.some((s) => /\b(enemy|our|we)\b/i.test(s))).toBe(false);
@@ -252,7 +254,7 @@ describe("Goliath callouts: under fire, lost and destroyed", () => {
     spec.at(1, hit("red", rg.id, false, 30, 30));
     expect(spec.radio).toHaveLength(0);
     spec.at(2, hit("blue", g.id, false, 30, 10));
-    expect(spec.radio.at(-1)).toMatchObject({ text: "Blue Goliath under attack", caption: true });
+    expect(spec.radio.at(-1)).toMatchObject({ text: `${SIDE_NAME.blue} Goliath under attack`, caption: true });
   });
 
   it("a Goliath loss is always said, on screen or off, and never folded into 'Squad lost'", () => {
@@ -294,7 +296,7 @@ describe("Goliath callouts: under fire, lost and destroyed", () => {
     // spectators
     const s = rig({ spectator: true });
     s.at(1, goliathDeath("red", 8));
-    expect(s.banners.at(-1)).toMatchObject({ key: "kill-goliath", text: "Red Goliath down", sub: "Blue scores", tone: "epic" });
+    expect(s.banners.at(-1)).toMatchObject({ key: "kill-goliath", text: `${SIDE_NAME.red} Goliath down`, sub: `${SIDE_NAME.blue} scores`, tone: "epic" });
   });
 
   it("with their HQ gone, an enemy Goliath kill says how many are left", () => {
@@ -331,7 +333,7 @@ describe("Goliath callouts: the HQ falls, the match goes on", () => {
     spawnUnit(w, "goliath", "red", 30, 30);
     const r = rig({ world: w, spectator: true });
     r.at(1, hqDeath("red"));
-    expect(r.banners.at(-1)).toMatchObject({ key: "hq-fell-red", text: "Red HQ destroyed", sub: "Red's Goliath fights on" });
+    expect(r.banners.at(-1)).toMatchObject({ key: "hq-fell-red", text: `${SIDE_NAME.red} HQ destroyed`, sub: `${SIDE_NAME.red}'s Goliath fights on` });
   });
 
   it("the sim's own HQ death with a Goliath alive is no victory; the last Goliath's is, worded by what fell", () => {
@@ -366,7 +368,7 @@ describe("Goliath callouts: the HQ falls, the match goes on", () => {
     const spec = rig({ spectator: true });
     spec.w.winner = "blue";
     spec.at(10, goliathDeath("red", 5));
-    expect(spec.radio.at(-1)).toMatchObject({ key: "victory", text: "Red's last Goliath destroyed. Blue wins the battle" });
+    expect(spec.radio.at(-1)).toMatchObject({ key: "victory", text: `${SIDE_NAME.red}'s last Goliath destroyed. ${SIDE_NAME.blue} wins the battle` });
     expect(decidedByGoliath([goliathDeath("red", 5)], "red")).toBe(true);
     expect(decidedByGoliath([goliathDeath("blue", 5)], "red")).toBe(false);
     expect(decidedByGoliath([goliathDeath("red", 5), hqDeath("red")], "red")).toBe(false);
@@ -704,7 +706,7 @@ describe("Goliaths in the after-action report", () => {
       ["hq", "HQ destroyed", "Your HQ fell; your Goliath fought on for 2:00", "bad"]
     ]);
     const spec = moments({ samples: samples(600), deaths: [hqRec("blue", 480)], refs, firstBuilt }, null);
-    expect(spec.map((x) => x.text)).toEqual(["Blue's first Goliath walked off the Gantry", "Blue's HQ fell; Blue's Goliath fought on for 2:00"]);
+    expect(spec.map((x) => x.text)).toEqual([`${SIDE_NAME.blue}'s first Goliath walked off the Gantry`, `${SIDE_NAME.blue}'s HQ fell; ${SIDE_NAME.blue}'s Goliath fought on for 2:00`]);
     expect(spec.every((x) => x.tone === "neutral")).toBe(true);
     expect(moments({ samples: samples(600), deaths: [], refs, firstBuilt }, "red")[0]!.text).toBe("Their first Goliath walked off their Gantry");
     // an HQ that ended the match, or a side that never had a Goliath: no such beat
@@ -723,7 +725,7 @@ describe("Goliaths in the after-action report", () => {
     const love = c.love!;
     const mine = moments({ samples: samples(540), deaths: [], refs, love }, "blue");
     expect(mine.at(-1)).toEqual({ kind: "love", t: 540, title: "Robot Love", text: "Your Goliath and theirs fell in love mid-map: a draw", tone: "neutral" });
-    expect(moments({ samples: samples(540), deaths: [], refs, love }, null).at(-1)!.text).toBe("Blue's and Red's Goliaths fell in love mid-map: a draw");
+    expect(moments({ samples: samples(540), deaths: [], refs, love }, null).at(-1)!.text).toBe(`${SIDE_NAME.blue}'s and ${SIDE_NAME.red}'s Goliaths fell in love mid-map: a draw`);
   });
 
   it("counts Goliaths fielded, and never counts a Gantry as an idle factory", () => {
@@ -754,7 +756,7 @@ describe("Goliaths in the after-action report", () => {
     const o = { pov: "blue" as Faction, spectator: false, love: false };
     expect(headline({ ...o, winner: "blue" })).toEqual({ title: "VICTORY", cls: "win", note: null });
     expect(headline({ ...o, winner: "red" })).toEqual({ title: "DEFEAT", cls: "lose", note: null });
-    expect(headline({ ...o, winner: "red", spectator: true })).toEqual({ title: "RED WINS", cls: "lose", note: null });
+    expect(headline({ ...o, winner: "red", spectator: true })).toEqual({ title: `${SIDE_NAME.red.toUpperCase()} WINS`, cls: "lose", note: null });
     expect(headline({ ...o, winner: "draw", love: true })).toEqual({ title: "DRAW", cls: "draw", note: "💘 They fell in love" });
     expect(headline({ ...o, winner: "draw", spectator: true })).toEqual({ title: "DRAW", cls: "draw", note: null });
   });

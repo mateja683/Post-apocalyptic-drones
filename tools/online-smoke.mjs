@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Online smoke: two pages of the built app, one browser context each, play an
 // online duel through the deployed relay (relay/README.md,
 // src/versus/net-transport.ts), over the real internet.
@@ -54,7 +55,7 @@ const T0 = Date.now();
 const log = (msg) => console.log(`[${((Date.now() - T0) / 1000).toFixed(1)} s] ${msg}`);
 
 if (!existsSync(join(ROOT, "index.html"))) throw new Error("no dist/index.html: run `npm run build` first");
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   ...(process.env.HTTPS_PROXY ? { proxy: { server: process.env.HTTPS_PROXY } } : {}),

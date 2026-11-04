@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Standalone 3D models page (models.html): every unit's card (unit-info.ts)
 // beside its in-game model, which you can turn and zoom and play through its
 // animations: the same models (three/models.ts) and rigs (three/infantry.ts,
@@ -24,6 +25,7 @@ import { HOVER_H } from "./game/three/view";
 import { BUILDINGS, GOLIATH, TICK_RATE, UNITS } from "./sim/balance";
 import type { Building, BuildingKind, Faction, UnitKind } from "./sim/types";
 import { BUILDING_GROUPS, GROUPS, card, siteCard, siteName, type SiteKind } from "./unit-info";
+import { SIDE_GLOW, SIDE_HEX, SIDE_NAME } from "./game/side-style";
 
 /**
  * A model on its pad, and how it plays each of its animations. `step` poses
@@ -42,7 +44,7 @@ interface Model {
 }
 
 const BOTS: BotKind[] = ["trooper", "rocket-squad", "sniper"];
-const LASER_TINT: Record<Faction, number> = { blue: 0x7fd4ff, red: 0xff6a4a, green: 0x8affa6, purple: 0xd6a4ff }; // (render/fx.ts)
+const LASER_TINT: Record<Faction, number> = { ...SIDE_GLOW }; // (render/fx.ts)
 const FLASH = 0xffd27a;
 // the Flak Crawler's gait (render/entities.ts): stride length (tiles), swing (rad), foot lift
 const LEG_CYCLE = 0.6;
@@ -538,7 +540,7 @@ function building(kind: BuildingKind, f: Faction, glows: Glows): Model {
 }
 
 // the objectives' colours (render/objectives.ts)
-const HOLDER: Record<Faction, number> = { blue: 0x4fa3ff, red: 0xff5a4a, green: 0x4fd86a, purple: 0xb070ff };
+const HOLDER: Record<Faction, number> = { ...SIDE_HEX };
 const NEUTRAL = 0xe8c66a;
 const GOLD = 0xffd66e;
 
@@ -784,11 +786,11 @@ class Viewer {
       `<span class="sep"></span>` +
       (this.model.neutral
         ? ""
-        : b("Blue", this.faction === "blue", "faction:blue") +
-          b("Red", this.faction === "red", "faction:red", "red") +
+        : b(SIDE_NAME.blue, this.faction === "blue", "faction:blue") +
+          b(SIDE_NAME.red, this.faction === "red", "faction:red", "red") +
           // (the two sides a four-player map adds)
-          b("Green", this.faction === "green", "faction:green", "green") +
-          b("Purple", this.faction === "purple", "faction:purple", "purple")) +
+          b(SIDE_NAME.green, this.faction === "green", "faction:green", "green") +
+          b(SIDE_NAME.purple, this.faction === "purple", "faction:purple", "purple")) +
       b("↻ Spin", this.controls.autoRotate, "spin");
   }
 

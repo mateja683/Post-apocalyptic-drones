@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Cross-wiring between features built apart: calldown kill credit in the
  * presentation layers (callouts, chronicle, report, hotspots, music), the
@@ -24,6 +25,7 @@ import { Chronicle, moments, pickTip, type DeathRec } from "../src/game/chronicl
 import { HeroPresenter } from "../src/game/hero-fx";
 import { BattleMood, MUSIC, type MoodHooks } from "../src/game/score";
 import { calldownCounts, extraStatRows } from "../src/ui/report";
+import { SIDE_NAME } from "../src/game/side-style";
 
 // ------------------------------------------------------------- helpers ---
 
@@ -143,7 +145,7 @@ describe("chronicle and report", () => {
     expect(m.find((x) => x.kind === "first-blood")!.text).toBe("Your Barrage took out their Stinger");
     expect(m.find((x) => x.kind === "battle")!.text).toBe("Mid-map: you lost 2, they lost 5 (4 to your Barrage)");
     const spec = moments({ samples: [], deaths, refs }, null);
-    expect(spec.find((x) => x.kind === "battle")!.text).toContain("(4 to Blue's Barrage)");
+    expect(spec.find((x) => x.kind === "battle")!.text).toContain(`(4 to ${SIDE_NAME.blue}'s Barrage)`);
     // a strike just before the lead changed hands is the turn's story
     const army = (b: number, r: number) => ({ blue: b, red: r });
     const samples = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].map((t) => ({

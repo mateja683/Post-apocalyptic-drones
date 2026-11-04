@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { VETERAN_RETREAT, isWoundedVeteran, veteranRetreats } from "../src/sim/ai/veterans";
@@ -35,6 +36,7 @@ import {
   type TipInput
 } from "../src/game/chronicle";
 import { extraStatRows } from "../src/ui/report";
+import { SIDE_NAME } from "../src/game/side-style";
 
 // ------------------------------------------------------------ callsigns ---
 
@@ -219,7 +221,7 @@ describe("chronicle analysis", () => {
     expect(mine[2]!.text).toBe("Mid-map: you lost 1, they lost 4");
     expect(mine[1]!.text).toMatch(/^Your army overtook theirs/);
     const spec = moments({ samples: s, deaths, refs }, null);
-    expect(spec[0]!.text).toBe("Blue's Wasp took out Red's Harvester");
+    expect(spec[0]!.text).toBe(`${SIDE_NAME.blue}'s Wasp took out ${SIDE_NAME.red}'s Harvester`);
     expect(spec.every((m) => m.tone === "neutral")).toBe(true);
     expect(placeName(refs, 8, 40, "blue")).toBe("at your base");
     expect(placeName(refs, 24, 4, null)).toBe("in the north");

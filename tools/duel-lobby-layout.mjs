@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Duel lobby layout check (SOUND-DUEL.md "The lobby"): the built app at
 // ?duel=loop (a practice link: no sound, no microphone) on phone sizes in
 // both orientations, a tablet and a desktop window. At each size it taps
@@ -63,7 +64,7 @@ if (!base) {
 }
 const url = new URL("?duel=loop", base).href;
 
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]

@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import type { Announcement } from "./announce";
 import type { Faction } from "../sim/types";
 import { SIDE_NAME } from "./side-style";
@@ -210,17 +211,19 @@ export function finaleBanner(o: {
   if (o.cause === "resign") {
     if (o.winner === "draw") return { key: "draw", text: "Both resigned", sub: "Draw", tone: "info", priority: 0, x, y };
     if (o.spectator) {
-      const won = o.winner === "blue" ? "Blue" : "Red";
-      return { key: "hq-destroyed", text: `${won === "Blue" ? "Red" : "Blue"} resigned`, sub: `${won} wins`, tone: "epic", priority: 0, x, y };
+      const won = SIDE_NAME[o.winner === "blue" ? "blue" : "red"];
+      const lost = SIDE_NAME[o.winner === "blue" ? "red" : "blue"];
+      return { key: "hq-destroyed", text: `${lost} resigned`, sub: `${won} wins`, tone: "epic", priority: 0, x, y };
     }
     if (o.winner === o.player) return { key: "victory", text: "Your friend resigned", sub: "Victory", tone: "epic", priority: 0, x, y };
     return { key: "defeat", text: "You resigned", sub: "Defeat", tone: "bad", priority: 0, x, y };
   }
   if (o.winner === "draw" || o.cause === "love")
     return { key: "draw", text: "💘 They fell in love", sub: "It's a draw", tone: "good", priority: 0, x, y, say: "They fell in love. It's a draw." };
-  const loser = o.winner === "blue" ? "Red" : "Blue";
+  const loser = SIDE_NAME[o.winner === "blue" ? "red" : "blue"];
+  const winner = SIDE_NAME[o.winner === "blue" ? "blue" : "red"];
   const what = o.cause === "goliath" ? "Goliath" : "HQ";
-  if (o.spectator) return { key: "hq-destroyed", text: `${loser} ${what} destroyed`, sub: `${loser === "Red" ? "Blue" : "Red"} wins`, tone: "epic", priority: 0, x, y };
+  if (o.spectator) return { key: "hq-destroyed", text: `${loser} ${what} destroyed`, sub: `${winner} wins`, tone: "epic", priority: 0, x, y };
   if (o.winner === o.player) return { key: "victory", text: `Enemy ${what} destroyed`, sub: "Victory", tone: "epic", priority: 0, x, y };
   return { key: "defeat", text: o.cause === "goliath" ? "Our last Goliath has fallen" : "Our HQ has fallen", sub: "Defeat", tone: "bad", priority: 0, x, y };
 }

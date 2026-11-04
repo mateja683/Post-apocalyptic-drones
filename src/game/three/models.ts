@@ -1,9 +1,11 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import type { BuildingKind, Faction, UnitKind } from "../../sim/types";
 import { ModelBuilder, type Section, type Vec3 } from "./builder";
 import { GANTRY_STAGES, GOLIATH_RIG, gantryStage, goliathStatic } from "./goliath";
 import { botStatic, botHeight, J, squadStatic, type BotKind } from "./infantry";
 import { modelMat } from "./materials";
+import { SIDE_PAINT } from "../side-style";
 
 /**
  * Every vehicle, aircraft, building and map objective as a procedural
@@ -22,13 +24,14 @@ import { modelMat } from "./materials";
  * World units are tiles (1 = one map tile).
  */
 
-export const GM = 0x50575f;
-export const GM_D = 0x31353b;
-export const GM_L = 0x747d87;
-export const TRACK = 0x1c1e21;
-export const BARREL = 0x2a2d31;
-export const AMBER = 0xff9c1f;
-export const WHITE = 0xd6dbe1;
+// Reskin: worn chrome and pewter instead of cold gunmetal, cream enamel instead of white.
+export const GM = 0x5f5c56;
+export const GM_D = 0x3a3733;
+export const GM_L = 0x8a857c;
+export const TRACK = 0x1f1d1b;
+export const BARREL = 0x2e2c29;
+export const AMBER = 0xffa833;
+export const WHITE = 0xe2d8c0;
 export const HAZ = 0xe0b23a;
 export const HAZ_D = 0x2b2a28;
 const GREEN = 0x5dff8a;
@@ -43,11 +46,11 @@ interface Team {
 }
 
 export const TEAMS: Record<Faction, Team> = {
-  blue: { main: 0x2a6cf2, dark: 0x1a3f94, light: 0x7aacff },
-  red: { main: 0xe0322e, dark: 0x8c1c16, light: 0xff7a62 },
-  // (a four-player map's other two: emerald and violet, clear of the amber lights and the gold of neutral Uplinks)
-  green: { main: 0x1fae4c, dark: 0x0f5c28, light: 0x6fe08f },
-  purple: { main: 0x8a42f0, dark: 0x4a1f94, light: 0xbb8cff }
+  // (faction enamels: side-style.ts; distinct objects so teamFaction() can tell them apart)
+  blue: { ...SIDE_PAINT.blue },
+  red: { ...SIDE_PAINT.red },
+  green: { ...SIDE_PAINT.green },
+  purple: { ...SIDE_PAINT.purple }
 };
 
 /** Whose paint a team palette is. */
@@ -680,8 +683,14 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     b.drum(0.24, 0.22, 0.14, 8, [0, 1.3, 0], GM_D, { bevel: 0.02 });
     b.drum(0.245, 0.245, 0.04, 8, [0, 1.3, 0], AMBER, { glow: 0.8, bevel: 0 });
     b.drum(0.22, 0.16, 0.06, 8, [0, 1.4, 0], t.main, { bevel: 0.02 });
-    b.cyl(0.022, 0.04, 0.5, 6, [0, 1.68, 0], GM_D);
-    b.sphere(0.06, [0, 1.95, 0], AMBER, { glow: 1, w: 6, h: 4 });
+    // (reskin) a stepped deco spire instead of a plain mast: three setbacks, four team fins, a chrome needle
+    b.drum(0.15, 0.17, 0.08, 8, [0, 1.47, 0], GM_L, { bevel: 0.015 });
+    b.drum(0.11, 0.13, 0.07, 8, [0, 1.545, 0], GM, { bevel: 0.012 });
+    b.drum(0.07, 0.09, 0.06, 8, [0, 1.61, 0], GM_L, { bevel: 0.01 });
+    for (const ry of [0, Math.PI / 2, Math.PI, Math.PI * 1.5])
+      b.box(0.022, 0.24, 0.1, [Math.sin(ry) * 0.13, 1.55, Math.cos(ry) * 0.13], t.main, { rot: [0, ry, 0] });
+    b.cone(0.035, 0.32, 6, [0, 1.8, 0], WHITE);
+    b.sphere(0.05, [0, 1.96, 0], AMBER, { glow: 1, w: 6, h: 4 });
     // comms dish on the north-east roof
     b.cyl(0.03, 0.05, 0.16, 6, [0.66, 0.66, -0.66], GM_D);
     b.sphere(0.24, [0.66, 0.92, -0.7], GM_L, { w: 10, h: 3, phi: 0.9, rot: [Math.PI - 0.6, 0.7, 0] });
@@ -693,6 +702,9 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     // the main gate: dark door, lit lintel, hazard-edged ramp
     b.block(0.74, 0.28, 0.06, [0, 0.28, 1.17], GM_D, { bevel: 0.015 });
     b.box(0.62, 0.035, 0.02, [0, 0.44, 1.2], AMBER, { glow: 1 });
+    // (reskin) a stepped deco lintel over the gate
+    b.box(0.44, 0.03, 0.02, [0, 0.49, 1.19], AMBER, { glow: 0.8 });
+    b.box(0.26, 0.03, 0.02, [0, 0.53, 1.18], AMBER, { glow: 0.6 });
     b.box(0.82, 0.04, 0.38, [0, 0.12, 1.36], GM_L, { rot: [0.22, 0, 0] });
     for (const x of [-0.43, 0.43]) b.box(0.06, 0.05, 0.38, [x, 0.125, 1.36], HAZ, { rot: [0.22, 0, 0] });
     b.block(0.3, 0.12, 0.2, [-0.75, 0.64, 0.55], GM_D, { bevel: 0.02 });

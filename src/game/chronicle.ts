@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { TICK_RATE, UNITS } from "../sim/balance";
 import type { BuildingKind, Faction, FxEvent, PerSide, PowerKind, UnitKind, World } from "../sim/types";
 import { buildingCenter, hqOf } from "../sim/world";
@@ -627,7 +628,7 @@ export function moments(
     const where = placeName(c.refs, c.love.x, c.love.y, pov);
     out.push({
       kind: "love", t: c.love.t, title: "Robot Love",
-      text: pov === null ? `Blue's and Red's Goliaths fell in love ${where}: a draw` : `Your Goliath and theirs fell in love ${where}: a draw`,
+      text: pov === null ? `${SIDE_NAME.blue}'s and ${SIDE_NAME.red}'s Goliaths fell in love ${where}: a draw` : `Your Goliath and theirs fell in love ${where}: a draw`,
       tone: "neutral"
     });
   }

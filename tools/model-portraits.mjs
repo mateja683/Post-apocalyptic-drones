@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // HUD portraits shot from the in-game 3D models (ICONS.md): public/assets/icons/<kind>.webp, and
 // red/, green/ and purple/<kind>.webp for every unit and building (the objectives are neutral). Each is the model
 // gallery's ?icon=<kind> view (tools/models.ts) framed as FRAMING says, shot on black and on white
@@ -53,7 +54,7 @@ if ("all" in opt) {
   for (const f of ["red", "green", "purple"]) for (const k of [...UNITS, ...BUILDINGS]) jobs.push({ kind: k, faction: f });
 } else for (const k of args.filter((a) => !a.startsWith("--"))) jobs.push({ kind: k, faction: opt.faction ?? "blue" });
 
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]

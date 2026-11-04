@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 // Duel audio session check (SOUND-DUEL.md "Rig", "Rematch"): the built app
 // in Chromium with a fake microphone, and navigator.audioSession stubbed the
 // way Safari keeps it. Each page's type is its own and starts "auto", but
@@ -72,7 +73,7 @@ function stub() {
   console.info(`[session] page load under ${override()}`);
 }
 
-const exe = ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
+const exe = ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].find((p) => existsSync(p));
 const browser = await chromium.launch({
   executablePath: exe,
   args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]

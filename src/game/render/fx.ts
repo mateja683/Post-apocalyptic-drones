@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { sfx, type SfxName } from "../audio";
 import type { Biome, Faction, FxEvent, Projectile, WeaponFx } from "../../sim/types";
@@ -7,6 +8,7 @@ import { GM_D, modelMesh, rubbleGeometry } from "../three/models";
 import { TEX, type EmitCfg } from "../three/particles";
 import { WATER_LEVEL } from "../three/terrain";
 import { AIR_H, type P3, type View } from "../three/view";
+import { SIDE_GLOW } from "../side-style";
 
 type ShotEvent = Extract<FxEvent, { type: "shot" }>;
 
@@ -38,7 +40,7 @@ interface Flier {
   onHit?: () => void;
 }
 
-const LASER_TINT: Record<Faction, number> = { blue: 0x7fd4ff, red: 0xff6a4a, green: 0x8affa6, purple: 0xd6a4ff };
+const LASER_TINT: Record<Faction, number> = { ...SIDE_GLOW };
 const DUST_TINT: Record<Biome, number> = {
   temperate: 0x8a7453, desert: 0xd8b77a, arctic: 0xf2f6ff, volcanic: 0x5d5752, tropical: 0xe6dcc4
 };

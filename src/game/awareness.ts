@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Battle awareness and tempo: the engine-free rules behind the game-speed
  * chip, the "enemy inbound" warning, the off-screen hotspot arrows / jump
@@ -357,7 +358,7 @@ export class HeatMap {
         x: k.sx / k.w,
         y: k.sy / k.w,
         heat: k.w,
-        label: spectator ? (cls === 4 ? `${k.hq ? SIDE_NAME[k.hq] : "Blue"} HQ` : "Fight") : CLASS_LABEL[cls]!,
+        label: spectator ? (cls === 4 ? `${k.hq ? SIDE_NAME[k.hq] : SIDE_NAME.blue} HQ` : "Fight") : CLASS_LABEL[cls]!,
         priority: CLASS_PRIORITY[cls]! + Math.min(9, k.w)
       });
     }

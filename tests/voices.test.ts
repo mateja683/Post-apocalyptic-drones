@@ -1,3 +1,4 @@
+// Modified for Ashfall Command, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { TICK_RATE, UNITS } from "../src/sim/balance";
@@ -10,6 +11,7 @@ import type { Announcement } from "../src/game/announce";
 import { CALLOUTS, RADIO, BattleCallouts, RadioQueue, speakable, type RadioLine } from "../src/game/callouts";
 import { lineSeconds } from "../src/game/announcer";
 import { CHIRP, ChirpGate, VOICES, chirpPlan, groupVoices, voicePitch, type VoiceLine } from "../src/game/voices";
+import { SIDE_NAME } from "../src/game/side-style";
 
 const KINDS = Object.keys(VOICES) as UnitKind[];
 const LINES: VoiceLine[] = ["select", "move", "attack", "ready", "rank", "death"];
@@ -412,21 +414,21 @@ describe("battle callouts", () => {
     const r = rig({ spectator: true });
     const redHq = spawnBuilding(r.w, "hq", "red", 30, 30);
     r.at(1, hit("red", redHq.id, true));
-    expect(r.radio[0]).toMatchObject({ text: "Red HQ under attack", caption: true });
+    expect(r.radio[0]).toMatchObject({ text: `${SIDE_NAME.red} HQ under attack`, caption: true });
     r.at(2, death({ faction: "red" }));
-    expect(r.banners[0]).toMatchObject({ key: "first-blood", sub: "Blue strikes first", say: "First blood to Blue" });
+    expect(r.banners[0]).toMatchObject({ key: "first-blood", sub: `${SIDE_NAME.blue} strikes first`, say: `First blood to ${SIDE_NAME.blue}` });
     r.at(20, death({ faction: "blue" }), death({ faction: "blue" }));
     r.at(21);
-    expect(r.banners.at(-1)).toMatchObject({ key: "streak-2", sub: "Red", say: "Double kill for Red" });
+    expect(r.banners.at(-1)).toMatchObject({ key: "streak-2", sub: `${SIDE_NAME.red}`, say: `Double kill for ${SIDE_NAME.red}` });
     r.at(30, death({ faction: "red", unitKind: null, buildingKind: "fab-plant" }));
-    expect(r.radio.at(-1)!.text).toBe("Red Fab Plant destroyed");
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} Fab Plant destroyed`);
     // no player-only lines for a spectator
     r.w.factions.blue.pending = { kind: "fab-plant", remaining: 0, ready: true };
     r.at(40, death({ faction: "blue" }), death({ faction: "blue" }), death({ faction: "blue" }));
     expect(r.radio.some((l) => l.key === "construction" || l.key === "squad-lost")).toBe(false);
     r.w.winner = "red";
     r.at(50);
-    expect(r.radio.at(-1)!.text).toBe("Red wins the battle");
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} wins the battle`);
   });
 
   it("Condor drops: ours is flavour, the enemy's a warning where we see it; shot down says what happened", () => {
