@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, GOLIATH, TERRAIN, TICK_RATE, UNITS } from "./balance";
 import { blocksObjective } from "./objectives";
 import { isStunned } from "./powers";
@@ -8,7 +9,7 @@ import { hypot } from "./fmath";
 import { FACTIONS, sidesOf } from "./sides";
 
 /**
- * The Goliath (GOLIATH.md): a giant walking mech that is also a mobile base.
+ * The Colossus (GOLIATH.md): a giant walking mech that is also a mobile base.
  *
  * - WALKING it moves and fights. ANCHORED (GOLIATH.anchorTime to dig in,
  *   GOLIATH.packTime to pack up again) it can't move, but harvesters unload
@@ -17,12 +18,12 @@ import { FACTIONS, sidesOf } from "./sides";
  *   base for build range, so nothing is built off them.
  * - Four weapon systems (GOLIATH.weapons; combat.ts fires them) go offline as
  *   its health falls — mortars, then the laser, then the arm cannons; the
- *   machine guns always work — and only Menders' repair brings them back,
+ *   machine guns always work — and only Tinkers' repair brings them back,
  *   each after a reboot once health is a margin above the line where it went.
  * - It sees further than anything else and the enemy always sees it
- *   (UNITS.goliath.alwaysVisible). Two Condors can lift it (lift.ts).
- * - A side is beaten only once its HQ AND all its Goliaths are gone
- *   (combat.ts cleanupDeaths). Each Goliath costs GOLIATH.costStep more for
+ *   (UNITS.goliath.alwaysVisible). Two Skyliners can lift it (lift.ts).
+ * - A side is beaten only once its HQ AND all its Colossi are gone
+ *   (combat.ts cleanupDeaths). Each Colossus costs GOLIATH.costStep more for
  *   every one the side already has.
  *
  * Its state lives on the unit (Unit.goliath, created by spawnUnit).
@@ -36,7 +37,7 @@ export const LOSABLE_WEAPONS: readonly GoliathWeapon[] = ["mortars", "laser", "c
 
 // ------------------------------------------------------------ queries ---
 
-/** Is this unit a Goliath (with its state)? */
+/** Is this unit a Colossus (with its state)? */
 export const isGoliath = (u: Unit): u is Unit & { goliath: NonNullable<Unit["goliath"]> } => !!u.goliath;
 
 /** Settled in walking mode, on the ground and free to move (not digging in, packing up or on a lift). */
@@ -45,30 +46,30 @@ export const canWalk = (u: Unit): boolean => !u.goliath || (u.goliath.mode === "
 /** Fully anchored: a drop-off, a build ring, a barracks. */
 export const isAnchored = (u: Unit): boolean => u.goliath?.mode === "anchored" && !u.goliath.lift;
 
-/** Off the ground under two Condors (lift.ts): an air target, only its machine guns fire. */
+/** Off the ground under two Skyliners (lift.ts): an air target, only its machine guns fire. */
 export const isLifted = (u: Unit): boolean => u.goliath?.lift?.phase === "carrying";
 
-/** Goliaths `faction` has on the field (lifted ones included). */
+/** Colossi `faction` has on the field (lifted ones included). */
 export function goliathsOf(w: World, faction: Faction): Unit[] {
   const out: Unit[] = [];
   for (const u of w.units.values()) if (u.goliath && u.faction === faction) out.push(u);
   return out;
 }
 
-/** Anchored Goliaths of `faction` (drop-offs, build rings, barracks). */
+/** Anchored Colossi of `faction` (drop-offs, build rings, barracks). */
 export function anchoredGoliaths(w: World, faction: Faction): Unit[] {
   return goliathsOf(w, faction).filter(isAnchored);
 }
 
-/** Does `faction` have a Goliath left (on the field, or in the air)? */
+/** Does `faction` have a Colossus left (on the field, or in the air)? */
 export function hasGoliath(w: World, faction: Faction): boolean {
   for (const u of w.units.values()) if (u.goliath && u.faction === faction && u.hp > 0) return true;
   return false;
 }
 
 /**
- * What the next Goliath costs `faction`: the list price plus GOLIATH.costStep
- * of it for every Goliath the side already has — alive, or paid for and on a
+ * What the next Colossus costs `faction`: the list price plus GOLIATH.costStep
+ * of it for every Colossus the side already has — alive, or paid for and on a
  * Gantry. Losing one makes the next one cheaper again.
  */
 export function goliathCost(w: World, faction: Faction): number {
@@ -79,19 +80,19 @@ export function goliathCost(w: World, faction: Faction): number {
   return Math.round(UNITS.goliath.cost * (1 + GOLIATH.costStep * have));
 }
 
-/** What a unit of `kind` costs `faction` right now (only the Goliath's price moves). */
+/** What a unit of `kind` costs `faction` right now (only the Colossus's price moves). */
 export function unitCost(w: World, faction: Faction, kind: UnitKind): number {
   return kind === "goliath" ? goliathCost(w, faction) : UNITS[kind].cost;
 }
 
-/** Is weapon `k` of Goliath `u` able to fire right now (online, and not grounded to the machine guns by a lift)? */
+/** Is weapon `k` of Colossus `u` able to fire right now (online, and not grounded to the machine guns by a lift)? */
 export function weaponReady(u: Unit, k: GoliathWeapon): boolean {
   const g = u.goliath;
   if (!g || !g.weapons[k].online) return false;
   return k === "mg" || !isLifted(u);
 }
 
-/** The reach (tiles) of Goliath `u`'s longest-ranged weapon that is up (for threat rings and AI). */
+/** The reach (tiles) of Colossus `u`'s longest-ranged weapon that is up (for threat rings and AI). */
 export function goliathReach(u: Unit): number {
   let r = 0;
   for (const k of GOLIATH_WEAPONS) if (weaponReady(u, k)) r = Math.max(r, GOLIATH.weapons[k].range);
@@ -99,7 +100,7 @@ export function goliathReach(u: Unit): number {
 }
 
 /**
- * The reach (tiles) of Goliath `u`'s longest-ranged weapon that can fire now
+ * The reach (tiles) of Colossus `u`'s longest-ranged weapon that can fire now
  * and can hit a target in `domain` (0: none can) — how close an attack order
  * must bring it.
  */
@@ -120,7 +121,7 @@ export function weaponsDown(u: Unit): GoliathWeapon[] {
 }
 
 /**
- * How badly a Goliath wants a Mender (for the Menders' own target pick and
+ * How badly a Colossus wants a Tinker (for the Tinkers' own target pick and
  * the AI): a weapon offline, rebooting, or within a few percent of coming
  * back. 0 for anything else.
  */
@@ -143,25 +144,25 @@ export function repairUrgency(u: Unit): number {
 
 // ---------------------------------------------------------- anchoring ---
 
-/** The footprint (top-left tile and edge) of ground a Goliath standing at (x, y) needs to anchor, in its side's frame. */
+/** The footprint (top-left tile and edge) of ground a Colossus standing at (x, y) needs to anchor, in its side's frame. */
 export function anchorFootprint(w: World, faction: Faction, x: number, y: number): { tx: number; ty: number; size: number } {
   const size = GOLIATH.footprint;
   const fr = sideFrame(w, faction);
   const p = fr.toFrame({ x, y });
-  // the size² block of tiles whose middle is nearest the Goliath (in the side's own frame: mirror-fair rounding)
+  // the size² block of tiles whose middle is nearest the Colossus (in the side's own frame: mirror-fair rounding)
   const [tx, ty] = fr.tile(Math.round(p.x - size / 2), Math.round(p.y - size / 2), size);
   return { tx, ty, size };
 }
 
 /**
- * Why Goliath `u` can't anchor where it stands, as a short phrase for the HUD,
+ * Why Colossus `u` can't anchor where it stands, as a short phrase for the HUD,
  * or null when it can. It digs in anywhere a building could be placed —
  * buildable ground, no building, Uplink platform, crate or other ground unit
  * in the way — with no build-range requirement.
  */
 export function anchorBlocker(w: World, u: Unit): string | null {
   const g = u.goliath;
-  if (!g) return "Not a Goliath";
+  if (!g) return "Not a Colossus";
   if (g.lift) return "On a lift";
   if (g.mode === "anchored" || g.mode === "anchoring") return "Already anchored";
   if (g.mode === "packing") return "Packing up";
@@ -171,7 +172,7 @@ export function anchorBlocker(w: World, u: Unit): string | null {
       const x = tx + dx;
       const y = ty + dy;
       if (!inBounds(w, x, y)) return "Off the map";
-      if (w.occupancy[y * w.width + x] !== 0) return "Blocked"; // (a building, or another dug-in Goliath)
+      if (w.occupancy[y * w.width + x] !== 0) return "Blocked"; // (a building, or another dug-in Colossus)
       if (!TERRAIN[terrainAt(w, x, y)].buildable) return "Needs open ground";
     }
   if (blocksObjective(w, tx, ty, size)) return "Blocked";
@@ -189,7 +190,7 @@ export function anchorBlocker(w: World, u: Unit): string | null {
 
 /**
  * How far along an anchoring or packing transition is (0…1), or 1 when the
- * Goliath is settled. For the HUD's progress arc.
+ * Colossus is settled. For the HUD's progress arc.
  */
 export function modeProgress(u: Unit): number {
   const g = u.goliath;
@@ -198,10 +199,10 @@ export function modeProgress(u: Unit): number {
   return Math.max(0, Math.min(1, 1 - g.modeTicks / total));
 }
 
-/** Why Goliath `u` can't pack up now (null: it can). */
+/** Why Colossus `u` can't pack up now (null: it can). */
 export function packUpBlocker(u: Unit): string | null {
   const g = u.goliath;
-  if (!g) return "Not a Goliath";
+  if (!g) return "Not a Colossus";
   if (g.mode === "walking") return "Not anchored";
   if (g.mode === "packing") return "Packing up";
   return null;
@@ -226,7 +227,7 @@ export function anchor(w: World, u: Unit): boolean {
 }
 
 /**
- * Settle Goliath `u` onto the middle of its anchor footprint and stamp the
+ * Settle Colossus `u` onto the middle of its anchor footprint and stamp the
  * footprint into World.occupancy with its id, so paths go round it like a
  * building (and nothing else digs in or is built on it). Paths that ran
  * across it re-plan.
@@ -243,7 +244,7 @@ function plant(w: World, u: Unit): void {
   for (const o of w.units.values()) if (o.path && o.path.some(near)) o.path = null;
 }
 
-/** Clear a dug-in Goliath's footprint from World.occupancy (it walks again, or it fell). */
+/** Clear a dug-in Colossus's footprint from World.occupancy (it walks again, or it fell). */
 export function unplant(w: World, u: Unit): void {
   const foot = u.goliath?.foot;
   if (!foot) return;
@@ -263,7 +264,7 @@ export function packUp(w: World, u: Unit): boolean {
   return true;
 }
 
-/** Apply an `anchor` or `packUp` command (own Goliaths only). */
+/** Apply an `anchor` or `packUp` command (own Colossi only). */
 export function applyGoliathCommand(w: World, c: Extract<Command, { type: "anchor" | "packUp" }>): void {
   for (const id of c.unitIds) {
     const u = w.units.get(id);
@@ -274,7 +275,7 @@ export function applyGoliathCommand(w: World, c: Extract<Command, { type: "ancho
 }
 
 /**
- * A move or attack-move just reached Goliath `u` (sim.ts): an anchored one
+ * A move or attack-move just reached Colossus `u` (sim.ts): an anchored one
  * packs up first and walks off once it is free (movement waits for it).
  */
 export function orderedToMove(w: World, u: Unit): void {
@@ -294,8 +295,8 @@ export function distToFootprint(tx: number, ty: number, size: number, x: number,
 
 /**
  * Is a `size`² footprint at top-left (tx, ty) in the build ring of one of
- * `faction`'s anchored Goliaths (its footprint within GOLIATH.buildRing of
- * the Goliath's centre)?
+ * `faction`'s anchored Colossi (its footprint within GOLIATH.buildRing of
+ * the Colossus's centre)?
  */
 export function inGoliathRing(w: World, faction: Faction, tx: number, ty: number, size: number): boolean {
   for (const u of w.units.values())
@@ -303,7 +304,7 @@ export function inGoliathRing(w: World, faction: Faction, tx: number, ty: number
   return false;
 }
 
-/** Does a `size`² footprint at (tx, ty) overlap the body of a Goliath on the ground (any side)? */
+/** Does a `size`² footprint at (tx, ty) overlap the body of a Colossus on the ground (any side)? */
 export function overlapsGoliath(w: World, tx: number, ty: number, size: number): boolean {
   for (const u of w.units.values())
     if (u.goliath && !isLifted(u) && distToFootprint(tx, ty, size, u.x, u.y) < UNITS.goliath.radius) return true;
@@ -312,26 +313,26 @@ export function overlapsGoliath(w: World, tx: number, ty: number, size: number):
 
 // ----------------------------------------------------------- training ---
 
-/** An anchored Goliath of `faction` with this id that can train (null: none). */
+/** An anchored Colossus of `faction` with this id that can train (null: none). */
 export function goliathTrainer(w: World, id: number, faction: Faction): Unit | null {
   const u = w.units.get(id);
   return u && u.faction === faction && u.goliath ? u : null;
 }
 
-/** Can an anchored Goliath train this kind? (Robot infantry: what an Assembly Bay builds.) */
+/** Can an anchored Colossus train this kind? (Robot infantry: what a Robot Foundry builds.) */
 export const trainable = (kind: UnitKind): boolean => UNITS[kind].builtAt === "assembly-bay";
 
-/** Can an anchored Goliath build this kind in this match? Robot infantry, and under Nomads or Goliath Armada Harvesters too (no HQ to build them). */
+/** Can an anchored Colossus build this kind in this match? Robot infantry, and under Nomads or Colossus Armada Prospectors too (no HQ to build them). */
 export const trainableAt = (w: World, kind: UnitKind): boolean => trainable(kind) || (kind === "harvester" && goliathBase(w));
 
 // ------------------------------------------------------------ mutators ---
 
 /**
- * Nomads (createMapWorld, skirmish): each side's HQ is replaced by a Goliath
- * standing anchored where it stood — the base walks. The starting Harvester
- * and squad stay; the Goliath builds Harvesters (trainableAt), takes their
+ * Nomads (createMapWorld, skirmish): each side's HQ is replaced by a Colossus
+ * standing anchored where it stood — the base walks. The starting Prospector
+ * and squad stay; the Colossus builds Prospectors (trainableAt), takes their
  * scrap and lets buildings go up round it. With no HQ, a side is beaten when
- * its last Goliath falls.
+ * its last Colossus falls.
  */
 export function nomadStart(w: World): void {
   for (const f of sidesOf(w)) {
@@ -347,7 +348,7 @@ export function nomadStart(w: World): void {
 }
 
 /**
- * Robot Love (per tick, after deaths): the closest pair of enemy Goliaths
+ * Robot Love (per tick, after deaths): the closest pair of enemy Colossi
  * within GOLIATH.love.range of each other fall in love, and the match ends in
  * a draw there and then (World.love records who and where, for the
  * presentation's canned meeting). A side beaten this same tick stays beaten.
@@ -355,7 +356,7 @@ export function nomadStart(w: World): void {
 export function tickLove(w: World): void {
   if (!rulesOf(w).robotLove || w.winner) return;
   let best: { a: Unit; b: Unit; d: number } | null = null;
-  // (pairs in canonical side order: a duel's blue Goliath first, then red's)
+  // (pairs in canonical side order: a duel's blue Colossus first, then red's)
   for (const a of w.units.values()) {
     if (!a.goliath || a.hp <= 0) continue;
     for (const b of w.units.values()) {
@@ -422,16 +423,16 @@ export function tickGoliaths(w: World): void {
   }
 }
 
-/** Display name of a weapon system ("Mortars", "Eye laser"…). */
+/** Display name of a weapon system ("Bombards", "Eye laser"…). */
 export const weaponName = (k: GoliathWeapon): string => GOLIATH.weapons[k].name;
 
-/** Building kinds that can go up as outposts in a Goliath's build ring (anything but an HQ). */
+/** Building kinds that can go up as outposts in a Colossus's build ring (anything but an HQ). */
 export const outpostable = (kind: keyof typeof BUILDINGS): boolean => kind !== "hq";
 
 // ------------------------------------------------- queries for planners ---
 
 /**
- * Why a Goliath of `faction` couldn't anchor standing at (x, y), or null when
+ * Why a Colossus of `faction` couldn't anchor standing at (x, y), or null when
  * it could: anchorBlocker's ground checks for a spot it hasn't walked to yet
  * (the AI vets a site before the trip). `selfId` is never in its own way.
  */
@@ -442,7 +443,7 @@ export function anchorBlockedAt(w: World, faction: Faction, x: number, y: number
       const fx = tx + dx;
       const fy = ty + dy;
       if (!inBounds(w, fx, fy)) return "Off the map";
-      if (w.occupancy[fy * w.width + fx] !== 0) return "Blocked"; // (a building, or another dug-in Goliath)
+      if (w.occupancy[fy * w.width + fx] !== 0) return "Blocked"; // (a building, or another dug-in Colossus)
       if (!TERRAIN[terrainAt(w, fx, fy)].buildable) return "Needs open ground";
     }
   if (blocksObjective(w, tx, ty, size)) return "Blocked";
@@ -453,7 +454,7 @@ export function anchorBlockedAt(w: World, faction: Faction, x: number, y: number
 }
 
 /**
- * Share (0…1) of Goliath `u`'s firepower that can fire right now (weaponReady:
+ * Share (0…1) of Colossus `u`'s firepower that can fire right now (weaponReady:
  * online, and not grounded to its machine guns by a lift), by DPS. 0 for
  * anything else. What its threat is worth to the AI.
  */

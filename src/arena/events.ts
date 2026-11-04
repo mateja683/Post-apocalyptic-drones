@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * "Since your last turn": what one side would have heard and seen while the
  * sim ran — its losses and kills, what it built, the radio announcer's
@@ -15,7 +16,7 @@ import { unitSeenBy } from "../sim/infantry";
 import type { Faction, FxEvent, UnitKind, World } from "../sim/types";
 import { enemyOf, frameOf, type Frame } from "./frame";
 
-/** Visible armed enemies this close (tiles) to our buildings, harvesters or Goliaths are "near the base" (awareness.ts uses 12). */
+/** Visible armed enemies this close (tiles) to our buildings, harvesters or Colossi are "near the base" (awareness.ts uses 12). */
 export const NEAR_BASE = 12;
 
 interface Attacked {
@@ -24,7 +25,7 @@ interface Attacked {
   by: Set<string>;
 }
 
-/** Why a `wait` should end early: our HQ or a Goliath hit, an enemy calldown telegraphed, enemies near the base. */
+/** Why a `wait` should end early: our HQ or a Colossus hit, an enemy calldown telegraphed, enemies near the base. */
 export type Urgent = "hq" | "goliath" | "strike" | "inbound";
 
 export class SideLog {
@@ -97,7 +98,7 @@ export class SideLog {
         if (ev.faction !== side) break;
         const b = ev.building ? w.buildings.get(ev.id) : null;
         const u = ev.building ? null : w.units.get(ev.id);
-        // Goliaths are bases too, including the airborne bases under Armada.
+        // Colossi are bases too, including the airborne bases under Armada.
         if (!b && u?.kind !== "harvester" && !u?.goliath) break;
         if (b?.kind === "hq") this.urgent.add("hq");
         if (u?.goliath) this.urgent.add("goliath");
@@ -155,10 +156,10 @@ export class SideLog {
         if (ev.faction === side) this.salvage += ev.value;
         break;
       case "lifeline":
-        if (ev.faction === side) this.say(`A free Condor #${ev.id} flew in at ${at(ev.x, ev.y)}${ev.squad ? " with a Trooper Squad aboard" : ""}`);
+        if (ev.faction === side) this.say(`A free Skyliner #${ev.id} flew in at ${at(ev.x, ev.y)}${ev.squad ? " with a Tin Soldiers aboard" : ""}`);
         break;
       case "disembark":
-        if (ev.faction === side && ev.bailout) this.say(`Condor #${ev.carrierId} shot down: squads ${ev.unitIds.map((i) => "#" + i).join(" ")} bailed out at ${at(ev.x, ev.y)}`);
+        if (ev.faction === side && ev.bailout) this.say(`Skyliner #${ev.carrierId} shot down: squads ${ev.unitIds.map((i) => "#" + i).join(" ")} bailed out at ${at(ev.x, ev.y)}`);
         break;
     }
   }
@@ -217,7 +218,7 @@ export class SideLog {
   }
 }
 
-/** Visible armed enemy units within NEAR_BASE tiles of `side`'s buildings, harvesters or Goliaths. */
+/** Visible armed enemy units within NEAR_BASE tiles of `side`'s buildings, harvesters or Colossi. */
 export function nearBase(w: World, side: Faction) {
   const guards: { x: number; y: number }[] = [];
   for (const b of w.buildings.values()) if (b.faction === side) guards.push({ x: b.tx + 1, y: b.ty + 1 });

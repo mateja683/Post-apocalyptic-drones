@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { DAMAGE_VS, INFANTRY, OBJECTIVES, TERRAIN, TICK_RATE, UNITS, shotDamage } from "../src/sim/balance";
@@ -32,7 +33,7 @@ function paint(w: World, x0: number, y0: number, x1: number, y1: number, t: Terr
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) setTerrain(w, x, y, t);
 }
 
-/** A Condor with squads already aboard (as if they had boarded). */
+/** A Skyliner with squads already aboard (as if they had boarded). */
 function loadedCondor(w: World, faction: Faction, x: number, y: number, kinds: Unit["kind"][] = ["trooper", "rocket-squad"]) {
   const c = spawnUnit(w, "condor", faction, x, y);
   const squads = kinds.map((k) => {
@@ -80,7 +81,7 @@ describe("squads", () => {
   });
 });
 
-describe("precision damage (Sniper Teams)", () => {
+describe("precision damage (Longshot Teams)", () => {
   /** One sniper shot at a frozen target; returns the HP it took. */
   function snipe(kind: Unit["kind"]): number {
     const w = createWorld(20, 20);
@@ -91,13 +92,13 @@ describe("precision damage (Sniper Teams)", () => {
     return UNITS[kind].hp - v.hp;
   }
 
-  it("takes about three Trooper robots with one shot", () => {
+  it("takes about three Tin Soldier robots with one shot", () => {
     const dmg = snipe("trooper");
     expect(dmg).toBeCloseTo(shotDamage(UNITS.sniper) * 3, 9); // 50 × 3 = 150
     expect(squadAlive({ kind: "trooper", hp: UNITS.trooper.hp - dmg })).toBe(2); // 5 → 2
   });
 
-  it("wipes a full Rocket Squad with two shots", () => {
+  it("wipes a full Bazooka Squad with two shots", () => {
     const w = createWorld(20, 20);
     const sniper = spawnUnit(w, "sniper", "blue", 4.5, 5.5);
     const rockets = spawnUnit(w, "rocket-squad", "red", 10.5, 5.5);
@@ -168,7 +169,7 @@ describe("infantry terrain", () => {
   });
 });
 
-describe("boarding a Condor", () => {
+describe("boarding a Skyliner", () => {
   it("takes a second once adjacent, and takes the squad off the field", () => {
     const w = createWorld(30, 30);
     const c = spawnUnit(w, "condor", "blue", 10.5, 10.5);
@@ -209,7 +210,7 @@ describe("boarding a Condor", () => {
     expect(left[0]!.order.type).toBe("idle");
   });
 
-  it("an idle Condor comes to meet the squads boarding it", () => {
+  it("an idle Skyliner comes to meet the squads boarding it", () => {
     const w = createWorld(30, 30);
     const c = spawnUnit(w, "condor", "blue", 22.5, 10.5);
     const t = spawnUnit(w, "trooper", "blue", 4.5, 10.5);
@@ -356,7 +357,7 @@ describe("unloading", () => {
     }
   });
 
-  it("is called off by stop or a new move, and pauses while the Condor is EMP'd", () => {
+  it("is called off by stop or a new move, and pauses while the Skyliner is EMP'd", () => {
     const w = createWorld(30, 30);
     const { c } = loadedCondor(w, "blue", 5.5, 5.5);
     run(w, 3, [{ type: "unload", faction: "blue", unitIds: [c.id], x: 20.5, y: 5.5 }]);
@@ -377,7 +378,7 @@ describe("unloading", () => {
   });
 });
 
-describe("a Condor shot down", () => {
+describe("a Skyliner shot down", () => {
   it("over walkable ground: the squads bail out at half HP", () => {
     const w = createWorld(30, 30);
     const { c, squads } = loadedCondor(w, "blue", 8.5, 8.5);
@@ -417,7 +418,7 @@ describe("a Condor shot down", () => {
 });
 
 describe("crushing", () => {
-  it("a moving enemy Mastodon deals 30 HP/s to a squad it rolls over", () => {
+  it("a moving enemy Behemoth deals 30 HP/s to a squad it rolls over", () => {
     const w = createWorld(30, 12);
     const mastodon = spawnUnit(w, "mastodon", "blue", 3.5, 5.5);
     mastodon.cooldown = 1e9; // (never fires: only the treads hurt)
@@ -431,12 +432,12 @@ describe("crushing", () => {
     expect(lost).toBeCloseTo(hits.length * (INFANTRY.crushDps / TICK_RATE), 6);
     expect(hits.every((e) => e.type === "hit" && e.attackerId === mastodon.id)).toBe(true);
     expect(fx.some((e) => e.type === "crush" && e.id === squad.id && e.attackerId === mastodon.id)).toBe(true);
-    // contact lasts as long as the Mastodon takes to cross its reach and back out
+    // contact lasts as long as the Behemoth takes to cross its reach and back out
     const reach = UNITS.mastodon.radius + INFANTRY.crushReach;
     expect(hits.length).toBeLessThanOrEqual(Math.ceil((2 * reach) / (UNITS.mastodon.speed / TICK_RATE)) + 1);
   });
 
-  it("deals exactly crushDps per second under a Mastodon that keeps moving, credited to it", () => {
+  it("deals exactly crushDps per second under a Behemoth that keeps moving, credited to it", () => {
     const w = createWorld(30, 12);
     const mastodon = spawnUnit(w, "mastodon", "blue", 5.5, 5.5);
     const squad = spawnUnit(w, "trooper", "red", 5.6, 5.5);
@@ -452,7 +453,7 @@ describe("crushing", () => {
     expect(mastodon.kills).toBe(1);
   });
 
-  it("a stationary Mastodon crushes nothing", () => {
+  it("a stationary Behemoth crushes nothing", () => {
     const w = createWorld(30, 12);
     const mastodon = spawnUnit(w, "mastodon", "blue", 5.5, 5.5);
     mastodon.cooldown = 1e9;
@@ -473,7 +474,7 @@ describe("crushing", () => {
       closest = Math.min(closest, Math.hypot(mastodon.x - squad.x, mastodon.y - squad.y));
       expect(w.fx.some((e) => e.type === "crush" || e.type === "hit")).toBe(false);
     }
-    expect(mastodon.x).toBeGreaterThan(18); // the Mastodon was never held up
+    expect(mastodon.x).toBeGreaterThan(18); // the Behemoth was never held up
     expect(squad.hp).toBe(UNITS.trooper.hp);
     expect(Math.abs(squad.y - 5.5)).toBeGreaterThan(0.2); // the squad stepped off the line
     expect(closest).toBeGreaterThan(0.5);
@@ -493,14 +494,14 @@ describe("crushing", () => {
   });
 
   it("a squad walking up to a PARKED friendly vehicle shoulders past it, and arrives", () => {
-    // a mixed group sent to one point: the Stinger parks on it first
+    // a mixed group sent to one point: the Roadster parks on it first
     const w = createWorld(30, 30);
     const tank = spawnUnit(w, "stinger", "blue", 4.5, 10.5);
     const squad = spawnUnit(w, "trooper", "blue", 4.5, 11.5);
     run(w, 30 * TICK_RATE, [{ type: "move", faction: "blue", unitIds: [tank.id, squad.id], x: 15.5, y: 10.5 }]);
     expect(tank.order.type).toBe("idle");
     expect(squad.order.type).toBe("idle");
-    // a parked Stinger, Mastodon or harvester on its way, whichever way it faces
+    // a parked Roadster, Behemoth or harvester on its way, whichever way it faces
     for (const kind of ["stinger", "mastodon", "harvester"] as const)
       for (const facing of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
         const w2 = createWorld(30, 30);
@@ -523,12 +524,12 @@ describe("crushing", () => {
     expect(tank.x).toBeGreaterThan(18);
     expect(squad.x).toBe(10.5);
     expect(squad.y).toBe(5.5);
-    expect(squad.hp).toBe(UNITS.trooper.hp); // only Mastodons crush
+    expect(squad.hp).toBe(UNITS.trooper.hp); // only Behemoths crush
   });
 });
 
-describe("Sniper concealment", () => {
-  /** A red Sniper Team in a patch of woods, a blue Trooper Squad `gap` tiles east of it, fog up to date. */
+describe("Longshot concealment", () => {
+  /** A red Longshot Team in a patch of woods, a blue Tin Soldiers `gap` tiles east of it, fog up to date. */
   function woods(gap: number) {
     const w = createWorld(30, 30);
     paint(w, 12, 12, 18, 18, Terrain.Forest);
@@ -539,7 +540,7 @@ describe("Sniper concealment", () => {
     return { w, sniper, watcher };
   }
 
-  it("hides a Sniper Team in Woods from enemies beyond 3 tiles", () => {
+  it("hides a Longshot Team in Woods from enemies beyond 3 tiles", () => {
     const { w, sniper } = woods(4);
     expect(UNITS.trooper.sight).toBeGreaterThan(4); // its tile IS in sight…
     expect(concealedFrom(w, "blue", sniper)).toBe(true); // …but the woods hide it
@@ -620,8 +621,8 @@ describe("infantry and the map", () => {
   });
 });
 
-describe("the starting Trooper Squad", () => {
-  // (on the island map it starts aboard the side's Condor: counted there)
+describe("the starting Tin Soldiers", () => {
+  // (on the island map it starts aboard the side's Skyliner: counted there)
   const troopers = (w: World, f: Faction) =>
     [...w.units.values()].flatMap((u) => [u, ...(u.passengers ?? [])]).filter((u) => u.faction === f && u.kind === "trooper");
 
@@ -636,7 +637,7 @@ describe("the starting Trooper Squad", () => {
         expect(mirrorPt(w, r!)).toEqual({ x: expect.closeTo(b!.x, 9), y: expect.closeTo(b!.y, 9) });
         for (const [u, f] of [[b!, "blue"], [r!, "red"]] as const) {
           if (def.squadAboard) {
-            // aboard the map's Condor, parked beside the HQ
+            // aboard the map's Skyliner, parked beside the HQ
             expect(carrierOf(w, u.id)?.faction).toBe(f);
             expect(distToBuilding(hqOf(w, f)!, u.x, u.y)).toBeLessThanOrEqual(4);
           } else {
@@ -720,7 +721,7 @@ describe("determinism", () => {
     }
   });
 
-  it("replays a short match with infantry and Condors identically", () => {
+  it("replays a short match with infantry and Skyliners identically", () => {
     const a = play(3);
     expect(a).toContain("disembark");
     expect(play(3)).toBe(a);

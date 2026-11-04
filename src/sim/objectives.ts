@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { COMBAT, INFANTRY, OBJECTIVES, POWERS, TICK_RATE, UNITS } from "./balance";
 import { isInfantry } from "./infantry";
 import { worldPick, worldRandom } from "./rand";
@@ -34,7 +35,7 @@ export const CRATE_NAMES: Record<CrateReward, string> = {
   veterans: "Veterans",
   repair: "Field Repair",
   charge: `+${D.charge} command charge`,
-  unit: "Free Lancer"
+  unit: "Free Ray Skiff"
 };
 
 export function createObjectiveState(): ObjectiveState {
@@ -94,7 +95,7 @@ export function setupObjectives(w: World, uplinks: readonly UplinkDef[], dropSit
 
 /**
  * How much unit `u` counts in an Uplink's zone: harvesters nothing; on an
- * island relay robot infantry only (the Condor that flew them in, aircraft
+ * island relay robot infantry only (the Skyliner that flew them in, aircraft
  * and vehicles count nothing, so they can neither take it nor freeze it);
  * elsewhere aircraft half, infantry double, everything else one.
  */
@@ -404,7 +405,7 @@ export function claimCrate(w: World, c: Crate, faction: Faction, collectorId: nu
     case "repair":
       for (const u of near(D.repairRadius)) {
         const max = UNITS[u.kind].hp;
-        if (u.hp >= max || u.goliath) continue; // (only Menders repair a Goliath)
+        if (u.hp >= max || u.goliath) continue; // (only Tinkers repair a Colossus)
         const healed = Math.min(max - u.hp, max * D.repairShare);
         u.hp += healed;
         amount += healed;

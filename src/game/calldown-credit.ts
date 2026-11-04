@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { POWER_NAMES } from "../sim/powers";
 import type { Faction, FxEvent, PowerKind, World } from "../sim/types";
 import { hqOf } from "../sim/world";
@@ -10,7 +11,7 @@ import { otherSide, rivalsOf, sidesOf } from "../sim/sides";
  * `calldownImpact` event. So a calldown kill is a death whose killer is the
  * enemy HQ — a building, no unit kind — within reach of one of that side's
  * impacts this tick. A side with no HQ standing (Nomads, or one fighting on
- * with a Goliath) still calls down strikes, with no HQ to credit: then its
+ * with a Colossus) still calls down strikes, with no HQ to credit: then its
  * victims die with no killer at all, and such a death within reach counts. The presentation layers (streak callouts, the
  * chronicle and report, hero toasts, hotspots) use this to name the Barrage
  * or Sky Hammer instead of crediting "defences" or the HQ.

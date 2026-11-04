@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { STRATEGIES, createAiState, tickAi, type StrategyName } from "../src/sim/ai/commander";
 import { BUILDINGS, ECONOMY, TICK_RATE, UNITS } from "../src/sim/balance";
@@ -25,7 +26,7 @@ describe("quick-start openers", () => {
   it("leaves the classic start untouched without the option", () => {
     const w = createMapWorld("riverlands", { seed: 5 });
     for (const f of ["blue", "red"] as const) {
-      // the classic start: one harvester, and the Trooper Squad every side starts with
+      // the classic start: one harvester, and the Tin Soldiers every side starts with
       expect(units(w, f)).toHaveLength(2);
       expect(units(w, f, "harvester")).toHaveLength(1);
       expect(units(w, f, "trooper")).toHaveLength(1);
@@ -51,8 +52,8 @@ describe("quick-start openers", () => {
           expect(units(w, f, "harvester")).toHaveLength(o.harvesters);
           for (const k of new Set(o.units))
             expect(units(w, f, k)).toHaveLength(o.units.filter((x) => x === k).length);
-          // (+1: the starting Trooper Squad every side gets, opener or not —
-          // aboard on the island map, which gives a Condor too)
+          // (+1: the starting Tin Soldiers every side gets, opener or not —
+          // aboard on the island map, which gives a Skyliner too)
           const given = def.startUnits ?? [];
           expect(units(w, f)).toHaveLength(o.harvesters + o.units.length + given.length + (def.squadAboard ? 0 : 1));
           expect(units(w, f, "trooper")).toHaveLength(def.squadAboard ? 0 : 1);
@@ -98,7 +99,7 @@ describe("quick-start openers", () => {
   });
 
   it("packages are worth about the same", () => {
-    // sticker value; the Airpad is a side-grade so Air Wing carries more
+    // sticker value; the Aerodrome is a side-grade so Air Wing carries more
     // (the AI-vs-AI opener matrix puts all three within 45–55% wins)
     expect(openerValue("blitz")).toBe(openerValue("industry"));
     for (const id of OPENER_IDS) {
@@ -226,7 +227,7 @@ describe("Proving Grounds side fields", () => {
 });
 
 describe("longer fights", () => {
-  it("half of an 8-v-8 Stinger fight takes over 6 seconds to die", () => {
+  it("half of an 8-v-8 Roadster fight takes over 6 seconds to die", () => {
     const w = createWorld(40, 40);
     const A = Array.from({ length: 8 }, (_, i) => spawnUnit(w, "stinger", "blue", 8 + (i % 3) * 0.8, 16 + Math.floor(i / 3) * 0.8).id);
     const B = Array.from({ length: 8 }, (_, i) => spawnUnit(w, "stinger", "red", 30 + (i % 3) * 0.8, 16 + Math.floor(i / 3) * 0.8).id);
@@ -265,8 +266,8 @@ describe("start camera framing", () => {
       expect(field.x + 1).toBeLessThanOrEqual(box.x1);
       expect(field.y).toBeGreaterThanOrEqual(box.y0);
       expect(field.y + 1).toBeLessThanOrEqual(box.y1);
-      // the Trooper Squad on the HQ's far flank, its robots clear of the box edge
-      // (on the island map it starts aboard the Condor: frame that)
+      // the Tin Soldiers on the HQ's far flank, its robots clear of the box edge
+      // (on the island map it starts aboard the Skyliner: frame that)
       const squad = units(w, "blue", "trooper")[0] ?? units(w, "blue", "condor")[0]!;
       expect(squad.x - 1).toBeGreaterThanOrEqual(box.x0);
       expect(squad.x + 1).toBeLessThanOrEqual(box.x1);

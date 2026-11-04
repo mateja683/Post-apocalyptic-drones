@@ -306,7 +306,7 @@ describe("four-player protocol", () => {
     expect(readHostMsg(JSON.stringify({ t: "start", setup }))).toEqual({ t: "start", setup });
   });
 
-  it("splits a long unit list, keeping a lifted Goliath with its Condors in the first piece", () => {
+  it("splits a long unit list, keeping a lifted Colossus with its Skyliners in the first piece", () => {
     const ids = Array.from({ length: 200 }, (_, i) => i + 1);
     const parts = splitOrder({ type: "move", faction: "red", unitIds: ids, x: 1, y: 1 }, new Set([150, 151, 152]));
     expect(parts).toHaveLength(Math.ceil(200 / MAX_UNITS));

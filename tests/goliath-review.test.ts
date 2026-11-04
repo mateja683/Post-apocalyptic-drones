@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { GOLIATH, UNITS } from "../src/sim/balance";
 import { goliathsOf } from "../src/sim/goliath";
@@ -9,7 +10,7 @@ import { step } from "../src/sim/sim";
 import { Terrain, type Faction, type FxEvent, type Unit, type World } from "../src/sim/types";
 import { createWorld, hqOf, onHomeLand, regionAt, setTerrain, spawnBuilding, spawnUnit } from "../src/sim/world";
 
-// Regressions for the findings of the adversarial review of the Goliath sim.
+// Regressions for the findings of the adversarial review of the Colossus sim.
 
 const mirror = (w: World, p: { x: number; y: number }) => ({ x: w.width - p.x, y: w.height - p.y });
 
@@ -22,7 +23,7 @@ function paintBoth(w: World, x0: number, y0: number, x1: number, y1: number, t: 
     }
 }
 
-/** A carried Goliath of `f` at (x, y), with its two Condors hooked on. */
+/** A carried Colossus of `f` at (x, y), with its two Skyliners hooked on. */
 function carried(w: World, f: Faction, x: number, y: number): { g: Unit; a: Unit; b: Unit } {
   const g = spawnUnit(w, "goliath", f, x, y);
   const a = spawnUnit(w, "condor", f, x - 1, y);
@@ -33,7 +34,7 @@ function carried(w: World, f: Faction, x: number, y: number): { g: Unit; a: Unit
 }
 
 describe("review regressions", () => {
-  it("a harvester bound for the side's only Goliath waits, loaded, while it packs up and moves, then delivers", () => {
+  it("a harvester bound for the side's only Colossus waits, loaded, while it packs up and moves, then delivers", () => {
     const w = createMapWorld("proving-grounds", { mutators: ["nomads"] });
     const g = goliathsOf(w, "blue")[0]!;
     const h = [...w.units.values()].find((u) => u.faction === "blue" && u.kind === "harvester")!;
@@ -113,7 +114,7 @@ describe("review regressions", () => {
     expect(onHomeLand(n, "blue", island!.x, island!.y)).toBe(false);
   });
 
-  it("a move naming a Goliath before its still-hooking Condors calls the lift off and still moves the Goliath", () => {
+  it("a move naming a Colossus before its still-hooking Skyliners calls the lift off and still moves the Colossus", () => {
     const w = createWorld(40, 40);
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     const a = spawnUnit(w, "condor", "blue", 10, 10);
@@ -125,7 +126,7 @@ describe("review regressions", () => {
     expect(g.order).toMatchObject({ type: "move", x: 30, y: 30 });
   });
 
-  it("a carried Goliath shot down on the same tick as one of its Condors is credited to its own killer", () => {
+  it("a carried Colossus shot down on the same tick as one of its Skyliners is credited to its own killer", () => {
     const w = createWorld(40, 40);
     const { g, a } = carried(w, "blue", 20, 20);
     const shooter = spawnUnit(w, "raptor", "red", 30, 30);
@@ -139,7 +140,7 @@ describe("review regressions", () => {
     expect(death?.killerId).toBe(shooter.id);
   });
 
-  it("a Goliath whose mortars are down gives up an attack on a target across the water beyond its other guns", () => {
+  it("a Colossus whose mortars are down gives up an attack on a target across the water beyond its other guns", () => {
     const w = createWorld(48, 48);
     w.rules = { ...DEFAULT_RULES, bannedUnits: [], bannedBuildings: [], startUnits: [], mutators: [], fogOff: true };
     spawnBuilding(w, "hq", "blue", 1, 1);
@@ -164,7 +165,7 @@ describe("final review regressions", () => {
     return w;
   }
 
-  it("a tap on an enemy Goliath carried by Condors is a tap on an air target", async () => {
+  it("a tap on an enemy Colossus carried by Skyliners is a tap on an air target", async () => {
     const { Controller, hitTest } = await import("../src/game/controller");
     const w = field();
     const { g } = carried(w, "red", 20, 20);
@@ -180,7 +181,7 @@ describe("final review regressions", () => {
     expect(cmds.find((x) => x.type === "attack" && x.unitIds.includes(stinger.id))).toBeUndefined();
   });
 
-  it("an anchored Goliath is only told to attack what its guns reach from where it stands", async () => {
+  it("an anchored Colossus is only told to attack what its guns reach from where it stands", async () => {
     const { Controller } = await import("../src/game/controller");
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 13, 13);
@@ -202,7 +203,7 @@ describe("final review regressions", () => {
     expect(c.drainCommands()).toEqual([]);
   });
 
-  it("squads queued on a Goliath that packed up still count, and one can still be cancelled", async () => {
+  it("squads queued on a Colossus that packed up still count, and one can still be cancelled", async () => {
     const { producersOf, queuesOf } = await import("../src/sim/economy");
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 13, 13);
@@ -224,14 +225,14 @@ describe("final review regressions", () => {
     expect(w.factions.blue.scrap).toBeGreaterThan(scrap);
   });
 
-  it("under Nomads, with the Goliath on the move, the Harvester's lock says to anchor it, not to build an HQ", async () => {
+  it("under Nomads, with the Colossus on the move, the Prospector's lock says to anchor it, not to build an HQ", async () => {
     const { unitBlocker } = await import("../src/sim/economy");
     const w = createMapWorld("riverlands", { mutators: ["nomads"] });
     const g = goliathsOf(w, "blue")[0]!;
     expect(unitBlocker(w, "blue", "harvester")).toBeNull();
     step(w, [{ type: "packUp", faction: "blue", unitIds: [g.id] }]);
-    expect(unitBlocker(w, "blue", "harvester")).toBe("Anchor a Goliath");
-    // (an ordinary side that lost its HQ and has no Goliath is still told what it needs)
+    expect(unitBlocker(w, "blue", "harvester")).toBe("Anchor a Colossus");
+    // (an ordinary side that lost its HQ and has no Colossus is still told what it needs)
     const plain = createWorld(40, 40);
     spawnBuilding(plain, "hq", "red", 32, 32);
     expect(unitBlocker(plain, "blue", "harvester")).toBe(`Needs HQ`);
@@ -239,7 +240,7 @@ describe("final review regressions", () => {
 });
 
 describe("final review: integration", () => {
-  it("Archipelago under Nomads: a side that loses its Condor gets a free one at its Goliath", async () => {
+  it("Archipelago under Nomads: a side that loses its Skyliner gets a free one at its Colossus", async () => {
     const { LIFELINE, TICK_RATE } = await import("../src/sim/balance");
     const w = createMapWorld("archipelago", { seed: 3, objectives: true, mutators: ["nomads"] });
     const condor = [...w.units.values()].find((u) => u.faction === "blue" && u.kind === "condor")!;
@@ -249,7 +250,7 @@ describe("final review: integration", () => {
     expect(w.lifeline!.blue.given).toBe(1);
     const fresh = [...w.units.values()].find((u) => u.faction === "blue" && u.kind === "condor")!;
     expect(fresh.free).toBe(true);
-    // it sets down by the Goliath (the side's base), not off at the map's middle
+    // it sets down by the Colossus (the side's base), not off at the map's middle
     const g = goliathsOf(w, "blue")[0]!;
     expect(fresh.order.type === "move" ? Math.hypot(fresh.order.x - g.x, fresh.order.y - g.y) : 0).toBeLessThan(6);
   });
@@ -278,15 +279,15 @@ describe("final review: integration", () => {
     expect(named.size).toBe(victims.length);
   });
 
-  it("Nomads + Veterans: the starting Goliath rolls out at rank 1, like every other combat unit", () => {
+  it("Nomads + Veterans: the starting Colossus rolls out at rank 1, like every other combat unit", () => {
     const w = createMapWorld("riverlands", { mutators: ["nomads", "veterans"] });
     for (const f of ["blue", "red"] as const) expect(goliathsOf(w, f)[0]!.rank).toBe(1);
   });
 
-  it("an arena agent told the battle is over hears that two Goliaths fell in love", async () => {
+  it("an arena agent told the battle is over hears that two Colossi fell in love", async () => {
     const { Arena, parseSeat } = await import("../src/arena/match");
     const a = new Arena({ map: "riverlands", seed: 1, seats: { blue: parseSeat("agent"), red: parseSeat("agent") }, mutators: ["robotlove"] });
     (a.record as { end: unknown }).end = { tick: 6000, winner: null, reason: "love" };
-    expect(a.result("blue")).toMatch(/DRAW \(two Goliaths fell in love\)/);
+    expect(a.result("blue")).toMatch(/DRAW \(two Colossi fell in love\)/);
   });
 });

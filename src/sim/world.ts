@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, TERRAIN, UNITS, type TerrainInfo } from "./balance";
 import { createFog } from "./fog";
 import { createObjectiveState } from "./objectives";
@@ -266,7 +267,7 @@ export function spawnUnit(
   return unit;
 }
 
-/** A fresh Goliath: walking, every weapon system online (goliath.ts). */
+/** A fresh Colossus: walking, every weapon system online (goliath.ts). */
 export function newGoliathState(): GoliathState {
   const weapon = () => ({ online: true, reboot: -1, cooldown: 0, targetId: null, firedTick: -1000 });
   return {
@@ -281,8 +282,8 @@ export function newGoliathState(): GoliathState {
 }
 
 /**
- * A unit's domain right now: its kind's, except a Goliath carried off the
- * ground by two Condors (lift.ts), which is an air target until it is set down.
+ * A unit's domain right now: its kind's, except a Colossus carried off the
+ * ground by two Skyliners (lift.ts), which is an air target until it is set down.
  */
 export function domainOf(u: Unit): Domain {
   return u.goliath?.lift?.phase === "carrying" ? "air" : UNITS[u.kind].domain;
@@ -377,10 +378,10 @@ export function hqOf(w: World, faction: Faction): Building | null {
 
 /**
  * Somewhere harvesters unload: a drop-off building's footprint, or the
- * GOLIATH.footprint² of ground an anchored Goliath stands on (goliath.ts).
+ * GOLIATH.footprint² of ground an anchored Colossus stands on (goliath.ts).
  */
 export interface DropSite {
-  /** The building's or the Goliath's id. */
+  /** The building's or the Colossus's id. */
   id: number;
   faction: Faction;
   tx: number;
@@ -390,7 +391,7 @@ export interface DropSite {
 
 /**
  * Nearest friendly drop site to a point: a drop-off building, or an anchored
- * Goliath (packing up, it is none). With `mc`, a Goliath or an outpost (which
+ * Colossus (packing up, it is none). With `mc`, a Colossus or an outpost (which
  * can stand out on an island) only counts if a unit of that class at (x, y)
  * can drive up to it; the base's own drop-offs always count, as they always did.
  */

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { UNITS } from "../sim/balance";
 import { hash32 } from "../sim/rand";
 import type { Faction, UnitKind, World } from "../sim/types";
@@ -89,12 +90,12 @@ export const stars = (rank: number): string => "★".repeat(Math.max(0, Math.min
 
 export const killsLabel = (n: number): string => `${n} kill${n === 1 ? "" : "s"}`;
 
-/** "Viper (Lancer, 9 kills)" — the toast form. */
+/** "Viper (Ray Skiff, 9 kills)" — the toast form. */
 export function heroShort(w: World, u: { id: number; faction: Faction; kind: UnitKind; kills: number }): string {
   return `${callsignOf(w, u)} (${UNITS[u.kind].name}, ${killsLabel(u.kills)})`;
 }
 
-/** "★★ Viper · Lancer · 9 kills" — the selection-panel form. */
+/** "★★ Viper · Ray Skiff · 9 kills" — the selection-panel form. */
 export function heroLine(
   w: World,
   u: { id: number; faction: Faction; kind: UnitKind; kills: number; rank: number }

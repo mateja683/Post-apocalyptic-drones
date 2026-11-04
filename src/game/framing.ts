@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS } from "../sim/balance";
 import { predictOpenerSite } from "../sim/openers";
 import type { Faction, World } from "../sim/types";
@@ -24,7 +25,7 @@ const START_UNIT_REACH = 8;
 
 /**
  * Where a side's base is: its HQ's footprint or, with no HQ (Nomads, or the
- * HQ lost), the ground under its first Goliath — the base that walks. Null
+ * HQ lost), the ground under its first Colossus — the base that walks. Null
  * when it has neither.
  */
 export function homeBox(w: World, faction: Faction): Box | null {
@@ -39,9 +40,9 @@ export function homeBox(w: World, faction: Faction): Box | null {
 }
 
 /**
- * The opening shot: the HQ (or under Nomads the anchored Goliath), its home
+ * The opening shot: the HQ (or under Nomads the anchored Colossus), its home
  * field, where the opener's factory goes and the units the side starts with
- * (the Trooper Squad on the HQ's far flank), so the player sees their whole
+ * (the Tin Soldiers on the HQ's far flank), so the player sees their whole
  * start at a glance.
  */
 export function startBox(w: World, faction: Faction): Box | null {

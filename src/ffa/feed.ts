@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The feed of a four-player online battle (FFA.md "In the battle"): the
  * MatchFeed GameScene plays it through, on the host's page and on each
@@ -264,7 +265,7 @@ export class FfaFeed implements MatchFeed {
 
   // ------------------------------------------------------------ inside ---
 
-  /** Long unit lists split for the wire, a lifted Goliath kept with its Condors (sim/lift.ts). */
+  /** Long unit lists split for the wire, a lifted Colossus kept with its Skyliners (sim/lift.ts). */
   private prepare(cmds: readonly Command[]): Command[] {
     const out: Command[] = [];
     for (const c of cmds) {

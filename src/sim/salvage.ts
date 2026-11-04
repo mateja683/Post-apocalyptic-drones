@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, GOLIATH, SALVAGE, TICK_RATE, UNITS } from "./balance";
 import { isInfantry } from "./infantry";
 import type { Building, Faction, Unit, World, Wreck } from "./types";
@@ -38,12 +39,12 @@ export function wreckShareOf(w: World, faction: Faction): number {
 /**
  * Where a wreck dying at (x, y) comes to rest: the spot itself if a tank
  * could stand there, else the closest point of a passable tile within
- * `SALVAGE.shiftRadius` (aircraft over rock, a Lancer sinking near the bank,
+ * `SALVAGE.shiftRadius` (aircraft over rock, a Ray Skiff sinking near the bank,
  * a drone crashing onto a building), else null (lost in the lava).
  */
 export function wreckRestingSpot(w: World, x: number, y: number, faction?: Faction): { x: number; y: number } | null {
   // (with a faction, scanned in its side's frame, so mirror-image falls rest as mirror images: a
-  // Goliath dropped onto a building, lift.ts; without one, the world's frame as wrecks always were)
+  // Colossus dropped onto a building, lift.ts; without one, the world's frame as wrecks always were)
   const fr = sideFrame(w, faction);
   const p = fr.toFrame({ x, y });
   const pass = (fx: number, fy: number) => groundPassable(w, ...fr.tile(fx, fy, 1));
@@ -123,7 +124,7 @@ export function scatterPiles(
 }
 
 /**
- * A fallen Goliath leaves no hull, but its salvage scattered over a wide
+ * A fallen Colossus leaves no hull, but its salvage scattered over a wide
  * area (GOLIATH.salvage): several scrap piles, so collecting all of it means
  * holding the ground. Over water most of it is lost.
  */
@@ -135,7 +136,7 @@ function scatterGoliath(w: World, u: Unit): Wreck[] {
 }
 
 /**
- * A Gantry destroyed with a Goliath on its cradle: the build is lost, and
+ * A Gantry destroyed with a Colossus on its cradle: the build is lost, and
  * scrap scatters around it in proportion to how far it had got
  * (GOLIATH.gantrySalvage: a share of what was paid × progress).
  */
@@ -152,7 +153,7 @@ export function scatterGantry(w: World, b: Building): Wreck[] {
   return scatterPiles(w, b.faction, c.x, c.y, value, count, S.spread + BUILDINGS.gantry.size / 2, b.faction === "red" ? Math.PI : 0, "gantry-salvage");
 }
 
-/** Leave a wreck where unit `u` died (called from cleanupDeaths); a Goliath scatters scrap piles instead (and returns the first). */
+/** Leave a wreck where unit `u` died (called from cleanupDeaths); a Colossus scatters scrap piles instead (and returns the first). */
 export function leaveWreck(w: World, u: Unit): Wreck | null {
   if (u.free) return null; // a map-given unit cost nothing, so it leaves nothing to cash in
   if (u.goliath) return scatterGoliath(w, u)[0] ?? null;

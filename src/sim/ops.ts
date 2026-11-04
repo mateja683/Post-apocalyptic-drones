@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, TICK_RATE, UNITS } from "./balance";
 import { createAiState, type AiState, type Difficulty, type Strategy, type StrategyName } from "./ai/commander";
 import { nearestReachableResource } from "./economy";
@@ -157,8 +158,8 @@ export const OPS: OpDef[] = [
     icon: "🌉",
     tagline: "Hold the river crossing against a Rush",
     brief:
-      "We hold the west end of the Riverlands bridge: two turrets, a Depot on the crystal field and a Stinger squad. Red's Rush commander wants that crossing. Hold it for 4:00.",
-    tip: "Stingers and Turrets shred Rush's light tanks. Build a Fab Plant early and send reinforcements up the road to the bridge.",
+      "We hold the west end of the Riverlands bridge: two turrets, a Depot on the crystal field and a Roadster squad. Red's Rush commander wants that crossing. Hold it for 4:00.",
+    tip: "Roadsters and Pillboxes shred Rush's light tanks. Build a Motor Works early and send reinforcements up the road to the bridge.",
     map: "riverlands",
     // bigger waves than a stock Rush: it masses ~1,200 scrap of tanks before each push
     // (and the four harvesters this op was tuned against: skirmish Rush now keeps five)
@@ -178,11 +179,11 @@ export const OPS: OpDef[] = [
     },
     goals: [
       { type: "survive", secs: 240 },
-      { type: "protect", tag: "bridge", min: 1, label: "Keep a bridge turret standing", short: "Turrets" }
+      { type: "protect", tag: "bridge", min: 1, label: "Keep a bridge turret standing", short: "Pillboxes" }
     ],
     stars: [
       { type: "maxLosses", n: 6 },
-      { type: "protect", tag: "bridge", min: 2, label: "Both bridge turrets standing", short: "Turrets" }
+      { type: "protect", tag: "bridge", min: 2, label: "Both bridge turrets standing", short: "Pillboxes" }
     ]
   },
   {
@@ -191,8 +192,8 @@ export const OPS: OpDef[] = [
     icon: "🌙",
     tagline: "Deliver 10,000 scrap under Air Swarm raids",
     brief:
-      "The refinery needs 10,000 scrap before the convoy leaves at 5:00. Red's Air Swarm hunts harvesters with Wasps from the first minute. Keep the haul coming.",
-    tip: "Flak Crawlers and Turrets by the field keep Wasps off your harvesters. More harvesters, more scrap — but only if they live.",
+      "The refinery needs 10,000 scrap before the convoy leaves at 5:00. Red's Air Swarm hunts harvesters with Comets from the first minute. Keep the haul coming.",
+    tip: "Skyguards and Pillboxes by the field keep Comets off your harvesters. More harvesters, more scrap — but only if they live.",
     map: "dune-sea",
     ai: { strategy: "airswarm", difficulty: "hard" },
     setup(_w, o) {
@@ -215,8 +216,8 @@ export const OPS: OpDef[] = [
     icon: "🎯",
     tagline: "A strike group, no factories, 3:00",
     brief:
-      "No base, no reinforcements: two Mastodons, three Stingers, two Hornets, two Raptors and a Mender, with a Trooper Squad guarding the HQ. Red's HQ sits behind two SAM sites, three turrets, Flak and a fighter screen. Take it down within 3:00.",
-    tip: "Move as one group — whatever arrives alone dies alone. Stingers kill the Flak, Raptors the fighters, Hornets flatten SAM sites; then everything on the HQ.",
+      "No base, no reinforcements: two Behemoths, three Roadsters, two Thunderheads, two Jetstreams and a Tinker, with a Tin Soldiers guarding the HQ. Red's HQ sits behind two Sky Batteries, three turrets, Skyguard and a fighter screen. Take it down within 3:00.",
+    tip: "Move as one group — whatever arrives alone dies alone. Roadsters kill the Skyguard, Jetstreams the fighters, Thunderheads flatten Sky Batteries; then everything on the HQ.",
     map: "proving-grounds",
     ai: { strategy: "balanced", difficulty: "easy", tweak: DEFENSIVE },
     focus: { x: 10, y: 39 },
@@ -278,13 +279,13 @@ export const OPS: OpDef[] = [
     icon: "🏴‍☠️",
     tagline: "Air only: sink their HQ before 7:00",
     brief:
-      "Fab Plants and the Condor are off-limits: this is an air raid. Red is digging in behind SAM sites you haven't seen yet, and every Wasp you show it teaches it to build more Flak. Scout first, then sink their HQ before 7:00.",
-    tip: "A Scout finds the SAM sites. Raptors beat their fighters, Hornets flatten SAMs and the HQ. Don't feed bombers into anti-air one at a time.",
+      "Motor Works and the Skyliner are off-limits: this is an air raid. Red is digging in behind Sky Batteries you haven't seen yet, and every Comet you show it teaches it to build more Skyguard. Skylark first, then sink their HQ before 7:00.",
+    tip: "A Skylark finds the Sky Batteries. Jetstreams beat their fighters, Thunderheads flatten Sky Batteries and the HQ. Don't feed bombers into anti-air one at a time.",
     map: "ashlands",
     // a commander that digs in (never attacks) on half income: the clock is the enemy
     ai: { strategy: "balanced", difficulty: "easy", tweak: DEFENSIVE },
-    // (ground units are banned too, so a Drop Pod lands Wasps and a Raptor: it stays an air raid;
-    // the starting Trooper Squad stays home — no Condor to fly it — and no more infantry can be raised)
+    // (ground units are banned too, so a Drop Pod lands Comets and a Jetstream: it stays an air raid;
+    // the starting Tin Soldiers stays home — no Skyliner to fly it — and no more infantry can be raised)
     rules: { playerBans: { units: NO_GROUND_COMBAT, buildings: ["fab-plant", "assembly-bay"] }, enemyIncome: 0.5 },
     scrap: 800,
     setup(_w, o) {
@@ -308,7 +309,7 @@ export const OPS: OpDef[] = [
     tagline: "Double damage, double speed, 6:00",
     brief:
       "Glass Cannons and Rapid Fab for both sides: every weapon hits twice as hard and everything builds in half the time. Red's Rush commander loves it. Destroy their HQ within 6:00.",
-    tip: "Fights end in seconds: never trade one at a time. Turrets hit twice as hard too — a couple buy you time to mass an army.",
+    tip: "Fights end in seconds: never trade one at a time. Pillboxes hit twice as hard too — a couple buy you time to mass an army.",
     map: "dune-sea",
     // (the four harvesters this op was tuned against: skirmish Rush now keeps five)
     ai: { strategy: "rush", difficulty: "normal", tweak: { harvesters: 4 } },
@@ -325,8 +326,8 @@ export const OPS: OpDef[] = [
     icon: "🛡",
     tagline: "Survive Ironclad on Hard for 6:00",
     brief:
-      "Ironclad on Hard: Mastodons, Lancers and Mortars rolling around the frozen sea, with a bigger economy than yours. You have a Fab Plant and a Tech Lab. Hold out for 6:00.",
-    tip: "Lancers burn through Mastodons and Wasps strike them from the air. Mortars outrange your Turrets — hunt them with Stingers.",
+      "Ironclad on Hard: Behemoths, Ray Skiffs and Bombards rolling around the frozen sea, with a bigger economy than yours. You have a Motor Works and an Atomic Lab. Hold out for 6:00.",
+    tip: "Ray Skiffs burn through Behemoths and Comets strike them from the air. Bombards outrange your Pillboxes — hunt them with Roadsters.",
     map: "frostbite",
     ai: { strategy: "ironclad", difficulty: "hard" },
     setup(_w, o) {
@@ -468,7 +469,7 @@ const fmtNum = (n: number): string => Math.floor(n).toLocaleString("en-US");
 const kindName = (k: UnitKind | BuildingKind): string => (k in UNITS ? UNITS[k as UnitKind].name : BUILDINGS[k as BuildingKind].name);
 const plural = (k: UnitKind | BuildingKind, n: number): string => (n === 1 ? kindName(k) : `${kindName(k)}s`);
 
-/** Living members of a protect goal's group, and how many there were (squads aboard a Condor count). */
+/** Living members of a protect goal's group, and how many there were (squads aboard a Skyliner count). */
 function protectCount(w: World, st: OpsState, g: Extract<Goal, { type: "protect" }>): { alive: number; total: number } {
   if (g.tag) {
     const ids = st.tags[g.tag] ?? [];
@@ -627,19 +628,19 @@ export function tickOps(w: World): void {
     book[kind] = (book[kind] ?? 0) + 1;
     if (Object.values(st.tags).some((ids) => ids.includes(ev.id))) st.lastTagDeath = { x: ev.x, y: ev.y };
   }
-  // an op is a base to hold: our HQ falling loses it, even with a Goliath still standing
+  // an op is a base to hold: our HQ falling loses it, even with a Colossus still standing
   if (!w.winner && !hqOf(w, st.player)) {
     const fell = deathOf(w, (ev) => ev.buildingKind === "hq" && ev.faction === st.player);
     finish(w, op, st, false, "Our HQ has fallen", fell ? { x: fell.x, y: fell.y } : centreOf(w, st.player), false);
     return;
   }
-  // an HQ (or an enemy's last Goliath, its HQ already gone) fell this tick: combat already named the winner
+  // an HQ (or an enemy's last Colossus, its HQ already gone) fell this tick: combat already named the winner
   if (w.winner) {
     const won = w.winner === st.player;
     const hq = won ? null : hqOf(w, st.player);
     const lastGoliath = won ? deathOf(w, (ev) => ev.unitKind === "goliath" && ev.faction === st.enemy) : undefined;
     const enemyHqFell = !!deathOf(w, (ev) => ev.buildingKind === "hq" && ev.faction === st.enemy);
-    if (lastGoliath && !enemyHqFell) finish(w, op, st, true, "Enemy Goliath destroyed", { x: lastGoliath.x, y: lastGoliath.y }, false);
+    if (lastGoliath && !enemyHqFell) finish(w, op, st, true, "Enemy Colossus destroyed", { x: lastGoliath.x, y: lastGoliath.y }, false);
     else finish(w, op, st, won, won ? "Enemy HQ destroyed" : "Our HQ has fallen", hq ? buildingCenter(hq) : centreOf(w, won ? st.enemy : st.player), false);
     return;
   }

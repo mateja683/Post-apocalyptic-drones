@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Squads: three thumb-sized control groups for phones. Engine-free and
  * tested; the chips live in ../ui/command.ts, the Controller owns one.
@@ -5,9 +6,9 @@
  * A unit belongs to at most one squad (saving it into another moves it),
  * so each chip's count, health bar and "hurt" flash are unambiguous.
  *
- * Infantry aboard a Condor have left the field (src/sim/transport.ts) but
+ * Infantry aboard a Skyliner have left the field (src/sim/transport.ts) but
  * are still members: the chip keeps counting them, and selecting the squad
- * selects the Condor carrying them (the one thing you can order about).
+ * selects the Skyliner carrying them (the one thing you can order about).
  */
 import { UNITS } from "../sim/balance";
 import type { Faction, FxEvent, Unit, UnitKind, World } from "../sim/types";
@@ -58,7 +59,7 @@ export class Squads {
     this.version++;
   }
 
-  /** Drop members that died (members riding in a Condor stay). */
+  /** Drop members that died (members riding in a Skyliner stay). */
   prune(w: World): void {
     let aboard: Map<number, Aboard> | null = null;
     for (let i = 0; i < this.slots.length; i++) {
@@ -72,13 +73,13 @@ export class Squads {
 
   /**
    * What selecting squad i selects: its members on the field, plus the
-   * Condor carrying any member aboard (each once).
+   * Skyliner carrying any member aboard (each once).
    */
   ids(i: number, w: World): number[] {
     const out: number[] = [];
     let aboard: Map<number, Aboard> | null = null;
     for (const id of this.slots[i] ?? []) {
-      // (a member Condor may already be in, for a member riding in it)
+      // (a member Skyliner may already be in, for a member riding in it)
       if (w.units.has(id)) {
         if (!out.includes(id)) out.push(id);
       } else {
@@ -90,7 +91,7 @@ export class Squads {
     return out;
   }
 
-  /** Living members of squad i, on the field or aboard a Condor. */
+  /** Living members of squad i, on the field or aboard a Skyliner. */
   members(i: number, w: World): Unit[] {
     const out: Unit[] = [];
     let aboard: Map<number, Aboard> | null = null;
@@ -139,7 +140,7 @@ export class Squads {
   }
 
   /**
-   * Where the camera should go for squad i: the member (or carrying Condor)
+   * Where the camera should go for squad i: the member (or carrying Skyliner)
    * nearest the centroid, so a squad split in two doesn't land on empty ground.
    */
   focus(i: number, w: World): { x: number; y: number } | null {

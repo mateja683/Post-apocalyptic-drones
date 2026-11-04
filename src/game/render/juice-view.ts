@@ -82,7 +82,7 @@ export class CombatJuice {
   private death(ev: Extract<FxEvent, { type: "death" }>): void {
     const h = this.host;
     const ours = ev.faction === h.player;
-    // (a building is seen where any tile of its footprint is: the sim's rule, and its blast's; a Goliath
+    // (a building is seen where any tile of its footprint is: the sim's rule, and its blast's; a Colossus
     // or a Gantry the enemy always sees, so its death is seen wherever it falls)
     const always = ev.buildingKind ? !!BUILDINGS[ev.buildingKind].alwaysVisible : !!ev.unitKind && !!UNITS[ev.unitKind].alwaysVisible;
     const seen = ours || always || (ev.buildingKind ? this.footprintSeen(ev.x, ev.y, BUILDINGS[ev.buildingKind].size) : h.sees(ev.x, ev.y));
@@ -226,7 +226,7 @@ export class CombatJuice {
    * space, crisp at every zoom. (x, y) is the bar's top-left in CSS px;
    * `hgt` its fill height (buildings take a taller one). `marks` notch
    * thresholds (shares of full health) taller than the segment ticks: a
-   * Goliath's, where each weapon goes offline — pale while the weapon is
+   * Colossus's, where each weapon goes offline — pale while the weapon is
    * up, amber while it is down (`down`, per mark; without it, once the
    * health has fallen below the mark).
    */

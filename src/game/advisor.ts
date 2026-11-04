@@ -1,13 +1,14 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Build advisor: the player-side twin of the AI's adaptive production.
  * Engine-free and tested; the badges are drawn by ../ui/command.ts.
  *
  * - EnemyIntel remembers which enemy units the player has actually SEEN
  *   (fog-respecting: only units standing on tiles the player sees right
- *   now, and never a Sniper Team hidden in the woods), forgetting each one
+ *   now, and never a Longshot Team hidden in the woods), forgetting each one
  *   a minute after its last sighting.
  * - counterAdvice turns that into "build this": a button glows with ⚔ when
- *   the kinds it counters have been seen at least twice (one Goliath is
+ *   the kinds it counters have been seen at least twice (one Colossus is
  *   threat enough on its own) and the player's own force of that kind
  *   doesn't already match them.
  * - IdleWatch nudges when a factory has sat idle while the player could
@@ -28,7 +29,7 @@ export const ADVISOR = {
   minSeen: 2,
   /**
    * A sighting of something this expensive counts as one more sighting per
-   * this much scrap (a lone Goliath, ~1,600, counts twice: it lights its
+   * this much scrap (a lone Colossus, ~1,600, counts twice: it lights its
    * counters on its own; nothing cheaper than this is weighted).
    */
   heavyValue: 800,
@@ -44,7 +45,7 @@ type Threat = UnitKind | "turret" | "sam-site";
 
 /**
  * What each build option beats, from the cost-equal duel matrix
- * (`tools/balance.ts duels`) and the info cards. Scouts and harvesters are
+ * (`tools/balance.ts duels`) and the info cards. Skylarks and harvesters are
  * left out on purpose: seeing them shouldn't make anything glow.
  */
 export const COUNTERS: Partial<Record<UnitKind | BuildingKind, Threat[]>> = {
@@ -56,9 +57,9 @@ export const COUNTERS: Partial<Record<UnitKind | BuildingKind, Threat[]>> = {
   wasp: ["stinger", "mortar", "mastodon", "lancer", "goliath"],
   raptor: ["wasp", "hornet", "mender", "condor"],
   hornet: ["mastodon", "mortar", "trooper", "rocket-squad", "sniper", "goliath"],
-  // robot infantry (INFANTRY.md): Troopers out-trade the anti-armour Rocket Squads,
-  // Rocket Squads kill Mastodons and Hornets, Snipers delete other infantry;
-  // the Goliath is tuned to fall to Rocket Squads, Wasps, Lancers and Hornets (GOLIATH.md)
+  // robot infantry (INFANTRY.md): Tin Soldiers out-trade the anti-armour Bazooka Squads,
+  // Bazooka Squads kill Behemoths and Thunderheads, Longshots delete other infantry;
+  // the Colossus is tuned to fall to Bazooka Squads, Comets, Ray Skiffs and Thunderheads (GOLIATH.md)
   trooper: ["rocket-squad"],
   "rocket-squad": ["mastodon", "hornet", "goliath"],
   sniper: ["trooper", "rocket-squad", "sniper"],
@@ -67,18 +68,18 @@ export const COUNTERS: Partial<Record<UnitKind | BuildingKind, Threat[]>> = {
 };
 
 const PLURAL: Partial<Record<Threat, string>> = {
-  "sam-site": "SAM Sites",
-  "flak-crawler": "Flak",
-  trooper: "Trooper Squads",
-  "rocket-squad": "Rocket Squads",
-  sniper: "Sniper Teams"
+  "sam-site": "Sky Batteries",
+  "flak-crawler": "Skyguard",
+  trooper: "Tin Soldier squads",
+  "rocket-squad": "Bazooka Squads",
+  sniper: "Longshot Teams"
 };
 export const plural = (k: Threat): string =>
   PLURAL[k] ?? `${k in UNITS ? UNITS[k as UnitKind].name : BUILDINGS[k as BuildingKind].name}s`;
 
 const threatCost = (k: Threat): number => (k in UNITS ? UNITS[k as UnitKind].cost : BUILDINGS[k as BuildingKind].cost);
 
-/** How many sightings one enemy of this kind is worth toward ADVISOR.minSeen (a Goliath: two). */
+/** How many sightings one enemy of this kind is worth toward ADVISOR.minSeen (a Colossus: two). */
 export const sightingWeight = (k: Threat): number => Math.max(1, Math.floor(threatCost(k) / ADVISOR.heavyValue));
 
 /** Fog-respecting memory of the enemy units this faction has seen. */
@@ -149,7 +150,7 @@ export function counterAdvice(
 function ownValue(w: World, faction: Faction, kind: UnitKind | BuildingKind): number {
   let n = 0;
   if (kind in UNITS) {
-    // (squads riding in a Condor are off the field, but still ours; so are those a Goliath is training)
+    // (squads riding in a Skyliner are off the field, but still ours; so are those a Colossus is training)
     for (const u of w.units.values())
       if (u.faction === faction) {
         if (u.kind === kind) n++;
@@ -165,7 +166,7 @@ function ownValue(w: World, faction: Faction, kind: UnitKind | BuildingKind): nu
   return n * BUILDINGS[kind as BuildingKind].cost;
 }
 
-/** "Counters Wasps (seen ×4), Hornets (×2)" for the info card, or null. */
+/** "Counters Comets (seen ×4), Thunderheads (×2)" for the info card, or null. */
 export function adviceNote(a: Advice): string | null {
   if (a.threats.length === 0) return null;
   const [first, ...rest] = a.threats;
@@ -176,7 +177,7 @@ export function adviceNote(a: Advice): string | null {
 export type FactoryTab = "ground" | "infantry" | "air";
 
 /**
- * The build-bar tab of each factory. (No Gantry: it builds one Goliath at a
+ * The build-bar tab of each factory. (No Gantry: it builds one Colossus at a
  * time and sits idle between them by design, so it never earns an "idle".)
  */
 export const FACTORY_TAB: Partial<Record<BuildingKind, FactoryTab>> = { "fab-plant": "ground", "assembly-bay": "infantry", airpad: "air" };

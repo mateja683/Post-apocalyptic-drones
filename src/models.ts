@@ -46,7 +46,7 @@ interface Model {
 const BOTS: BotKind[] = ["trooper", "rocket-squad", "sniper"];
 const LASER_TINT: Record<Faction, number> = { ...SIDE_GLOW }; // (render/fx.ts)
 const FLASH = 0xffd27a;
-// the Flak Crawler's gait (render/entities.ts): stride length (tiles), swing (rad), foot lift
+// the Skyguard's gait (render/entities.ts): stride length (tiles), swing (rad), foot lift
 const LEG_CYCLE = 0.6;
 const LEG_SWING = 0.32;
 const LEG_LIFT = 0.07;
@@ -142,7 +142,7 @@ function shots(): (t: number, every: number) => boolean {
   };
 }
 
-/** Any unit but the squads, the Condor and the Goliath: hulls, turrets, rotors, legs. */
+/** Any unit but the squads, the Skyliner and the Colossus: hulls, turrets, rotors, legs. */
 function vehicle(kind: UnitKind, f: Faction, glows: Glows): Model {
   const u = UNITS[kind];
   const m = instance(unitDef(kind, f));
@@ -255,7 +255,7 @@ function vehicle(kind: UnitKind, f: Faction, glows: Glows): Model {
   };
 }
 
-/** The Condor: two squads seated in its bay, coming down low to drop its ramp. */
+/** The Skyliner: two squads seated in its bay, coming down low to drop its ramp. */
 function condor(f: Faction): Model {
   const c = instance(unitDef("condor", f));
   const s = unitScale("condor");
@@ -328,7 +328,7 @@ function squad(kind: BotKind, f: Faction, glows: Glows): Model {
 
 const REST: GoliathPose = { dt: 0, speed: 0, lower: 0, spikes: 0, unfold: 0, yaw: 0, pitch: 0, droop: 0, pods: 0, eye: 1, hang: 0, crane: 0, look: 0 };
 
-/** The Goliath: walking, anchoring, every weapon firing, knocked offline and rebooting, and in love. */
+/** The Colossus: walking, anchoring, every weapon firing, knocked offline and rebooting, and in love. */
 function goliath(f: Faction, glows: Glows): Model {
   const rig = new GoliathRig(f);
   rig.root.scale.setScalar(unitScale("goliath"));
@@ -399,11 +399,11 @@ function goliath(f: Faction, glows: Glows): Model {
 }
 
 const TOTAL = UNITS.goliath.buildTime * TICK_RATE;
-/** The Gantry's Build Goliath loop (s): the build sped up, the rollout as the game plays it, a pause. */
+/** The Gantry's Build Colossus loop (s): the build sped up, the rollout as the game plays it, a pause. */
 const G_BUILD = 16;
 const G_ROLL = 5;
 const G_CYCLE = G_BUILD + G_ROLL + 1.5;
-/** The deck a Goliath stands on, on the Gantry's cradle (render/goliath.ts CRADLE_H). */
+/** The deck a Colossus stands on, on the Gantry's cradle (render/goliath.ts CRADLE_H). */
 const CRADLE_H = 0.285;
 
 /** A building: idle, going up, damaged and smoking, rubble; turrets aiming and firing; the Radar sweeping; the Gantry at work. */
@@ -418,7 +418,7 @@ function building(kind: BuildingKind, f: Faction, glows: Glows): Model {
   const armed = st.targets !== "none";
   const anims = [
     ...(kind === "radar" ? ["Sweep"] : []),
-    ...(kind === "gantry" ? ["Build Goliath"] : []),
+    ...(kind === "gantry" ? ["Build Colossus"] : []),
     ...(armed && m.turret ? ["Aim"] : []),
     ...(armed ? ["Fire"] : []),
     "Idle",
@@ -507,7 +507,7 @@ function building(kind: BuildingKind, f: Faction, glows: Glows): Model {
       }
       if (gantry) {
         const g = gantry;
-        const c = anim === "Build Goliath" ? t % G_CYCLE : -1;
+        const c = anim === "Build Colossus" ? t % G_CYCLE : -1;
         if (c >= 0 && c < G_BUILD) {
           // a fresh build each loop: the sim's queue counting down its ticks
           if (!g.head || c < 0.1) g.head = { kind: "goliath", remaining: TOTAL };
@@ -531,7 +531,7 @@ function building(kind: BuildingKind, f: Faction, glows: Glows): Model {
           g.rig.root.visible = true;
           g.rig.root.position.set(0, CRADLE_H * (1 - smooth((z - 1.1) / 0.5)), z);
           g.rig.update({ ...REST, dt: dt * 1000, speed: walking ? UNITS.goliath.speed : 0 });
-        } else if (anim !== "Build Goliath") g.rig.root.visible = false;
+        } else if (anim !== "Build Colossus") g.rig.root.visible = false;
         g.view.update(g.b as unknown as Building, dt * 1000, 0, true);
       }
       return [0, 0];

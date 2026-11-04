@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { STRATEGIES, createAiState, tickAi, type StrategyName } from "../src/sim/ai/commander";
 import { CONDOR_AI, dropsCondors } from "../src/sim/ai/condor";
@@ -139,7 +140,7 @@ describe("mutator effects", () => {
     expect(ticksToProduce(["rapidfab"])).toBe((UNITS.harvester.buildTime * TICK_RATE) / 2);
   });
 
-  it("Air War bans the Fab Plant, SAM sites and ground combat units for both sides", () => {
+  it("Air War bans the Motor Works, Sky Batteries and ground combat units for both sides", () => {
     const w = createMapWorld("riverlands", { mutators: ["airwar"] });
     for (const f of ["blue", "red"] as const) {
       expect(buildingBlocker(w, f, "fab-plant")).toBe("Disabled: Air War");
@@ -148,7 +149,7 @@ describe("mutator effects", () => {
       expect(buildingBlocker(w, f, "turret")).toBeNull();
       for (const k of ["stinger", "flak-crawler", "mortar", "mastodon", "lancer"] as const)
         expect(unitBlocker(w, f, k)).toBe("Disabled: Air War");
-      // the starting Trooper Squad stays home: no Condor to fly it into the fight
+      // the starting Tin Soldiers stays home: no Skyliner to fly it into the fight
       expect(unitBlocker(w, f, "condor")).toBe("Disabled: Air War");
       expect([...w.units.values()].filter((u) => u.faction === f && u.kind === "trooper")).toHaveLength(1);
       expect(bannedBy(w, "harvester")).toBeNull();
@@ -178,7 +179,7 @@ describe("mutator effects", () => {
     expect(wasp.xp).toBe(UNITS.wasp.cost); // rank-1 XP, so promotion continues normally
     expect(harvesters.length).toBe(2);
     for (const h of harvesters) expect(h.rank).toBe(0);
-    // …and so does each side's starting Trooper Squad
+    // …and so does each side's starting Tin Soldiers
     const squads = [...w.units.values()].filter((u) => u.kind === "trooper");
     expect(squads.map((u) => [u.faction, u.rank])).toEqual([["blue", 1], ["red", 1]]);
     expect(squads[0]!.xp).toBe(UNITS.trooper.cost);
@@ -232,7 +233,7 @@ describe("the AI under mutators", () => {
 describe("infantry mutators", () => {
   const sideUnits = (w: World, f: "blue" | "red") => [...w.units.values()].filter((u) => u.faction === f);
 
-  it("Infantry War bans every combat vehicle, combat aircraft and the Fab Plant, and keeps the rest", () => {
+  it("Infantry War bans every combat vehicle, combat aircraft and the Motor Works, and keeps the rest", () => {
     const w = createMapWorld("riverlands", { mutators: ["infantrywar"] });
     for (const f of ["blue", "red"] as const) {
       expect(buildingBlocker(w, f, "fab-plant")).toBe("Disabled: Infantry War");
@@ -246,7 +247,7 @@ describe("infantry mutators", () => {
     }
     expect(infantryArmy(createMapWorld("riverlands"), "blue")).toBe(false);
     expect(infantryArmy(createMapWorld("riverlands", { mutators: ["airwar"] }), "blue")).toBe(false);
-    // no opener survives it (each needs a Fab Plant or Wasps): both sides start the classic way
+    // no opener survives it (each needs a Motor Works or Comets): both sides start the classic way
     expect(allowedOpener(w, "blue", "blitz")).toBeNull();
   });
 
@@ -260,7 +261,7 @@ describe("infantry mutators", () => {
     expect(podCrew(createMapWorld("frostbite", { mutators: ["airwar"] }), "blue")).toEqual(["wasp", "wasp", "raptor"]);
   });
 
-  it("Airborne: each side starts with a Condor and one squad of each kind, mirror-fair", () => {
+  it("Airborne: each side starts with a Skyliner and one squad of each kind, mirror-fair", () => {
     for (const map of ["riverlands", "ashlands", "frostbite"]) {
       const w = createMapWorld(map, { mutators: ["airborne"] });
       for (const f of ["blue", "red"] as const) {
@@ -273,21 +274,21 @@ describe("infantry mutators", () => {
         expect(twin.x).toBeCloseTo(w.width - u.x, 6);
         expect(twin.y).toBeCloseTo(w.height - u.y, 6);
       }
-      // parked by the HQ, clear of each other (and the Condor off the squads' tiles)
+      // parked by the HQ, clear of each other (and the Skyliner off the squads' tiles)
       const hq = hqOf(w, "blue")!;
       const blue = sideUnits(w, "blue");
       for (const u of blue) expect(Math.hypot(u.x - hq.tx - 1.5, u.y - hq.ty - 1.5)).toBeLessThan(6);
       for (const a of blue)
         for (const b of blue) if (a !== b) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(0.9);
     }
-    // Veterans ranks every squad (the Condor carries no gun: it stays at rank 0)
+    // Veterans ranks every squad (the Skyliner carries no gun: it stays at rank 0)
     const vet = createMapWorld("riverlands", { mutators: ["airborne", "veterans"] });
     for (const u of sideUnits(vet, "blue")) expect(u.rank).toBe(u.kind === "trooper" || u.kind === "rocket-squad" || u.kind === "sniper" ? 1 : 0);
     // and without it the classic start is untouched
     expect(sideUnits(createMapWorld("riverlands"), "blue").map((u) => u.kind).sort()).toEqual(["harvester", "trooper"]);
   });
 
-  it("Airborne's starting squads can board the starting Condor at once", () => {
+  it("Airborne's starting squads can board the starting Skyliner at once", () => {
     const w = createMapWorld("riverlands", { mutators: ["airborne"] });
     const condor = sideUnits(w, "blue").find((u) => u.kind === "condor")!;
     const squads = sideUnits(w, "blue").filter((u) => u.kind === "trooper" || u.kind === "rocket-squad");
@@ -316,7 +317,7 @@ describe("infantry mutators", () => {
     // Airborne bans nothing: everyone fits
     const airborne = makeRules(["airborne"]);
     for (const n of Object.keys(STRATEGIES) as StrategyName[]) expect(strategyFits(STRATEGIES[n], airborne)).toBe(true);
-    // every commander flies Condor drops under Infantry War or Airborne (Rush and Balanced always do; Easy never)
+    // every commander flies Skyliner drops under Infantry War or Airborne (Rush and Balanced always do; Easy never)
     const boom = createAiState("boom", "normal", 1);
     expect(dropsCondors(createMapWorld("riverlands"), "red", boom)).toBe(false);
     expect(dropsCondors(createMapWorld("riverlands", { mutators: ["infantrywar"] }), "red", boom)).toBe(true);
@@ -324,7 +325,7 @@ describe("infantry mutators", () => {
     expect(dropsCondors(createMapWorld("riverlands", { mutators: ["airborne"] }), "red", createAiState("boom", "easy", 1))).toBe(false);
   });
 
-  it("under Airborne the AI flies its starting squads out in its starting Condor from 1:00", () => {
+  it("under Airborne the AI flies its starting squads out in its starting Skyliner from 1:00", () => {
     const w = createMapWorld("riverlands", { mutators: ["airborne"] });
     const red = createAiState("boom", "normal", 2); // (not a personality that drops in a classic match)
     const condor = sideUnits(w, "red").find((u) => u.kind === "condor")!;
@@ -335,10 +336,10 @@ describe("infantry mutators", () => {
     }
     expect(boardedAt).toBeGreaterThanOrEqual(CONDOR_AI.airborneFrom);
     expect(boardedAt).toBeLessThan(75);
-    expect(condor.passengers!.map((p) => p.kind).sort()).toEqual(["rocket-squad", "trooper"]); // the Sniper stays home
+    expect(condor.passengers!.map((p) => p.kind).sort()).toEqual(["rocket-squad", "trooper"]); // the Longshot stays home
   });
 
-  it("under Airborne every personality keeps its Condor busy: an Assembly Bay for squads, and drop after drop", () => {
+  it("under Airborne every personality keeps its Skyliner busy: a Robot Foundry for squads, and drop after drop", () => {
     // (how many drops one side gets in swings with the run: a base under attack keeps its
     // squads busy at home. So: both fly, every match, and drop after drop between them)
     for (const seed of [3, 4]) {
@@ -362,7 +363,7 @@ describe("infantry mutators", () => {
     }
   }, 90_000);
 
-  it("plays an Infantry War to a finish from Assembly Bays, never building a banned kind", () => {
+  it("plays an Infantry War to a finish from Robot Foundries, never building a banned kind", () => {
     const w = createMapWorld("frostbite", { seed: 11, mutators: ["infantrywar"] });
     const a = createAiState("balanced", "normal", 1);
     const b = createAiState("rush", "normal", 2);

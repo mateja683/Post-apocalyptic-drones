@@ -553,8 +553,8 @@ function showMenu(linkedMap?: string | null): void {
       : survival
         ? "Hold your base against endless, themed waves. How long can you last?"
         : four
-          ? "Four commanders, one survivor. Knock out every rival's HQ and Goliaths."
-          : "Mine scrap. Build your swarm. Destroy the enemy HQ and its Goliaths.";
+          ? "Four commanders, one survivor. Knock out every rival's HQ and Colossi."
+          : "Mine scrap. Build your swarm. Destroy the enemy HQ and its Colossi.";
     // a four-player map: no sound duel (two phones only), and online seats up to four
     duelBtn.hidden = !duelable || four;
     onlineBtn.textContent = four ? "🌐 Battle friends online (up to 4)" : "🌐 Duel a friend online";

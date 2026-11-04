@@ -1,9 +1,10 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Faction } from "../../sim/types";
 import { ModelBuilder, type Vec3 } from "./builder";
 import { modelMat } from "./materials";
-import { AMBER, BARREL, CONDOR_BAY, GM, GM_D, GM_L, TEAMS, WHITE } from "./models";
+import { AMBER, BARREL, CHROME, CONDOR_BAY, GM, GM_D, GM_L, TEAMS, WHITE } from "./models";
 
 /**
  * Robot infantry: small articulated biped robots in the vehicles' painted
@@ -18,7 +19,7 @@ import { AMBER, BARREL, CONDOR_BAY, GM, GM_D, GM_L, TEAMS, WHITE } from "./model
  * stay planted while the ground passes under them (two-bone leg IK), an idle
  * sway and head scan, a raise-and-aim firing pose with recoil, a topple
  * (outward, clear of the others) when the squad's HP drops a robot, a step
- * aside out of a vehicle's path, hops into and drops out of a Condor, and a
+ * aside out of a vehicle's path, hops into and drops out of a Skyliner, and a
  * seated pose for riding in its bay (standing to face the ramp for a drop).
  *
  * World units are tiles; robots are modelled at map scale (no unitScale).
@@ -86,7 +87,7 @@ interface Spec {
   cycle: number;
   /** Legs while firing at a standstill: thigh L, shin L, thigh R, shin R, and the hip drop. */
   brace: [number, number, number, number, number];
-  /** Seated (riding a Condor): arms, gun pitch relative to its parent. */
+  /** Seated (riding a Skyliner): arms, gun pitch relative to its parent. */
   seatArms: number;
   seatGun: Vec3;
 }
@@ -247,9 +248,11 @@ const PARTS: Record<BotKind, (t: Team) => Parts> = {
     b.block(0.054, 0.046, 0.056, [0, 0.026, 0.002], R_LIGHT, { bevel: 0.012, edge: 1.3 });
     b.box(0.05, 0.014, 0.014, [0, 0.026, -0.024], AMBER, { glow: 1 });
     b.box(0.058, 0.01, 0.03, [0, 0.026, -0.008], AMBER, { glow: 0.8 });
-    b.box(0.014, 0.006, 0.05, [0, 0.051, 0.004], t.main);
-    b.cyl(0.003, 0.003, 0.04, 4, [0.021, 0.064, 0.018], GM_D);
-    b.sphere(0.007, [0.021, 0.086, 0.018], AMBER, { glow: 1, w: 5, h: 3 });
+    // (reskin) a tin soldier's head: a chrome dome cap, round team ear-bolts, a ball-tipped aerial on top
+    b.sphere(0.03, [0, 0.046, 0.002], CHROME, { w: 8, h: 4, phi: Math.PI / 2 });
+    for (const sx of [-1, 1]) b.cyl(0.013, 0.013, 0.01, 8, [sx * 0.031, 0.026, 0.002], t.main, { rot: [0, 0, Math.PI / 2] });
+    b.cyl(0.003, 0.003, 0.03, 4, [0, 0.088, 0.002], GM_D);
+    b.sphere(0.008, [0, 0.105, 0.002], AMBER, { glow: 1, w: 5, h: 3 });
     P[J.head] = b.build();
     arms(P, s, 0.03);
     // the rifle, gripped at the gun bone's origin
@@ -293,6 +296,8 @@ const PARTS: Record<BotKind, (t: Team) => Parts> = {
     b.block(0.052, 0.04, 0.054, [0, 0.022, 0.004], R_LIGHT, { bevel: 0.012, edge: 1.3 });
     b.box(0.046, 0.01, 0.012, [0, 0.02, -0.022], AMBER, { glow: 1 });
     b.box(0.054, 0.008, 0.02, [0, 0.036, -0.016], t.main);
+    // (reskin) chrome ear-bolts on the helm
+    for (const sx of [-1, 1]) b.cyl(0.012, 0.012, 0.01, 8, [sx * 0.03, 0.022, 0.004], CHROME, { rot: [0, 0, Math.PI / 2] });
     P[J.head] = b.build();
     arms(P, s, 0.036);
     // the launcher on the right shoulder: team band, sight, warhead in the mouth
@@ -400,7 +405,7 @@ function squadGeo(kind: BotKind, f: Faction): THREE.BufferGeometry {
 
 // ----------------------------------------------------------------- rig ---
 
-/** A robot travelling off its slot: dropped from a Condor, or hopping aboard one. */
+/** A robot travelling off its slot: dropped from a Skyliner, or hopping aboard one. */
 interface Trip {
   from: THREE.Vector3;
   /** Squad-space destination; null = its formation slot. */
@@ -491,7 +496,7 @@ const hash = (n: number) => {
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /**
- * One squad of robots on the map (or riding in a Condor's bay): a group to
+ * One squad of robots on the map (or riding in a Skyliner's bay): a group to
  * place at the squad's position, turned to its facing (rotation.y = -facing),
  * holding the skinned mesh and its robots' bones.
  */
@@ -500,7 +505,7 @@ export class SquadRig {
   readonly mesh: THREE.SkinnedMesh;
   readonly spec: Spec;
   readonly bots: Bot[] = [];
-  /** A robot hit the ground (falling over, or dropping out of a Condor): world point. */
+  /** A robot hit the ground (falling over, or dropping out of a Skyliner): world point. */
   onImpact: ((p: THREE.Vector3, kind: "fall" | "land") => void) | null = null;
   private move = 0;
   private ready = 0;
@@ -567,12 +572,12 @@ export class SquadRig {
     this.mesh.skeleton.dispose();
   }
 
-  /** Robots pop in one after another (rolled out of the Assembly Bay), after `delay` ms. */
+  /** Robots pop in one after another (rolled out of the Robot Foundry), after `delay` ms. */
   popIn(delay = 0): void {
     this.bots.forEach((b, i) => (b.pop = -delay / 280 - i * 0.28));
   }
 
-  /** Sit the robots in a Condor's bay: seats in this rig's space (tiles), facing yaw (rad, 0 = north). */
+  /** Sit the robots in a Skyliner's bay: seats in this rig's space (tiles), facing yaw (rad, 0 = north). */
   seat(seats: { x: number; y: number; z: number; yaw: number }[]): void {
     this.bots.forEach((b, i) => (b.seat = seats[i] ?? null));
     this.root.scale.setScalar(RIDER_SCALE);
@@ -582,7 +587,7 @@ export class SquadRig {
 
   /**
    * Robots drop from `from` (this rig's space) to their slots, a beat apart:
-   * out of a Condor, starting at `s0` of their size (a rider's) and growing
+   * out of a Skyliner, starting at `s0` of their size (a rider's) and growing
    * to full size as they jump.
    */
   dropFrom(from: THREE.Vector3, spread: number, s0 = 1): void {
@@ -595,7 +600,7 @@ export class SquadRig {
     });
   }
 
-  /** Robots hop up into a Condor at `to` (this rig's space) and are gone. */
+  /** Robots hop up into a Skyliner at `to` (this rig's space) and are gone. */
   board(to: THREE.Vector3): void {
     this.bots.forEach((b, i) => {
       if (!b.up) {
@@ -611,7 +616,7 @@ export class SquadRig {
    * Out of sight: skip to the end of whatever was playing (no sparks). The
    * pop-in and a drop are over, robots the squad has lost are gone and the
    * rest stand in their slots — else they'd play out on first sight (dropped
-   * robots streaking in from a Condor drawn far away).
+   * robots streaking in from a Skyliner drawn far away).
    */
   settle(alive: number): void {
     const s = this.spec;
@@ -924,7 +929,7 @@ export class SquadRig {
     }
   }
 
-  /** Move a robot along its trip (a drop out of a Condor, or a hop into one). */
+  /** Move a robot along its trip (a drop out of a Skyliner, or a hop into one). */
   private travel(i: number, bot: Bot, tr: Trip, dt: number): void {
     tr.t += dt;
     const root = bot.b[J.root]!;
@@ -957,7 +962,7 @@ export class SquadRig {
   /**
    * Bake the robots' current pose into one plain (unskinned) geometry in
    * this rig's space: `robots` and `joints` pick what to include (the
-   * gallery, a half-built robot on the Assembly Bay's cradle).
+   * gallery, a half-built robot on the Robot Foundry's cradle).
    */
   bake(robots?: number[], joints?: number[]): THREE.BufferGeometry {
     const parts = partsOf(this.kind, this.faction);
@@ -982,7 +987,7 @@ export class SquadRig {
 /**
  * Two-bone leg IK in the leg's plane: thigh and shin angles (about x; the
  * thigh + swings the foot forward, the shin − folds back at the knee) that
- * put the ankle `f` ahead of the hip and `d` below it. (The Goliath walks on
+ * put the ankle `f` ahead of the hip and `d` below it. (The Colossus walks on
  * it too: three/goliath.ts.)
  */
 export function ik(f: number, d: number, a: number, b: number): [number, number] {
@@ -1020,15 +1025,15 @@ export function botHeight(kind: BotKind): number {
 
 /**
  * Riders sit well under their size on the map: a dropship no bigger than a
- * Mastodon seats two whole squads down its benches (the map's robots are drawn
+ * Behemoth seats two whole squads down its benches (the map's robots are drawn
  * big for readability, see Spec.size).
  */
 export const RIDER_SCALE = 0.4;
 
 /**
- * Seats for a squad riding in the Condor's bay — `side` 0 the port bench, 1
- * starboard — facing across the bay, in a group that undoes the Condor's
- * model scale `s` (so tiles, relative to the Condor's body), for a rig
+ * Seats for a squad riding in the Skyliner's bay — `side` 0 the port bench, 1
+ * starboard — facing across the bay, in a group that undoes the Skyliner's
+ * model scale `s` (so tiles, relative to the Skyliner's body), for a rig
  * scaled by RIDER_SCALE (seat() does that).
  */
 export function baySeats(kind: BotKind, side: number, s: number): { x: number; y: number; z: number; yaw: number }[] {

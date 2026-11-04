@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { BUILDINGS, ECONOMY, TICK_RATE, UNITS } from "../../sim/balance";
 import { isInfantry, squadAlive } from "../../sim/infantry";
@@ -42,18 +43,18 @@ interface UnitView {
   scale: number;
   /** Robot infantry: the squad's rig (its root is m.root and m.body). */
   squad: SquadRig | null;
-  /** The Condor's bay, ramp and hover. */
+  /** The Skyliner's bay, ramp and hover. */
   condor: CondorView | null;
-  /** A Goliath's rig and everything it shows (render/goliath.ts; its root is m.root). */
+  /** A Colossus's rig and everything it shows (render/goliath.ts; its root is m.root). */
   goliath: GoliathView | null;
   /** Sim position at the last sync (a squad's death blast is matched against it). */
   sx: number;
   sy: number;
-  /** The Flak Crawler's walk: where its legs are in the stride, and how far they swing (0 standing, 1 walking). */
+  /** The Skyguard's walk: where its legs are in the stride, and how far they swing (0 standing, 1 walking). */
   gait?: { phase: number; amp: number };
 }
 
-/** The Flak Crawler's stride (models.ts CRAWLER_LEGS): ground covered per full step cycle (tiles), swing about the hip (rad), foot lift (model units). */
+/** The Skyguard's stride (models.ts CRAWLER_LEGS): ground covered per full step cycle (tiles), swing about the hip (rad), foot lift (model units). */
 const LEG_CYCLE = 0.6;
 const LEG_SWING = 0.32;
 const LEG_LIFT = 0.07;
@@ -72,7 +73,7 @@ interface CondorView {
   /** The bay lights spilling out of the open ramp onto the ground (a child of the root). */
   pool: THREE.Mesh;
   poolMat: THREE.MeshBasicMaterial;
-  /** Climbed above its flying height (tiles) to carry a Goliath on its cables. */
+  /** Climbed above its flying height (tiles) to carry a Colossus on its cables. */
   lift: number;
 }
 
@@ -118,7 +119,7 @@ function angleDelta(a: number, b: number): number {
 
 const tmp = new THREE.Vector3();
 const tmp2 = new THREE.Vector3();
-/** The Condor's ramp light on the ground (a soft disc). */
+/** The Skyliner's ramp light on the ground (a soft disc). */
 const poolGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
 
 /** A vehicle's hull half-length and half-width on the ground (tiles, its model's bounds), plus a robot's girth. */
@@ -134,11 +135,11 @@ function hullHalf(kind: UnitKind): [number, number] {
   return h;
 }
 /**
- * A Condor hovering to drop or pick up sits this high over the ground (it
+ * A Skyliner hovering to drop or pick up sits this high over the ground (it
  * flies at AIR_H): its belly clears the robots standing under it.
  */
 const CONDOR_LOW = 0.78;
-/** An enemy Condor's bay, as we're shown it. */
+/** An enemy Skyliner's bay, as we're shown it. */
 const NO_RIDERS: readonly Unit[] = [];
 /** A smoke puff's source point, refilled per puff (Fx reads it at once). */
 const puffAt: P3 = { x: 0, y: 0, h: 0 };
@@ -225,12 +226,12 @@ function topsOf(geo: THREE.BufferGeometry, ox: number, oy: number, oz: number): 
  * march, raise their weapons to fire, lose a robot (it topples in sparks)
  * each time the squad's HP crosses a step, and leave no wreck — the last
  * ones fall where they stood; robots step aside out of vehicles' hulls. The
- * Condor comes down and drops its ramp to load or drop squads, with its
+ * Skyliner comes down and drops its ramp to load or drop squads, with its
  * riders seated in the open bay; they step off the ramp and climb aboard by it.
  *
- * A Goliath is a posed rig with a view of its own (render/goliath.ts): it
- * walks, anchors, fights and topples there, and its Condors climb over it to
- * carry it. A Gantry shows its Goliath taking shape. The enemy always sees
+ * A Colossus is a posed rig with a view of its own (render/goliath.ts): it
+ * walks, anchors, fights and topples there, and its Skyliners climb over it to
+ * carry it. A Gantry shows its Colossus taking shape. The enemy always sees
  * both, so they are drawn clear of the fog and never left as remembered ghosts.
  */
 export class EntityRenderer {
@@ -241,20 +242,20 @@ export class EntityRenderer {
   /** Ids synced this frame, and the chevron record ranked() hands out: reused, no per-frame garbage. */
   private seen = new Set<number>();
   private rankRec = { x: 0, y: 0, h: 0, rank: 0, pop: 1 };
-  /** Squads that climbed into a Condor (unit → carrier) or were dropped out of one, since the last sync. */
+  /** Squads that climbed into a Skyliner (unit → carrier) or were dropped out of one, since the last sync. */
   private boarded = new Map<number, number>();
   private dropped = new Map<number, { carrierId: number; x: number; y: number; bailout: boolean }>();
-  /** Condors with a squad coming aboard close by (they come down and open up). */
+  /** Skyliners with a squad coming aboard close by (they come down and open up). */
   private boarders = new Set<number>();
   /** Squads off the field still on show: robots toppling (wiped out) or hopping aboard. */
   private leaving: { rig: SquadRig; alive: number }[] = [];
-  /** Goliaths destroyed, still on show as they topple and sink away. */
+  /** Colossi destroyed, still on show as they topple and sink away. */
   private toppling: GoliathView[] = [];
-  /** Robot Love: the two Goliaths in love and where they meet (they walk to meet once their views are up). */
+  /** Robot Love: the two Colossi in love and where they meet (they walk to meet once their views are up). */
   private lovers: { ids: readonly number[]; x: number; y: number } | null = null;
   /** The world tick at the last sync (a replay seek back rewinds it). */
   private lastTick = 0;
-  /** Goliaths that just walked off a Gantry since the last sync (unit → its Gantry). */
+  /** Colossi that just walked off a Gantry since the last sync (unit → its Gantry). */
   private rolledOut = new Map<number, number>();
   private host: GoliathHost;
   private snipeTurn = 0;
@@ -277,7 +278,7 @@ export class EntityRenderer {
     private buildingShown: (b: Building) => boolean,
     private isFriendly: (f: string) => boolean,
     /**
-     * Should this enemy unit be drawn? Default: its tile is visible. (A Sniper
+     * Should this enemy unit be drawn? Default: its tile is visible. (A Longshot
      * Team hidden in woods isn't, though its tile is: wire the sim's unitSeenBy.)
      */
     private unitShown: ((u: Unit) => boolean) | null = null
@@ -295,7 +296,7 @@ export class EntityRenderer {
         return o?.kind === "unit" ? o : null;
       }
     };
-    // (a Goliath's mortar shells leave its shoulder pods)
+    // (a Colossus's mortar shells leave its shoulder pods)
     fx.shellFrom = (id) => {
       const o = this.views.get(id);
       return o?.kind === "unit" && o.goliath && o.visible ? o.goliath.shellFrom() : null;
@@ -344,13 +345,13 @@ export class EntityRenderer {
 
   /**
    * Where a shot leaves the shooter's barrel; null if it isn't on show (out of
-   * sight, or a Sniper Team hidden in the woods) — its model is where it was
+   * sight, or a Longshot Team hidden in the woods) — its model is where it was
    * last drawn, not where it is: the shot leaves the sim's position instead.
    */
   muzzle(id: number, fx?: WeaponFx): P3 | null {
     const v = this.views.get(id);
     if (!v || !v.visible) return null;
-    // (a Goliath fires each weapon from its own guns: pods, eye, arm cannons, machine guns)
+    // (a Colossus fires each weapon from its own guns: pods, eye, arm cannons, machine guns)
     if (v.kind === "unit" && v.goliath) return v.goliath.muzzle(fx ?? "mg");
     if (v.kind === "unit" && v.squad) {
       const up = v.squad.standing();
@@ -366,7 +367,7 @@ export class EntityRenderer {
     return { x: tmp.x, y: tmp.z, h: tmp.y };
   }
 
-  /** Called when a shot fires: kick the recoil and snap aim toward it (a Goliath kicks the gun that fired `fx`). */
+  /** Called when a shot fires: kick the recoil and snap aim toward it (a Colossus kicks the gun that fired `fx`). */
   fired(id: number, angle: number, fx?: WeaponFx): void {
     const v = this.views.get(id);
     if (!v) return;
@@ -402,7 +403,7 @@ export class EntityRenderer {
 
   /**
    * Feed every sim fx event through here (before the views sync): squads
-   * boarding and dropping out of Condors, Mastodons crushing robots.
+   * boarding and dropping out of Skyliners, Behemoths crushing robots.
    */
   onFx(ev: FxEvent): void {
     switch (ev.type) {
@@ -434,7 +435,7 @@ export class EntityRenderer {
   }
 
   /**
-   * Robot Love: Goliaths `ids` walk to meet at (x, y), eyes pink, hearts
+   * Robot Love: Colossi `ids` walk to meet at (x, y), eyes pink, hearts
    * rising (render/goliath.ts) — the sim has stopped at the draw, so their
    * views play it out on their own.
    */
@@ -442,14 +443,14 @@ export class EntityRenderer {
     this.lovers = { ids, x, y };
   }
 
-  /** A Goliath's rendered rig, if it has one on show (or toppling): its rings and lift, for the overlay. */
+  /** A Colossus's rendered rig, if it has one on show (or toppling): its rings and lift, for the overlay. */
   goliath(id: number): GoliathView | null {
     const v = this.views.get(id);
     return v?.kind === "unit" ? v.goliath : null;
   }
 
   /**
-   * Every Goliath's rings on the ground (render/goliath.ts GoliathView.marks):
+   * Every Colossus's rings on the ground (render/goliath.ts GoliathView.marks):
    * `selected` units get a bold threat ring, and `friendly` says whose they are.
    */
   goliathMarks(g: GroundGfx, selected: ReadonlySet<number>): void {
@@ -460,7 +461,7 @@ export class EntityRenderer {
     }
   }
 
-  /** Robots of squad `id` firing a volley: every one standing (a Sniper Team takes turns). */
+  /** Robots of squad `id` firing a volley: every one standing (a Longshot Team takes turns). */
   private shooters(id: number, wfx: WeaponFx): number[] | null {
     const v = this.views.get(id);
     if (!v || v.kind !== "unit" || !v.squad || !v.visible) return null;
@@ -512,7 +513,7 @@ export class EntityRenderer {
     const seen = this.seen;
     seen.clear();
     const turnK = 1 - Math.pow(0.0005, dtMs / 1000); // fast but smooth turning
-    // Condors with squads walking up to board them come down to meet them
+    // Skyliners with squads walking up to board them come down to meet them
     this.boarders.clear();
     for (const u of w.units.values())
       if (u.order.type === "board") {
@@ -565,7 +566,7 @@ export class EntityRenderer {
         } else this.group.remove(root);
       } else if (v.squad && v.visible) this.leave(id, v);
       else if (v.goliath && !rewound) {
-        // a Goliath topples, slams down and sinks away before it goes
+        // a Colossus topples, slams down and sinks away before it goes
         v.goliath.startFall();
         this.toppling.push(v.goliath);
       } else {
@@ -607,7 +608,7 @@ export class EntityRenderer {
     this.rolledOut.clear();
   }
 
-  /** A squad left the field: aboard a Condor (its robots hop up into the bay), or wiped out (the last fall). */
+  /** A squad left the field: aboard a Skyliner (its robots hop up into the bay), or wiped out (the last fall). */
   private leave(id: number, v: UnitView): void {
     const rig = v.squad!;
     const carrierId = this.boarded.get(id) ?? this.carrierOf(id);
@@ -616,7 +617,7 @@ export class EntityRenderer {
       // (counted before they set off: robots hopping aboard aren't "standing", and must not fall)
       const alive = rig.bots.filter((b) => b.up).length;
       rig.root.updateMatrixWorld(true);
-      // (a Condor out of sight isn't drawn where it is: they hop up to where it's hovering)
+      // (a Skyliner out of sight isn't drawn where it is: they hop up to where it's hovering)
       const to = c.m.ramp && c.visible ? this.rampLip(c, tmp2) : tmp2.set(c.gx, this.v.terrain.groundAt(c.gx, c.gy) + CONDOR_LOW - 0.1, c.gy);
       rig.board(rig.root.worldToLocal(to));
       this.leaving.push({ rig, alive });
@@ -628,7 +629,7 @@ export class EntityRenderer {
 
   /**
    * Free a removed view's own GPU resources: a squad rig's bone texture, a
-   * Condor's light-pool material and its riders' rigs. (Models share their
+   * Skyliner's light-pool material and its riders' rigs. (Models share their
    * geometry and materials: nothing else is per view.)
    */
   private release(v: View3): void {
@@ -642,14 +643,14 @@ export class EntityRenderer {
     }
   }
 
-  /** World point of a Condor's ramp lip (where squads step off and climb aboard), into `out`. */
+  /** World point of a Skyliner's ramp lip (where squads step off and climb aboard), into `out`. */
   private rampLip(c: UnitView, out: THREE.Vector3): THREE.Vector3 {
     const r = c.m.ramp!;
     r.updateWorldMatrix(true, false);
     return r.localToWorld(out.set(...c.m.def.ramp!.tip));
   }
 
-  /** The Condor carrying squad `id`, if any. */
+  /** The Skyliner carrying squad `id`, if any. */
   private carrierOf(id: number): number | undefined {
     for (const u of this.world.units.values()) if (u.passengers?.some((p) => p.id === id)) return u.id;
     return undefined;
@@ -714,8 +715,8 @@ export class EntityRenderer {
     rig.root.rotation.set(0, -u.facing, 0);
     const drop = this.dropped.get(u.id);
     if (drop) {
-      // out of a Condor: the robots jump down off its ramp (bailing out of a falling one, from higher).
-      // (Only a Condor on show: one out of sight is drawn where it was last seen, or never placed at all.)
+      // out of a Skyliner: the robots jump down off its ramp (bailing out of a falling one, from higher).
+      // (Only a Skyliner on show: one out of sight is drawn where it was last seen, or never placed at all.)
       const c = this.views.get(drop.carrierId);
       const lip = c?.kind === "unit" && c.m.ramp && c.visible ? c : null;
       const from = lip ? this.rampLip(lip, tmp2) : tmp2.set(drop.x, v.bh + (drop.bailout ? 1.1 : 0.6), drop.y);
@@ -727,7 +728,7 @@ export class EntityRenderer {
   }
 
   /**
-   * A Goliath: its posed rig stands in for a model instance. One that just
+   * A Colossus: its posed rig stands in for a model instance. One that just
    * rolled out of a Gantry starts on the cradle and walks off it (no pop-in).
    */
   private createGoliath(u: Unit): UnitView {
@@ -812,7 +813,7 @@ export class EntityRenderer {
       const bob = Math.sin(this.time / 380 + v.phase) * 0.06;
       const g = t.surfaceAt(gx, gy);
       v.bh = g * 0.3 + AIR_H + bob;
-      // a Condor dropping or picking up squads comes down low over the ground; carrying a Goliath, it climbs over it
+      // a Skyliner dropping or picking up squads comes down low over the ground; carrying a Colossus, it climbs over it
       if (v.condor) {
         v.bh += (g + CONDOR_LOW - (g * 0.3 + AIR_H)) * v.condor.low;
         v.condor.lift += (this.carryHeight(u, g * 0.3 + AIR_H) - v.condor.lift) * (1 - Math.exp(-(dtMs / 1000) * 1.8));
@@ -880,9 +881,9 @@ export class EntityRenderer {
   }
 
   /**
-   * How far above its flying height a Condor on a lift climbs: to clear the
-   * top of the Goliath it carries (or is closing in to hook onto), 0 for any
-   * other Condor.
+   * How far above its flying height a Skyliner on a lift climbs: to clear the
+   * top of the Colossus it carries (or is closing in to hook onto), 0 for any
+   * other Skyliner.
    */
   private carryHeight(c: Unit, flying: number): number {
     const g = c.order.type === "lift" ? liftedBy(this.world, c) : null;
@@ -901,7 +902,7 @@ export class EntityRenderer {
     v.gy = gy;
     if (!v.visible) {
       // out of sight its animations don't wait for us: first seen, it's simply standing there, as it is now
-      // (and with no sparks: a Sniper Team hidden in woods in our sight must not give itself away)
+      // (and with no sparks: a Longshot Team hidden in woods in our sight must not give itself away)
       v.face = v.aim = u.facing;
       v.bh = this.v.terrain.groundAt(gx, gy);
       rig.root.position.set(gx, v.bh, gy);
@@ -938,7 +939,7 @@ export class EntityRenderer {
       const ox = ov?.kind === "unit" ? ov.gx : o.x;
       const oy = ov?.kind === "unit" ? ov.gy : o.y;
       const [hl, hw] = hullHalf(o.kind);
-      // (a Goliath's feet reach further than a tank's hull)
+      // (a Colossus's feet reach further than a tank's hull)
       const near = Math.max(1.6, Math.max(hl, hw) + 0.4);
       if (Math.abs(ox - gx) > near || Math.abs(oy - gy) > near) continue;
       const face = ov?.kind === "unit" ? ov.face : o.facing;
@@ -954,7 +955,7 @@ export class EntityRenderer {
   }
 
   /**
-   * The Flak Crawler's legs (models.ts CRAWLER_LEGS): an alternating tripod
+   * The Skyguard's legs (models.ts CRAWLER_LEGS): an alternating tripod
    * gait whose phase follows the ground covered (and turning on the spot), so
    * the feet keep pace with the body; the legs ease back to stand when it stops.
    */
@@ -974,7 +975,7 @@ export class EntityRenderer {
   }
 
   /**
-   * The Condor: down low with its ramp open while it hovers to drop its squads
+   * The Skyliner: down low with its ramp open while it hovers to drop its squads
    * or squads walk up to board it (downwash kicking up the dust, the bay's
    * light spilling out under the ramp), its riders sitting along the benches
    * in the bay — on their feet facing the ramp as it opens for a drop.
@@ -1020,7 +1021,7 @@ export class EntityRenderer {
       }
     }
     // riders: a seated rig per squad aboard (a squad that just climbed in takes its seat as it lands).
-    // Only in our own Condors (or watching with the fog off): the enemy's passengers are hidden, its bay
+    // Only in our own Skyliners (or watching with the fog off): the enemy's passengers are hidden, its bay
     // shows empty — what, and how many, it carries is for us to find out the hard way.
     const ps = (this.isFriendly(u.faction) && u.passengers) || NO_RIDERS;
     for (const [id, r] of c.riders)
@@ -1064,7 +1065,7 @@ export class EntityRenderer {
       smokeT: 0, size, tx: b.tx, ty: b.ty, cx, cy, base, visible: true, seen: true, hp: b.hp / BUILDINGS[b.kind].hp,
       variant: "normal", warmUntil: 0, top: m.def.height, roof: roofOf(b.kind, m.def, size), gantry: null
     };
-    // (the Gantry, and the Goliath taking shape on it, are always in the enemy's sight)
+    // (the Gantry, and the Colossus taking shape on it, are always in the enemy's sight)
     if (b.kind === "gantry") v.gantry = new GantryView(this.host, m, b, cx, cy, base);
     if (this.world.tick > 1) {
       // freshly placed: it rises from the ground in a puff of dust

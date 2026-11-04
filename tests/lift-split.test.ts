@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { worldHash } from "../src/sim/checksum";
 import { step } from "../src/sim/sim";
@@ -6,11 +7,11 @@ import { createWorld, spawnUnit } from "../src/sim/world";
 import { canonicalize } from "../src/versus/codec";
 
 // A sound duel splits a long unit list into several commands of one tick (SOUND-DUEL.md "Canonicalize and
-// split"). A Goliath whose lift is still hooking on obeys an order only when its Condors are named in the same
+// split"). A Colossus whose lift is still hooking on obeys an order only when its Skyliners are named in the same
 // command, so it remembers an order it ignored for the rest of the tick and takes it if a later command calls
 // its lift off (lift.ts HeldLiftOrders): the pieces do exactly what the one command would.
 
-/** A blue Goliath with two Condors hooking onto it, a few other units, and red's ids in between (sparse, as in a long match). */
+/** A blue Colossus with two Skyliners hooking onto it, a few other units, and red's ids in between (sparse, as in a long match). */
 function hooking(): { w: World; g: Unit; a: Unit; b: Unit; all: number[] } {
   const w = createWorld(48, 48);
   const ids: number[] = [];
@@ -46,10 +47,10 @@ const run = (w: World, first: Command[], n = 80) => {
 
 const move = (unitIds: number[], faction: Faction = "blue", x = 40.5, y = 36.5): Command => ({ type: "move", faction, unitIds, x, y });
 
-describe("a hooking Goliath and a split order", () => {
+describe("a hooking Colossus and a split order", () => {
   it("a select-all split into pieces does what the one command does, in either order", () => {
     const { all, g, a } = hooking();
-    // the codec's own split of the select-all: the Goliath lands in an earlier piece than its Condors
+    // the codec's own split of the select-all: the Colossus lands in an earlier piece than its Skyliners
     const pieces = canonicalize(move(all), { local: "blue", width: 48, height: 48 });
     expect(pieces.length).toBeGreaterThanOrEqual(2);
     const pieceOf = (id: number) => pieces.findIndex((p) => "unitIds" in p && p.unitIds.includes(id));
@@ -64,14 +65,14 @@ describe("a hooking Goliath and a split order", () => {
       const reversed = run(hooking().w, [...pieces].reverse().map(as));
       expect(inOrder, type).toEqual(one);
       expect(reversed, type).toEqual(one);
-      // (the lift was called off, and a move reached the Goliath on the tick it was given)
+      // (the lift was called off, and a move reached the Colossus on the tick it was given)
       const gNow = one.after.units.find((u) => u.id === g.id)!;
       expect(gNow.lift, type).toBeNull();
       if (type === "move" || type === "attackMove") expect(gNow.order, type).toMatchObject({ type, x: 40.5, y: 36.5 });
     }
   });
 
-  it("splits by hand: the Goliath alone first, its Condors in a later command of the same tick", () => {
+  it("splits by hand: the Colossus alone first, its Skyliners in a later command of the same tick", () => {
     const { w, g, a, b } = hooking();
     const other = [...w.units.values()].filter((u) => u.faction === "blue" && u.kind === "stinger").map((u) => u.id);
     const ref = run(hooking().w, [move([g.id, a.id, b.id, ...other].sort((p, q) => p - q))]);
@@ -80,31 +81,31 @@ describe("a hooking Goliath and a split order", () => {
     expect(got).toEqual(ref);
   });
 
-  it("the newer order wins when the later command names the Goliath again", () => {
+  it("the newer order wins when the later command names the Colossus again", () => {
     const { w, g, a, b } = hooking();
     step(w, [move([g.id], "blue", 5.5, 5.5), move([g.id, a.id, b.id], "blue", 30.5, 30.5)]);
     expect(g.goliath!.lift).toBeNull();
     expect(g.order).toEqual({ type: "move", x: 30.5, y: 30.5 });
-    // and when the later command names only the Condors, the Goliath takes the newest order it ignored
+    // and when the later command names only the Skyliners, the Colossus takes the newest order it ignored
     const h = hooking();
     step(h.w, [move([h.g.id], "blue", 5.5, 5.5), move([h.g.id], "blue", 7.5, 7.5), move([h.a.id], "blue", 30.5, 30.5)]);
     expect(h.g.order).toEqual({ type: "move", x: 7.5, y: 7.5 });
     expect(h.a.order).toEqual({ type: "move", x: 30.5, y: 30.5 });
   });
 
-  it("the Goliath-only order still waits for its Condors, and the memory ends with the tick", () => {
+  it("the Colossus-only order still waits for its Skyliners, and the memory ends with the tick", () => {
     const { w, g, a, b } = hooking();
     const keys = Object.keys(w).sort();
     step(w, [move([g.id]), { type: "attack", faction: "blue", unitIds: [a.id], targetId: 1 }]);
     expect(g.order).toEqual({ type: "idle" });
     expect(g.goliath!.lift?.phase).toBe("hooking");
     expect(Object.keys(w).sort()).toEqual(keys); // (nothing of the memory is in the world)
-    // a later tick's order to its Condors calls the lift off, but the Goliath doesn't take last tick's order
+    // a later tick's order to its Skyliners calls the lift off, but the Colossus doesn't take last tick's order
     step(w, [move([a.id, b.id], "blue", 3.5, 3.5)]);
     expect(g.goliath!.lift).toBeNull();
     expect(g.order).toEqual({ type: "idle" });
     expect(a.order).toMatchObject({ type: "move", x: 3.5, y: 3.5 });
-    // with no Condor order at all, the lift hooks on and carries it as before
+    // with no Skyliner order at all, the lift hooks on and carries it as before
     const h = hooking();
     step(h.w, [move([h.g.id]), move([h.g.id], "blue", 9.5, 9.5)]);
     for (let i = 0; i < 200 && h.g.goliath!.lift?.phase !== "carrying"; i++) step(h.w, []);

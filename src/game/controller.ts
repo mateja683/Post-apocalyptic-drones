@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, TICK_RATE, UNITS } from "../sim/balance";
 import { paidFor, producerCap, producersOf, type Producer } from "../sim/economy";
 import { anchorBlocker, canWalk, goliathReachAt, unitCost } from "../sim/goliath";
@@ -29,13 +30,13 @@ export function setLocalSide(f: Faction): void {
 
 /**
  * Is this one of the player's fighting units (⚔ Select army, 💤 Idle)? Not a
- * harvester, and not an unarmed Condor: it would outrun the army and park
+ * harvester, and not an unarmed Skyliner: it would outrun the army and park
  * alone in the enemy base.
  */
 export const isArmyUnit = (u: Unit): boolean => u.faction === PLAYER && u.kind !== "harvester" && !isTransport(u.kind);
 
 /**
- * A Goliath dug in where it stands (digging in, or anchored): a move would
+ * A Colossus dug in where it stands (digging in, or anchored): a move would
  * pack it up, so taps give it a rally point instead and the army marches
  * without it. One packing up isn't rooted: it takes a move and walks off
  * once it is free.
@@ -43,7 +44,7 @@ export const isArmyUnit = (u: Unit): boolean => u.faction === PLAYER && u.kind !
 export const isRooted = (u: Unit): boolean => u.goliath?.mode === "anchoring" || u.goliath?.mode === "anchored";
 
 /**
- * Can Goliath `u` fire on target `id` from where it stands (a weapon that can
+ * Can Colossus `u` fire on target `id` from where it stands (a weapon that can
  * hit it reaches it)? An anchored one is only told to attack what it can: it
  * would otherwise keep the order and walk off after the target once packed up.
  */
@@ -54,18 +55,18 @@ export function inReachFromHere(w: World, u: Unit, id: number): boolean {
   return !!t && Math.hypot(t.x - u.x, t.y - u.y) <= goliathReachAt(u, domainOf(t));
 }
 
-/** The lift a unit belongs to: the Goliath itself (hooked on or carried), or the Goliath its Condor is lifting. */
+/** The lift a unit belongs to: the Colossus itself (hooked on or carried), or the Colossus its Skyliner is lifting. */
 export const liftOf = (w: World, u: Unit): Unit | null => (u.goliath?.lift ? u : liftedBy(w, u));
 
 const PRODUCERS: ReadonlySet<BuildingKind> = new Set(Object.values(UNITS).map((u) => u.builtAt));
-/** Does this building turn out units (so a tap with it selected sets its rally point)? HQ, Fab Plant, Airpad, Assembly Bay, Gantry. */
+/** Does this building turn out units (so a tap with it selected sets its rally point)? HQ, Motor Works, Aerodrome, Robot Foundry, Gantry. */
 export const isProducer = (kind: BuildingKind): boolean => PRODUCERS.has(kind);
 
 /**
  * Where a unit of `kind` from the build bar is queued: on a selected anchored
- * Goliath first (the player is looking at it), else the shortest queue, ties
+ * Colossus first (the player is looking at it), else the shortest queue, ties
  * going to the earlier producer (buildings in id order, then anchored
- * Goliaths, as sim/economy.ts producersOf lists them). Null when every queue
+ * Colossi, as sim/economy.ts producersOf lists them). Null when every queue
  * is full.
  */
 export function pickProducer(w: World, kind: UnitKind, selected: ReadonlySet<number>, view?: BuildView): Producer | null {
@@ -85,7 +86,7 @@ export function pickProducer(w: World, kind: UnitKind, selected: ReadonlySet<num
  * the tap, and the bar must not offer the same tap again meanwhile: a placed
  * building is no longer ready to place, one started is under construction,
  * a unit ordered is queued and paid for, a building sold is paid back and
- * gone, an anchored Goliath packing up trains no more. Without orders in
+ * gone, an anchored Colossus packing up trains no more. Without orders in
  * flight it is the world's own state.
  */
 export interface BuildView {
@@ -93,7 +94,7 @@ export interface BuildView {
   pending: PendingBuilding | null;
   /** Units queued at producer `id` beyond its queue in the world (of `kind` only, when given; negative: cancels on their way). */
   extra(id: number, kind?: UnitKind): number;
-  /** Is producer `id` gone (sold), or a Goliath packing up (it trains only anchored)? */
+  /** Is producer `id` gone (sold), or a Colossus packing up (it trains only anchored)? */
   closed(id: number): boolean;
 }
 
@@ -181,11 +182,11 @@ export function buildView(w: World, side: Faction, orders: readonly Command[] | 
  * order they were given. In a sound duel an order lands D ticks after the
  * tap (later while the link holds it up), and a tap that builds on the one
  * before must find that one done, as single player does a tick later: two
- * Condors sent to lift a Goliath and then the map tapped fly the lift there
+ * Skyliners sent to lift a Colossus and then the map tapped fly the lift there
  * once it is up; squads sent to board and then an island tapped drop there
- * once aboard; a Goliath told to anchor and then the map tapped stays dug in
+ * once aboard; a Colossus told to anchor and then the map tapped stays dug in
  * and sets a rally point; a second ⚓ packs it up. So every read that decides
- * such a tap goes through here: each unit's order, a Goliath's mode and lift,
+ * such a tap goes through here: each unit's order, a Colossus's mode and lift,
  * a building sold, a rally point moved, the calldowns fired. The rules are
  * the sim's (sim.ts applyCommand, lift.ts routeLiftCommand and
  * applyLiftCommand, transport.ts, goliath.ts), taken as succeeding where they
@@ -195,9 +196,9 @@ export function buildView(w: World, side: Faction, orders: readonly Command[] | 
  * orders on their way it is the world as it is.
  */
 export interface OrdersAhead {
-  /** Unit `u` with its order, and a Goliath's mode and lift, as the orders on their way leave them: a copy, or `u` itself when none touches it. */
+  /** Unit `u` with its order, and a Colossus's mode and lift, as the orders on their way leave them: a copy, or `u` itself when none touches it. */
   unit(u: Unit): Unit;
-  /** The lift `u` belongs to (liftOf): its Goliath as unit() has it, or null. */
+  /** The lift `u` belongs to (liftOf): its Colossus as unit() has it, or null. */
   liftOf(u: Unit): Unit | null;
   /** Is building `id` sold by an order on its way? */
   sold(id: number): boolean;
@@ -208,7 +209,7 @@ export interface OrdersAhead {
 }
 
 const IDLE: UnitOrder = { type: "idle" };
-/** The orders a lift takes (lift.ts LiftOrder): they call off one still hooking on when they name its Condors. */
+/** The orders a lift takes (lift.ts LiftOrder): they call off one still hooking on when they name its Skyliners. */
 const isLiftOrder = (c: Command): boolean => c.type === "move" || c.type === "attackMove" || c.type === "unload" || c.type === "stop";
 
 /** ordersAhead's rules, over the world's units and the commands in the order they were given. */
@@ -220,7 +221,7 @@ export function ordersAhead(w: World, orders: readonly Command[] | null): Orders
   const fired: PowerKind[] = [];
   /** Unit `id` as the orders so far leave it. */
   const get = (id: number): Unit | undefined => copies.get(id) ?? w.units.get(id);
-  /** Unit `u`'s copy to change (its Goliath state copied too: nothing of the world's is ever touched). */
+  /** Unit `u`'s copy to change (its Colossus state copied too: nothing of the world's is ever touched). */
   const edit = (u: Unit): Unit => {
     let c = copies.get(u.id);
     if (!c) {
@@ -252,11 +253,11 @@ export function ordersAhead(w: World, orders: readonly Command[] | null): Orders
   };
   for (const c of orders) {
     // a lift's own orders first (lift.ts routeLiftCommand): they leave its members out of the rest, and one
-    // naming the Condors of a lift still hooking on calls it off (its Condors go idle and take the order)
+    // naming the Skyliners of a lift still hooking on calls it off (its Skyliners go idle and take the order)
     const lifting = new Set<number>();
     if ("unitIds" in c && c.type !== "lift")
       for (const id of c.unitIds) {
-        // (each as it stands now: a Condor named earlier may have called this one's lift off)
+        // (each as it stands now: a Skyliner named earlier may have called this one's lift off)
         const u = get(id);
         if (!u || u.faction !== c.faction) continue;
         const g = u.goliath?.lift ? u : liftedByNow(u);
@@ -278,7 +279,7 @@ export function ordersAhead(w: World, orders: readonly Command[] | null): Orders
         for (const u of named(c, lifting)) {
           const e = edit(u);
           e.order = { type: c.type, x: c.x, y: c.y };
-          // (goliath.ts orderedToMove: an anchored Goliath packs up first)
+          // (goliath.ts orderedToMove: an anchored Colossus packs up first)
           if (e.goliath && !e.goliath.lift && (e.goliath.mode === "anchored" || e.goliath.mode === "anchoring")) setMode(e, "packing", GOLIATH.packTime);
         }
         break;
@@ -353,10 +354,10 @@ export function ordersAhead(w: World, orders: readonly Command[] | null): Orders
 
 /**
  * What the player's last tap did, for on-map feedback markers: "board" —
- * squads were sent to climb into a Condor (or two Condors to hook onto a
- * Goliath); "drop" — loaded Condors were sent to put their squads down (a
- * long-press on the map, or the Unload chip), or a lift to set its Goliath
- * down; "anchor" — Goliaths were told to dig in or pack up.
+ * squads were sent to climb into a Skyliner (or two Skyliners to hook onto a
+ * Colossus); "drop" — loaded Skyliners were sent to put their squads down (a
+ * long-press on the map, or the Unload chip), or a lift to set its Colossus
+ * down; "anchor" — Colossi were told to dig in or pack up.
  */
 export type TapFeedback = {
   kind: "move" | "attack" | "harvest" | "rally" | "place" | "board" | "drop" | "anchor";
@@ -422,7 +423,7 @@ export class Controller {
   placeAt: { tx: number; ty: number } | null = null;
   /** A placement attempt that failed, for the ghost shake (the scene consumes it). */
   denied: { reason: string; tx: number; ty: number } | null = null;
-  /** A short note about the last order ("Condor full"), for the HUD ticker (the scene consumes it). */
+  /** A short note about the last order ("Skyliner full"), for the HUD ticker (the scene consumes it). */
   tip: string | null = null;
   /** Three saved control groups (squad chips, keys 1–3). */
   readonly squads = new Squads(PLAYER);
@@ -544,7 +545,7 @@ export class Controller {
 
   /**
    * Drop selection entries for units that no longer exist. A squad that just
-   * climbed into a Condor hands its place to the craft, so the selection
+   * climbed into a Skyliner hands its place to the craft, so the selection
    * that loaded it can fly it and drop it next.
    */
   prune(): void {
@@ -593,20 +594,20 @@ export class Controller {
     this.selectedUnits = new Set([...this.selectedUnits, id]);
   }
 
-  /** The combat units ⚔ Select army grabs: every one the player owns but anchored Goliaths (they stay put). */
+  /** The combat units ⚔ Select army grabs: every one the player owns but anchored Colossi (they stay put). */
   armyIds(): number[] {
     const a = this.ahead();
     return [...this.world.units.values()].filter((u) => isArmyUnit(u) && !isRooted(a.unit(u))).map((u) => u.id);
   }
 
-  /** Select every combat unit the player owns (anchored Goliaths aside). */
+  /** Select every combat unit the player owns (anchored Colossi aside). */
   selectArmy(): void {
     this.selectUnits(this.armyIds());
   }
 
   /**
    * Combat units with no orders (sitting at home, or done with their last
-   * order). A Goliath dug in, digging in, packing up or on a lift is busy,
+   * order). A Colossus dug in, digging in, packing up or on a lift is busy,
    * not idle.
    */
   idleArmy(): number[] {
@@ -700,17 +701,17 @@ export class Controller {
     if (hit.kind === "enemy" && this.selectedUnits.size > 0) {
       const lifting = this.liftMembers();
       const a = this.ahead();
-      // only those that can get in range of it (not a tank at an enemy on an island; not a Goliath on a lift)
+      // only those that can get in range of it (not a tank at an enemy on an island; not a Colossus on a lift)
       const attackers = this.selectedAttackers(hit.targetsAir).filter((id) => {
         const u = w.units.get(id);
         return !!u && !lifting.has(id) && (isRooted(a.unit(u)) ? inReachFromHere(w, u, hit.id) : engageable(w, u, hit.id));
       });
       if (attackers.length > 0) {
         this.enqueue({ type: "attack", faction: PLAYER, unitIds: attackers, targetId: hit.id });
-        // loaded Condors in the group drop their troops onto an island enemy's island
+        // loaded Skyliners in the group drop their troops onto an island enemy's island
         const drop = this.onIsland(Math.floor(wx), Math.floor(wy)) ? this.loadedSelected().map((u) => u.id) : [];
         if (drop.length > 0) this.enqueue({ type: "unload", faction: PLAYER, unitIds: drop, x: wx, y: wy });
-        // a lift in the group flies along; an anchored Goliath that can't reach it stays dug in
+        // a lift in the group flies along; an anchored Colossus that can't reach it stays dug in
         this.orderLifts(wx, wy, false);
         const others = [...this.selectedUnits].filter(
           (id) => !attackers.includes(id) && !drop.includes(id) && !lifting.has(id) && !this.rooted(id)
@@ -720,7 +721,7 @@ export class Controller {
         this.lastFeedback = { kind: drop.length > 0 ? "drop" : "attack", x: wx, y: wy };
         return;
       }
-      // only anchored Goliaths, and it's beyond their guns: they stay dug in (no rally point at the enemy)
+      // only anchored Colossi, and it's beyond their guns: they stay dug in (no rally point at the enemy)
       if ([...this.selectedUnits].every((id) => this.rooted(id))) {
         this.rootTip("Out of reach: pack up first (G) to go after it");
         return;
@@ -732,11 +733,11 @@ export class Controller {
     // ground tap
     const tx = Math.floor(wx);
     const ty = Math.floor(wy);
-    // an island only a Condor reaches: a tap on it with loaded Condors selected drops their troops
+    // an island only a Skyliner reaches: a tap on it with loaded Skyliners selected drops their troops
     // there (no hidden long-press for the island map's main move); anything else gets told why not
     if (this.selectedUnits.size > 0 && this.onIsland(tx, ty)) {
       if (this.dropAt(wx, wy)) return;
-      // squads still walking to a Condor: keep them boarding, and drop them there once aboard
+      // squads still walking to a Skyliner: keep them boarding, and drop them there once aboard
       const boarding = this.selectedOwn().filter((u) => u.order.type === "board");
       if (boarding.length > 0) {
         const carriers = new Set<number>();
@@ -752,7 +753,7 @@ export class Controller {
       // a lift flies there and hovers (one still hooking on goes once it is up)
       const lifting = this.orderLifts(wx, wy, false);
       const all = [...this.selectedUnits].filter((id) => w.units.has(id) && !lifting.has(id));
-      // anchored Goliaths stay dug in (a move would pack them up): on their own they
+      // anchored Colossi stay dug in (a move would pack them up): on their own they
       // take a rally point for the squads they train, in a group the rest go without them
       const rooted = all.filter((id) => this.rooted(id));
       const ids = all.filter((id) => !rooted.includes(id));
@@ -760,10 +761,10 @@ export class Controller {
         for (const id of rooted) this.enqueue({ type: "rally", faction: PLAYER, buildingId: id, x: wx, y: wy });
         this.lastFeedback = { kind: "rally", x: wx, y: wy };
         this.forceMove = false;
-        this.rootTip("Rally point set: pack up first (G) to move the Goliath");
+        this.rootTip("Rally point set: pack up first (G) to move the Colossus");
         return;
       }
-      if (rooted.length > 0) this.rootTip(`${rooted.length > 1 ? "Anchored Goliaths stay" : "The anchored Goliath stays"} put: pack up first (G)`);
+      if (rooted.length > 0) this.rootTip(`${rooted.length > 1 ? "Anchored Colossi stay" : "The anchored Colossus stays"} put: pack up first (G)`);
       const harvesters = ids.filter((id) => w.units.get(id)!.kind === "harvester");
       const rest = ids.filter((id) => w.units.get(id)!.kind !== "harvester");
       const onResource =
@@ -798,7 +799,7 @@ export class Controller {
     this.enqueue({ type: "stop", faction: PLAYER, unitIds: [...this.selectedUnits] });
   }
 
-  /** Is unit `id` an anchored Goliath (or one digging in)? */
+  /** Is unit `id` an anchored Colossus (or one digging in)? */
   private rooted(id: number): boolean {
     const u = this.world.units.get(id);
     return !!u && isRooted(this.ahead().unit(u));
@@ -806,7 +807,7 @@ export class Controller {
 
   private rootTipped = -1e9;
 
-  /** Tell the player an anchored Goliath didn't move (now and then: it's the same lesson every time). */
+  /** Tell the player an anchored Colossus didn't move (now and then: it's the same lesson every time). */
   private rootTip(msg: string): void {
     const now = this.world.tick;
     if (now - this.rootTipped < 20 * TICK_RATE) return;
@@ -814,15 +815,15 @@ export class Controller {
     this.tip = msg;
   }
 
-  // ------------------------------------------------------------- Goliaths --
+  // ------------------------------------------------------------- Colossi --
 
-  /** The player's selected Goliaths standing on the ground (not hooked onto Condors or carried), as ahead() has them. */
+  /** The player's selected Colossi standing on the ground (not hooked onto Skyliners or carried), as ahead() has them. */
   goliathsSelected(): Unit[] {
     return this.selectedOwn().filter((u) => !!u.goliath && !u.goliath.lift);
   }
 
   /**
-   * The ⚓ chip and the G key: the selected walking Goliaths dig in where they
+   * The ⚓ chip and the G key: the selected walking Colossi dig in where they
    * stand (those the ground takes); with none walking, the anchored ones (and
    * any still digging in) pack up. When no walking one can anchor there,
    * `tip` says why (sim/goliath.ts anchorBlocker). Returns what it ordered.
@@ -862,7 +863,7 @@ export class Controller {
     return !!w.rules?.islands && regionAt(w, tx, ty, "foot") > 0 && !onHomeLand(w, PLAYER, tx, ty);
   }
 
-  /** A tap on an island while squads were boarding: those Condors drop there once loaded (see prune). */
+  /** A tap on an island while squads were boarding: those Skyliners drop there once loaded (see prune). */
   private pendingDrop: { carriers: number[]; x: number; y: number } | null = null;
 
   /** Can any selected unit get to tile (tx, ty) itself (aircraft, or ground in its own region)? */
@@ -870,13 +871,13 @@ export class Controller {
     const w = this.world;
     return this.selectedOwn().some((u) => {
       const mc = moveClassOf(u.kind);
-      if (mc === "air") return !isTransport(u.kind); // (an empty Condor gets there, but takes nothing)
+      if (mc === "air") return !isTransport(u.kind); // (an empty Skyliner gets there, but takes nothing)
       const r = regionAt(w, Math.floor(u.x), Math.floor(u.y), mc);
       return r > 0 && r === regionAt(w, tx, ty, mc);
     });
   }
 
-  /** Squads promised to a drop are aboard now: fly those Condors to it. */
+  /** Squads promised to a drop are aboard now: fly those Skyliners to it. */
   private firePendingDrop(): void {
     const p = this.pendingDrop;
     if (!p) return;
@@ -902,7 +903,7 @@ export class Controller {
     if (p.carriers.length === 0) this.pendingDrop = null;
   }
 
-  /** Sent at an island without a loaded Condor: say how islands are reached (now and then). */
+  /** Sent at an island without a loaded Skyliner: say how islands are reached (now and then). */
   private islandTip(): void {
     const now = this.world.tick;
     if (now - this.tipped < 80) return;
@@ -911,22 +912,22 @@ export class Controller {
     const hasSquads = this.selectedOwn().some((u) => isInfantry(u.kind));
     const hasGoliath = this.selectedOwn().some((u) => !!u.goliath);
     this.tip = hasCondor
-      ? "That Condor is empty: tap your squads into it first"
+      ? "That Skyliner is empty: tap your squads into it first"
       : hasSquads
-        ? "Squads can't swim: tap a Condor to board, then tap the island"
+        ? "Squads can't swim: tap a Skyliner to board, then tap the island"
         : hasGoliath
-          ? "No way across: two empty Condors can lift a Goliath there"
-          : "No way across: only troops flown in by Condor can take islands";
+          ? "No way across: two empty Skyliners can lift a Colossus there"
+          : "No way across: only troops flown in by Skyliner can take islands";
   }
 
   // ------------------------------------------------------------ transport --
 
-  /** Selected Condors with squads aboard. */
+  /** Selected Skyliners with squads aboard. */
   loadedSelected(): Unit[] {
     return this.selectedOwn().filter((u) => isLoaded(u));
   }
 
-  /** Squads aboard the selected Condors (the Unload chip's count). */
+  /** Squads aboard the selected Skyliners (the Unload chip's count). */
   aboardSelected(): number {
     let n = 0;
     for (const c of this.loadedSelected()) n += c.passengers!.length;
@@ -934,8 +935,8 @@ export class Controller {
   }
 
   /**
-   * Unload chip / U key: the selected Condors put their squads down where
-   * they are, and selected lifts set their Goliaths down where they hover.
+   * Unload chip / U key: the selected Skyliners put their squads down where
+   * they are, and selected lifts set their Colossi down where they hover.
    */
   unloadSelected(): boolean {
     if (this.spectator) return false;
@@ -950,12 +951,12 @@ export class Controller {
   }
 
   /**
-   * Long-press on the map: the selected loaded Condors fly to (wx, wy) and
+   * Long-press on the map: the selected loaded Skyliners fly to (wx, wy) and
    * drop their squads (the sim snaps the drop to the nearest ground a squad
-   * can stand on), and selected lifts fly there and set their Goliaths down
+   * can stand on), and selected lifts fly there and set their Colossi down
    * (on the nearest ground one can stand on); the rest of the selection heads
-   * there too, anchored Goliaths aside. False (nothing done) when no loaded
-   * Condor or lift is selected.
+   * there too, anchored Colossi aside. False (nothing done) when no loaded
+   * Skyliner or lift is selected.
    */
   dropAt(wx: number, wy: number): boolean {
     if (this.spectator || this.placing) return false;
@@ -973,12 +974,12 @@ export class Controller {
 
   // ----------------------------------------------------------------- lift --
 
-  /** Orders for lifts still hooking on, by Goliath id: sent once they are up (see prune). */
+  /** Orders for lifts still hooking on, by Colossus id: sent once they are up (see prune). */
   private pendingLifts = new Map<number, { x: number; y: number; setDown: boolean }>();
 
   /**
-   * The lifts (by their Goliaths, as ahead() has them) the selection takes
-   * part in: a Goliath on one, or a Condor of its pair. A lift still on its
+   * The lifts (by their Colossi, as ahead() has them) the selection takes
+   * part in: a Colossus on one, or a Skyliner of its pair. A lift still on its
    * way is one hooking on.
    */
   liftsSelected(): Unit[] {
@@ -991,7 +992,7 @@ export class Controller {
     return out;
   }
 
-  /** Every unit of the selected lifts (the Goliaths and both Condors of each pair). */
+  /** Every unit of the selected lifts (the Colossi and both Skyliners of each pair). */
   liftMembers(): Set<number> {
     const ids = new Set<number>();
     for (const g of this.liftsSelected()) {
@@ -1002,10 +1003,10 @@ export class Controller {
   }
 
   /**
-   * Fly the selected lifts to (x, y), setting their Goliaths down there when
-   * `setDown`. An order goes to the carried Goliath (sim/lift.ts routes it to
+   * Fly the selected lifts to (x, y), setting their Colossi down there when
+   * `setDown`. An order goes to the carried Colossus (sim/lift.ts routes it to
    * the pair): one still hooking on keeps it until it is up, since an order
-   * to its Condors would call the lift off. Returns every lift member, for
+   * to its Skyliners would call the lift off. Returns every lift member, for
    * the caller to leave out of its own orders.
    */
   private orderLifts(x: number, y: number, setDown: boolean): Set<number> {
@@ -1036,20 +1037,20 @@ export class Controller {
   }
 
   /**
-   * Condors selected and a tap on our own Goliath: two empty Condors hook
+   * Skyliners selected and a tap on our own Colossus: two empty Skyliners hook
    * onto a walking one (the two nearest; the sim lifts it once both are on),
    * and the selection becomes the lift, so a long-press next flies it there
    * and sets it down. Otherwise `tip` says why not (sim/lift.ts liftBlocker)
-   * and the tap selects the Goliath (false).
+   * and the tap selects the Colossus (false).
    */
   private liftTap(g: Unit, condors: Unit[]): boolean {
     const why = liftBlocker(condors, g);
     if (why) {
       const free = condors.filter(canCarry).length;
       const loaded = condors.filter((c) => isLoaded(c)).length;
-      if (why === "Needs two empty Condors") {
-        if (free + loaded >= 2) this.tip = "Unload the Condors first";
-        else if (!g.goliath?.lift) this.tip = "Two empty Condors lift a Goliath";
+      if (why === "Needs two empty Skyliners") {
+        if (free + loaded >= 2) this.tip = "Unload the Skyliners first";
+        else if (!g.goliath?.lift) this.tip = "Two empty Skyliners lift a Colossus";
       } else this.tip = why === "Pack up first" ? "Pack up first (G)" : why;
       return false;
     }
@@ -1064,11 +1065,11 @@ export class Controller {
   }
 
   /**
-   * A tap on one of our own units that loads a Condor instead of selecting:
-   * with squads selected, tapping a Condor sends them aboard it (as many as
-   * it has seats, nearest first); with Condors (and no squads) selected,
-   * tapping a squad sends it aboard the nearest selected Condor with a seat,
-   * and tapping a Goliath has two empty ones lift it (liftTap). A Condor
+   * A tap on one of our own units that loads a Skyliner instead of selecting:
+   * with squads selected, tapping a Skyliner sends them aboard it (as many as
+   * it has seats, nearest first); with Skyliners (and no squads) selected,
+   * tapping a squad sends it aboard the nearest selected Skyliner with a seat,
+   * and tapping a Colossus has two empty ones lift it (liftTap). A Skyliner
    * that is flying somewhere stops to come and meet them. Returns false when
    * the tap is an ordinary selection. (A right-click on our own unit loads
    * the same way.)
@@ -1081,7 +1082,7 @@ export class Controller {
     const tapped = this.ahead().unit(unit);
     const sel = this.selectedOwn();
     const squads = sel.filter((u) => isInfantry(u.kind));
-    // a loaded Condor over our own island garrison: the tap reinforces it, it doesn't pick the garrison up
+    // a loaded Skyliner over our own island garrison: the tap reinforces it, it doesn't pick the garrison up
     if (isInfantry(tapped.kind) && squads.length === 0 && this.onIsland(Math.floor(tapped.x), Math.floor(tapped.y)) && this.dropAt(tapped.x, tapped.y))
       return true;
     let carrier: Unit | null = null;
@@ -1100,7 +1101,7 @@ export class Controller {
       if (condors.length === 0) return false;
       const open = condors.filter((c) => this.openSeats(c, [tapped]) > 0);
       if (open.length === 0) {
-        this.tip = condors.length > 1 ? "Those Condors are full" : `${UNITS[condors[0]!.kind].name} full: unload it first`;
+        this.tip = condors.length > 1 ? "Those Skyliners are full" : `${UNITS[condors[0]!.kind].name} full: unload it first`;
         return false;
       }
       carrier = open.sort((a, b) => dist(a, tapped) - dist(b, tapped) || a.id - b.id)[0]!;
@@ -1110,7 +1111,7 @@ export class Controller {
       return condors.length > 0 && this.liftTap(tapped, condors);
     } else return false;
     this.enqueue({ type: "board", faction: PLAYER, unitIds: riders.map((u) => u.id), carrierId: carrier.id });
-    // a Condor on its way somewhere waits for them instead (idle, it flies over to meet them)
+    // a Skyliner on its way somewhere waits for them instead (idle, it flies over to meet them)
     if (carrier.order.type === "move" || carrier.order.type === "attackMove")
       this.enqueue({ type: "stop", faction: PLAYER, unitIds: [carrier.id] });
     this.forceMove = false;
@@ -1118,7 +1119,7 @@ export class Controller {
     return true;
   }
 
-  /** Seats on Condor `c` (as ahead() has it) not already promised to squads walking to it, or told to (other than `riders`). */
+  /** Seats on Skyliner `c` (as ahead() has it) not already promised to squads walking to it, or told to (other than `riders`). */
   private openSeats(c: Unit, riders: readonly Unit[]): number {
     const a = this.ahead();
     let promised = 0;

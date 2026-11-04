@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, SALVAGE, UNITS } from "../balance";
 import { isVisible, knownBuildings } from "../fog";
 import { unitSeenBy } from "../infantry";
@@ -18,7 +19,7 @@ export const SWEEP_RADIUS = 8;
 /** …or this many while an assault gathers (the wave waiting at its staging point grabs what's close). */
 const ASSAULT_SWEEP_RADIUS = 5;
 /**
- * Harvesters going about their work divert to a wreck within this many tiles,
+ * Prospectors going about their work divert to a wreck within this many tiles,
  * however full they are: a wreck's scrap goes straight to the bank, not into
  * the hold, so it's a few seconds' detour for a third of a unit's cost.
  */

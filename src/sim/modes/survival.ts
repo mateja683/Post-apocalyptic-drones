@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, COMBAT, TICK_RATE, UNITS } from "../balance";
 import { isInfantry, unitSeenBy } from "../infantry";
 import { worldPick, worldRandom } from "../rand";
@@ -184,15 +185,15 @@ export const THEME_NAMES: Record<WaveTheme, string> = {
 
 /** What beats each theme (shown to the player ahead of the wave). */
 export const THEME_COUNTERS: Record<WaveTheme, string> = {
-  air: "Flak, Turrets, SAMs, Raptors",
-  armour: "Lancers, Mastodons, Wasps",
-  artillery: "rush the guns with Stingers, Wasps",
-  mixed: "a mixed army, Turrets",
-  swarm: "Mortars, Turrets, Hornets, Sniper Teams",
+  air: "Skyguard, Pillboxes, Sky Batteries, Jetstreams",
+  armour: "Ray Skiffs, Behemoths, Comets",
+  artillery: "rush the guns with Roadsters, Comets",
+  mixed: "a mixed army, Pillboxes",
+  swarm: "Bombards, Pillboxes, Thunderheads, Longshot Teams",
   boss: "everything you've got"
 };
 
-const BOSS_NAMES = ["Mastodon Spearhead", "Bomber Wing", "Elite Strike Force"];
+const BOSS_NAMES = ["Behemoth Spearhead", "Bomber Wing", "Elite Strike Force"];
 /** The regular theme each boss grows out of: the four waves before it always include one. */
 const BOSS_PREVIEW: RegularTheme[] = ["armour", "air", "mixed"];
 
@@ -239,7 +240,7 @@ const POOLS: Record<RegularTheme, Pool> = {
 
 /**
  * Boss waves: a core of heavy hitters plus escorts, all one rank up. The
- * ground bosses bring infantry along: Rocket Squads walk with the Mastodons,
+ * ground bosses bring infantry along: Bazooka Squads walk with the Behemoths,
  * and the Elite Strike Force fields every arm.
  */
 const BOSS_POOLS: { core: UnitKind; share: number; escorts: Pool }[] = [
@@ -557,7 +558,7 @@ export function planWave(w: World, n: number, difficulty: SurvivalDifficulty = w
     const cap = theme === "swarm" ? SURVIVAL.swarmMaxUnits : SURVIVAL.maxWaveUnits;
     fill(w, n, POOLS[theme], budget - (theme === "artillery" ? UNITS.mortar.cost : 0), units, `wave-${theme}`, cap);
   }
-  // front-liners enter first (rifle and rocket squads among them), support last (Sniper Teams too)
+  // front-liners enter first (rifle and rocket squads among them), support last (Longshot Teams too)
   const order = (k: UnitKind) =>
     UNITS[k].armor === "heavy" ? 0 : k !== "sniper" && (UNITS[k].targets === "ground" || isInfantry(k)) ? 1 : 2;
   units.sort((a, b) => order(a) - order(b));
@@ -581,7 +582,7 @@ export function waveUnitsLeft(w: World): number {
 export function tickSurvival(w: World): void {
   const s = w.survival;
   if (!s || w.winner) return;
-  // Last Stand is a base to hold: the run ends when the HQ falls, Goliath or not
+  // Last Stand is a base to hold: the run ends when the HQ falls, Colossus or not
   if (!hqOf(w, s.defender)) {
     w.winner = attacker(s);
     return;
@@ -769,7 +770,7 @@ interface Objective {
   id: number;
   x: number;
   y: number;
-  /** Harvesters move: they get chased with an attack order. */
+  /** Prospectors move: they get chased with an attack order. */
   mobile: boolean;
 }
 
@@ -846,7 +847,7 @@ function orderWaveUnit(u: Unit, obj: Objective | null): void {
 }
 
 /**
- * What a wave Sniper Team should shoot: the nearest defender ground unit it
+ * What a wave Longshot Team should shoot: the nearest defender ground unit it
  * can see within sight + 2 tiles, squads first (a rail-rifle barely
  * scratches armour and does next to nothing to buildings).
  */
@@ -887,7 +888,7 @@ function nearestBuddy(w: World, u: Unit, ground: boolean): { buddy: Unit | null;
 
 /**
  * Idle wave units with nothing in reach pick the nearest thing to destroy.
- * Sniper Teams (once their wave is released) hunt units instead: they drop
+ * Longshot Teams (once their wave is released) hunt units instead: they drop
  * a building for any defender in sight, and otherwise hang back with the
  * nearest squad or tank.
  */
@@ -1011,7 +1012,7 @@ export function survivalHoldPoint(w: World, faction: Faction): { x: number; y: n
   let near: Unit | null = null;
   let bestD = Infinity;
   for (const u of w.units.values()) {
-    if (!isWaveUnit(s, u) || !unitSeenBy(w, faction, u)) continue; // (a Sniper hidden in the woods is no engage point)
+    if (!isWaveUnit(s, u) || !unitSeenBy(w, faction, u)) continue; // (a Longshot hidden in the woods is no engage point)
     let d = dist(u.x, u.y, c.x, c.y);
     for (const b of w.buildings.values())
       if (b.faction === faction) d = Math.min(d, distToBuilding(b, u.x, u.y));

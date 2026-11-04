@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The four-player online battle's wire format (FFA.md "Protocol"). Engine-free.
  *
@@ -205,8 +206,8 @@ export function sanitizeCommand(raw: unknown, side: Faction): Command | null {
 /**
  * Split an order naming more than MAX_UNITS units into several naming at
  * most that many each, the same order (the sim applies a move unit by unit).
- * `first`: ids to keep in the first piece, in front (a lifted Goliath and its
- * Condors must be named together: sim/lift.ts routeLiftCommand).
+ * `first`: ids to keep in the first piece, in front (a lifted Colossus and its
+ * Skyliners must be named together: sim/lift.ts routeLiftCommand).
  */
 export function splitOrder(c: Command, first: ReadonlySet<number> = new Set()): Command[] {
   if (!("unitIds" in c) || c.unitIds.length <= MAX_UNITS) return [c];

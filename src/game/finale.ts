@@ -9,11 +9,11 @@ import type { View } from "./three/view";
 /**
  * The cinematic end of a match (render only — the sim has already stopped
  * at the winner). A kill: everything drops to slow motion, the camera
- * glides and zooms onto what decided it (an HQ, or a side's last Goliath
+ * glides and zooms onto what decided it (an HQ, or a side's last Colossus
  * toppling), a staged chain of explosions rolls across it, a white flash
  * and a heavy shake, then real time resumes and the end screen arrives at
  * ~2.8 s. Robot Love: no blasts and no slow motion — the camera glides onto
- * the two Goliaths as they meet (render/goliath.ts plays their part), a
+ * the two Colossi as they meet (render/goliath.ts plays their part), a
  * burst of hearts, the banner, and the draw.
  */
 
@@ -49,7 +49,7 @@ export interface FinaleOpts {
   size: number;
   /** False when no HQ died (an op ended on its objective): no blasts, just the slow-mo, flash and banner. */
   blasts?: boolean;
-  /** Robot Love: the two Goliaths meet at (x, y) — no blasts, no slow motion, hearts (see LOVE_FINALE). */
+  /** Robot Love: the two Colossi meet at (x, y) — no blasts, no slow motion, hearts (see LOVE_FINALE). */
   love?: boolean;
   /** Screen point (CSS px) the HQ should end up under: the middle of the free area, clear of the HUD dock. */
   screenX?: number;
@@ -112,7 +112,7 @@ export class Finale {
       const half = this.o.size / 2;
       const bx = this.o.x + dx * half;
       const by = this.o.y + dy * half;
-      // (sized for what died: an HQ's full chain, a Goliath's a little smaller)
+      // (sized for what died: an HQ's full chain, a Colossus's a little smaller)
       const k = Math.min(1, this.o.size / 3);
       this.o.fx.explosion(
         { type: "explosion", x: this.o.x, y: this.o.y, size: (last ? 2.2 : 1.3) * k, air: false, kind: "building" },
@@ -178,14 +178,14 @@ export function finaleOutcome(o: { won: boolean; newRecord: boolean; spectator: 
   return o.won || o.newRecord || (o.spectator && !o.survival) ? "victory" : "defeat";
 }
 
-/** What decided the match, for the finale's banner: an HQ, a side's last Goliath, Robot Love (a draw), or a resign (a sound duel). */
+/** What decided the match, for the finale's banner: an HQ, a side's last Colossus, Robot Love (a draw), or a resign (a sound duel). */
 export type FinaleCause = "hq" | "goliath" | "love" | "resign";
 
 /**
  * The finale's banner: who won and what decided it. The keys stay the
  * announcer's (victory, defeat, hq-destroyed for a spectator, draw), only
  * the words change with the cause: an HQ ("Enemy HQ destroyed"), a side's
- * last Goliath ("Our last Goliath has fallen"), two Goliaths in love, or a
+ * last Colossus ("Our last Colossus has fallen"), two Colossi in love, or a
  * sound duel's resign ("Your friend resigned"; both at once is a draw, never
  * the Robot Love line).
  */
@@ -222,10 +222,10 @@ export function finaleBanner(o: {
     return { key: "draw", text: "💘 They fell in love", sub: "It's a draw", tone: "good", priority: 0, x, y, say: "They fell in love. It's a draw." };
   const loser = SIDE_NAME[o.winner === "blue" ? "red" : "blue"];
   const winner = SIDE_NAME[o.winner === "blue" ? "blue" : "red"];
-  const what = o.cause === "goliath" ? "Goliath" : "HQ";
+  const what = o.cause === "goliath" ? "Colossus" : "HQ";
   if (o.spectator) return { key: "hq-destroyed", text: `${loser} ${what} destroyed`, sub: `${winner} wins`, tone: "epic", priority: 0, x, y };
   if (o.winner === o.player) return { key: "victory", text: `Enemy ${what} destroyed`, sub: "Victory", tone: "epic", priority: 0, x, y };
-  return { key: "defeat", text: o.cause === "goliath" ? "Our last Goliath has fallen" : "Our HQ has fallen", sub: "Defeat", tone: "bad", priority: 0, x, y };
+  return { key: "defeat", text: o.cause === "goliath" ? "Our last Colossus has fallen" : "Our HQ has fallen", sub: "Defeat", tone: "bad", priority: 0, x, y };
 }
 
 /** Zoom the finale settles at: a push-in, but never further out than `atLeast`. */

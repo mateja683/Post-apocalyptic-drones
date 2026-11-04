@@ -166,7 +166,7 @@ describe("a red Controller", () => {
     const c = new Controller(w);
     c.selectArmy();
     const army = [...c.selectedUnits].map((id) => w.units.get(id)!);
-    expect(army.length).toBeGreaterThan(3); // (Blitz's Stingers and the starting squad)
+    expect(army.length).toBeGreaterThan(3); // (Blitz's Roadsters and the starting squad)
     expect(army.every((u) => u.faction === "red")).toBe(true);
     expect(c.assignSquad(0)).toBe(army.length);
 
@@ -175,7 +175,7 @@ describe("a red Controller", () => {
     c.tapWorld(w.width / 2, w.height / 2, { kind: "ground" });
     c.tapWorld(enemy.x, enemy.y, { kind: "enemy", id: enemy.id, targetsAir: false });
     c.stopSelected();
-    // and build a Turret beside the HQ
+    // and build a Pillbox beside the HQ
     const hq = hqOf(w, "red")!;
     w.factions.red.pending = { kind: "turret", remaining: 0, ready: true };
     c.placing = "turret";

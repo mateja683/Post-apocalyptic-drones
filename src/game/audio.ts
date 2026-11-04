@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Procedural sound effects: every sound is synthesised with WebAudio
  * (filtered noise bursts, oscillator sweeps) — zero audio assets to load.
@@ -617,7 +618,7 @@ function tone(
 }
 
 const RECIPES: Record<SfxName, Recipe> = {
-  // a Trooper volley: a ragged crackle of light rifle shots
+  // a Tin Soldier volley: a ragged crackle of light rifle shots
   rifle: (c, o, t, n) => {
     noiseBurst(c, o, t, n, 0.03, "bandpass", 2800, 0.3);
     noiseBurst(c, o, t + 0.045, n, 0.025, "bandpass", 3300, 0.22);
@@ -631,7 +632,7 @@ const RECIPES: Record<SfxName, Recipe> = {
     tone(c, o, t, "sawtooth", 150, 60, 0.12, 0.16);
     return 0.22;
   },
-  // a Mastodon grinding robots under its tracks: crunch and scrape
+  // a Behemoth grinding robots under its tracks: crunch and scrape
   crush: (c, o, t, n) => {
     noiseBurst(c, o, t, n, 0.18, "lowpass", 900, 0.6, 200);
     noiseBurst(c, o, t + 0.03, n, 0.08, "bandpass", 2400, 0.3);
@@ -932,7 +933,7 @@ const RECIPES: Record<SfxName, Recipe> = {
     tone(c, o, t + 0.34, "sine", 2349, 2600, 0.3, 0.07);
     return 0.66;
   },
-  // ---- the Goliath ----
+  // ---- the Colossus ----
   // stabiliser spikes driven home: two deep thuds, then the hydraulics let out a long hiss
   anchor: (c, o, t, n) => {
     for (const d of [0, 0.11]) {
@@ -953,14 +954,14 @@ const RECIPES: Record<SfxName, Recipe> = {
     tone(c, o, t + 0.3, "sawtooth", 70, 120, 0.8, 0.05);
     return 1.12;
   },
-  // a Goliath's footfall: a heavy, muffled thump with a little metal in it
+  // a Colossus's footfall: a heavy, muffled thump with a little metal in it
   stomp: (c, o, t, n, pitch) => {
     tone(c, o, t, "sine", 70 * pitch, 30 * pitch, 0.22, 0.6);
     noiseBurst(c, o, t, n, 0.14, "lowpass", 420, 0.4, 90);
     tone(c, o, t + 0.01, "triangle", 240 * pitch, 180 * pitch, 0.05, 0.03);
     return 0.24;
   },
-  // a Goliath goes down: a long metal groan, then the crash of it hitting the ground and a rumble
+  // a Colossus goes down: a long metal groan, then the crash of it hitting the ground and a rumble
   topple: (c, o, t, n) => {
     tone(c, o, t, "sawtooth", 140, 62, 0.55, 0.06);
     tone(c, o, t, "square", 210, 96, 0.5, 0.025);
@@ -991,7 +992,7 @@ const RECIPES: Record<SfxName, Recipe> = {
     tone(c, o, t, "square", 120, 118, 0.3, 0.012);
     return 0.38;
   },
-  // a Goliath walks off its Gantry: the eye powers up with a rising chord, the cradle unlocks with a clank
+  // a Colossus walks off its Gantry: the eye powers up with a rising chord, the cradle unlocks with a clank
   rollout: (c, o, t, n) => {
     noiseBurst(c, o, t, n, 0.08, "highpass", 2800, 0.2);
     tone(c, o, t, "triangle", 300, 260, 0.14, 0.2);
@@ -999,7 +1000,7 @@ const RECIPES: Record<SfxName, Recipe> = {
     tone(c, o, t + 0.5, "sine", 784, 784, 0.6, 0.07);
     return 1.12;
   },
-  // two Condors hook onto a Goliath: clamps biting, then the rotors bite into the air with a gust
+  // two Skyliners hook onto a Colossus: clamps biting, then the rotors bite into the air with a gust
   hook: (c, o, t, n) => {
     for (const d of [0, 0.09]) {
       tone(c, o, t + d, "triangle", 980, 700, 0.06, 0.08);

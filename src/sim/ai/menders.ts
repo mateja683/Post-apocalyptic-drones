@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, UNITS } from "../balance";
 import { isLifted, repairUrgency } from "../goliath";
 import { isStunned } from "../powers";
@@ -5,25 +6,25 @@ import type { Building, Command, Faction, Unit, World } from "../types";
 import { buildingCenter, dist } from "../world";
 
 /**
- * The commander's Menders. A Mender has no gun, so it is never a wave, a raid
+ * The commander's Tinkers. A Tinker has no gun, so it is never a wave, a raid
  * or a guard post of its own: every decision pass it picks the friendly unit
  * that needs it most — a wounded one close by, else the nearest group that is
  * on the move — and follows it. A unit alone deep in enemy ground (a raider,
- * the last of a wave) is not worth following there, and a Mender with nobody
+ * the last of a wave) is not worth following there, and a Tinker with nobody
  * worth following flies home to patch up the base instead of hovering where
  * the fight used to be.
  *
- * Goliaths come first: only Menders can repair one (GOLIATH.md), and it
- * takes two or three to make real progress, so a hurt Goliath draws up to
+ * Colossi come first: only Tinkers can repair one (GOLIATH.md), and it
+ * takes two or three to make real progress, so a hurt Colossus draws up to
  * MENDER_AI.goliath of them — the one with a weapon offline, rebooting, or
  * about to come back (goliath.ts repairUrgency) before the others — and one
- * stays with a Goliath out in the field even when it is whole. Not one
+ * stays with a Colossus out in the field even when it is whole. Not one
  * under an EMP (it blocks repair), nor one in the air on a lift.
  */
 export const MENDER_AI = {
   /** Units under this share of max HP count as wounded. */
   wounded: 0.85,
-  /** Wounded units farther than this (tiles) from the Mender are left to others. */
+  /** Wounded units farther than this (tiles) from the Tinker are left to others. */
   reach: 20,
   /** Friendly army within this many tiles of a unit is its company. */
   company: 5,
@@ -31,25 +32,25 @@ export const MENDER_AI = {
   deep: 16,
   /** …where a unit with less company than this (scrap value, itself included) is not followed. */
   deepCompany: 400,
-  /** A Mender already headed within this many tiles of its pick keeps its order. */
+  /** A Tinker already headed within this many tiles of its pick keeps its order. */
   slack: 2.5,
-  /** Home: a Mender this close to its rest point stays put. */
+  /** Home: a Tinker this close to its rest point stays put. */
   rest: 3,
-  /** Menders committed to a Goliath that needs repair (two or three make real progress)… */
+  /** Tinkers committed to a Colossus that needs repair (two or three make real progress)… */
   goliath: 3,
   /** …from this far away (tiles): it's worth the trip. */
   goliathReach: 30,
-  /** A Goliath this far (tiles) from home keeps one Mender by it even when whole. */
+  /** A Colossus this far (tiles) from home keeps one Tinker by it even when whole. */
   goliathAway: 10,
-  /** A Mender this close (tiles) to a Goliath's centre is there (its reach is 3; the Goliath's radius 1). */
+  /** A Tinker this close (tiles) to a Colossus's centre is there (its reach is 3; the Colossus's radius 1). */
   goliathStand: 1.6
 };
 
 /**
- * Orders for the Menders in `army` that aren't already spoken for (`used`:
- * dodging a reticle, or sent to a resting veteran). Every Mender it handles
+ * Orders for the Tinkers in `army` that aren't already spoken for (`used`:
+ * dodging a reticle, or sent to a resting veteran). Every Tinker it handles
  * is added to `used`, so no wave, guard or salvage tactic recruits it.
- * `goliaths`: our Goliaths (never in `army`), served first; given the world,
+ * `goliaths`: our Colossi (never in `army`), served first; given the world,
  * one under an EMP is passed over.
  */
 export function planMenders(
@@ -65,7 +66,7 @@ export function planMenders(
   const cmds: Command[] = [];
   const menders = army.filter((u) => u.kind === "mender" && !used.has(u.id));
   if (menders.length === 0) return cmds;
-  // (a Goliath handed in with the army is served as one too)
+  // (a Colossus handed in with the army is served as one too)
   const allGoliaths = [...goliaths, ...army.filter((u) => !!u.goliath && !goliaths.includes(u))];
   const others = army.filter((u) => u.kind !== "mender" && !u.goliath);
   const company = (u: Unit) =>
@@ -86,7 +87,7 @@ export function planMenders(
       rest = buildingCenter(b);
     }
   }
-  /** Mender `m` toward `goal` (attack-moving after a unit, moving home), unless it's there or on its way. */
+  /** Tinker `m` toward `goal` (attack-moving after a unit, moving home), unless it's there or on its way. */
   const go = (m: Unit, goal: { x: number; y: number }, near: number, follow: boolean) => {
     if (dist(m.x, m.y, goal.x, goal.y) <= near) return; // there: heal whatever's in reach
     const o = m.order;
@@ -94,7 +95,7 @@ export function planMenders(
     cmds.push({ type: follow ? "attackMove" : "move", faction, unitIds: [m.id], x: goal.x, y: goal.y });
   };
 
-  // --- Goliaths first: repair brings their weapons back ----------------------
+  // --- Colossi first: repair brings their weapons back ----------------------
   const free = [...menders];
   const take = (g: Unit, n: number) => {
     const picks = free
@@ -112,7 +113,7 @@ export function planMenders(
     .filter((g) => repairUrgency(g) > 0 || hp(g) < MENDER_AI.wounded)
     .sort((a, b) => repairUrgency(b) - repairUrgency(a) || hp(a) - hp(b) || a.id - b.id);
   for (const g of hurt) take(g, MENDER_AI.goliath);
-  // …and one by each Goliath out in the field, whole or not
+  // …and one by each Colossus out in the field, whole or not
   for (const g of [...repairable].sort((a, b) => a.id - b.id))
     if (!hurt.includes(g) && dist(g.x, g.y, home.x, home.y) > MENDER_AI.goliathAway) take(g, 1);
 

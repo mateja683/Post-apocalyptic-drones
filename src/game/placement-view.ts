@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Touch-friendly building placement, wired into the scene.
  *
@@ -43,7 +44,7 @@ export interface PlacementHooks {
 /** Ghost shake on a refused build (ms) and its amplitude (CSS px). */
 const SHAKE_MS = 220;
 const SHAKE_PX = 4;
-/** The build zone's tint, an anchored Goliath's build ring (team blue), and the footprint where the ghost may / may not stand (its ghost tints). */
+/** The build zone's tint, an anchored Colossus's build ring (team blue), and the footprint where the ghost may / may not stand (its ghost tints). */
 const ZONE = 0x7ef29b;
 const RING = 0x5aa8ff;
 const GOOD = 0x37d67a;
@@ -239,7 +240,7 @@ export class PlacementView {
       return;
     }
     const w = this.h.world;
-    // where you may build: the build-range zone, tinted (an anchored Goliath's ring in team
+    // where you may build: the build-range zone, tinted (an anchored Colossus's ring in team
     // blue: outposts), with a soft glow under a crisp rounded outline
     const g = v.over;
     const z = this.buildZone(w, kind);
@@ -332,7 +333,7 @@ export class PlacementView {
    * The build zone (zoneAt): base tiles and ring-only tiles as horizontal
    * runs [x, y, length, …] (tiles), and the whole zone's outline as closed
    * loops with their tile-step corners rounded off. Recomputed only when
-   * the buildings or the anchored Goliaths (which stand still) change.
+   * the buildings or the anchored Colossi (which stand still) change.
    */
   private buildZone(w: World, kind: BuildingKind): { runs: number[]; ring: number[]; loops: Pt[][] } {
     const goliaths = kind === "hq" ? [] : anchoredGoliaths(w, PLAYER);
@@ -342,7 +343,7 @@ export class PlacementView {
     if (this.zone?.key === key) return this.zone;
     const W = w.width;
     const inZone = new Uint8Array(W * w.height);
-    // (with no Goliath anchored there is no ring to test: base range alone)
+    // (with no Colossus anchored there is no ring to test: base range alone)
     const test: BuildingKind = goliaths.length > 0 ? kind : "hq";
     for (let ty = 0; ty < w.height; ty++) for (let tx = 0; tx < W; tx++) inZone[ty * W + tx] = zoneAt(w, PLAYER, test, tx, ty);
     const at = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < w.height && inZone[y * W + x]! > 0;
@@ -433,7 +434,7 @@ export class PlacementView {
  * Whether tile (tx, ty) is in `faction`'s build zone for `kind`, by the
  * sim's own rule (economy.ts canPlaceBuilding): 1 when its centre is in base
  * range (sim/placement.ts inBuildRange; outposts never count), 2 when it is
- * only in the build ring of an anchored Goliath (inGoliathRing; anything but
+ * only in the build ring of an anchored Colossus (inGoliathRing; anything but
  * an HQ goes up there, as an outpost), else 0.
  */
 export function zoneAt(w: World, faction: Faction, kind: BuildingKind, tx: number, ty: number): 0 | 1 | 2 {

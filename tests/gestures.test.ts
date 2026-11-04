@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GestureRecognizer, STRAND_PX, TAP_SLOP_PX, isHoldRelease, strandedPointers } from "../src/game/gestures";
 
@@ -76,7 +77,7 @@ describe("touch gestures", () => {
     expect(cb.onTap).not.toHaveBeenCalled();
   });
 
-  it("tells a hold released in place (a Condor drop) from a box drag", () => {
+  it("tells a hold released in place (a Skyliner drop) from a box drag", () => {
     const box = () => {
       const [x0, y0] = cb.onBoxStart.mock.calls.at(-1)!;
       const [x1, y1] = cb.onBoxEnd.mock.calls.at(-1)!;
@@ -103,7 +104,7 @@ describe("touch gestures", () => {
     expect(isHoldRelease(100, 100, 100 + TAP_SLOP_PX + 1, 100)).toBe(false);
   });
 
-  it("a box cut short by a second finger or a cancel is not released (never a Condor drop)", () => {
+  it("a box cut short by a second finger or a cancel is not released (never a Skyliner drop)", () => {
     const ended = () => cb.onBoxEnd.mock.calls.at(-1)!;
     // a still hold, then a second finger comes down to pinch
     g.down(touch(1, 100, 100), 0);

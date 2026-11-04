@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { nearBase, SideLog } from "../src/arena/events";
 import { Arena, parseSeat } from "../src/arena/match";
@@ -9,7 +10,7 @@ function hit(w: World, u: Unit, attackerId: number): void {
   w.fx.push({ type: "hit", faction: u.faction, id: u.id, x: u.x, y: u.y, building: false, attackerId });
 }
 
-describe("Goliath base alerts in the arena", () => {
+describe("Colossus base alerts in the arena", () => {
   it("recognizes an airborne Armada base without revealing nearby hidden enemies", () => {
     const w = createMapWorld("archipelago", { seed: 42, mutators: ["armada"] });
     const g = [...w.units.values()].find((u) => u.faction === "blue" && u.goliath)!;
@@ -26,7 +27,7 @@ describe("Goliath base alerts in the arena", () => {
     expect(log.take(w).join("\n")).not.toContain("wasp");
   });
 
-  it("wakes a waiting Armada commander as enemies approach its Goliaths", () => {
+  it("wakes a waiting Armada commander as enemies approach its Colossi", () => {
     const a = new Arena({ map: "archipelago", seed: 42, mutators: ["armada"], seats: { blue: parseSeat("agent"), red: parseSeat("agent") } });
     a.resolve();
     a.wait("blue", 4);
@@ -43,7 +44,7 @@ describe("Goliath base alerts in the arena", () => {
     expect(a.observe("blue")).toMatch(/Your wait was cut short:.*enemies are near your base/);
   });
 
-  it("reports a hit to an owned Goliath without exposing an unseen attacker", () => {
+  it("reports a hit to an owned Colossus without exposing an unseen attacker", () => {
     const w = createWorld(40, 40);
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
     const attacker = spawnUnit(w, "lancer", "red", 35, 35);
@@ -58,7 +59,7 @@ describe("Goliath base alerts in the arena", () => {
     expect(log.urgent.size).toBe(0);
   });
 
-  it("still wakes for a lethal Goliath hit after the simulator removed the unit", () => {
+  it("still wakes for a lethal Colossus hit after the simulator removed the unit", () => {
     const w = createWorld(40, 40);
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
     w.units.delete(g.id);

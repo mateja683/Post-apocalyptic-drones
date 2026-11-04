@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { STRATEGIES, createAiState, tickAi } from "../src/sim/ai/commander";
 import { CONDOR_AI } from "../src/sim/ai/condor";
@@ -176,7 +177,7 @@ describe("AI and robot infantry", () => {
     expect(aaWeight(UNITS["rocket-squad"])).toBeGreaterThanOrEqual(AA_COVER);
   });
 
-  it("tallies the robot infantry it sees, but not a Sniper Team hidden in the woods", () => {
+  it("tallies the robot infantry it sees, but not a Longshot Team hidden in the woods", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const hq = buildingCenter(hqOf(w, "red")!);
@@ -200,7 +201,7 @@ describe("AI and robot infantry", () => {
   });
 
   for (const [diff, snipers] of [["normal", true], ["easy", false]] as const)
-    it(`answers Mastodons with Rocket Squads and enemy squads with ${snipers ? "Sniper Teams" : "no Snipers (Easy)"}`, () => {
+    it(`answers Behemoths with Bazooka Squads and enemy squads with ${snipers ? "Longshot Teams" : "no Longshots (Easy)"}`, () => {
       const w = createMapWorld("proving-grounds");
       const ai = createAiState("ironclad", diff, 1);
       const hq = hqOf(w, "red")!;
@@ -225,7 +226,7 @@ describe("AI and robot infantry", () => {
       expect(built.has("sniper")).toBe(snipers);
     });
 
-  it("answers an intruder with units that can hurt it: no Sniper Team sent at a tank", () => {
+  it("answers an intruder with units that can hurt it: no Longshot Team sent at a tank", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const c = buildingCenter(hqOf(w, "red")!);
@@ -239,7 +240,7 @@ describe("AI and robot infantry", () => {
     expect(answer).toBeDefined();
     expect((answer as { unitIds: number[] }).unitIds).toContain(tank.id);
     expect((answer as { unitIds: number[] }).unitIds).not.toContain(sniper.id);
-    // …but a squad of robot infantry is the Sniper's to answer
+    // …but a squad of robot infantry is the Longshot's to answer
     const w2 = createMapWorld("proving-grounds");
     const ai2 = createAiState("balanced", "normal", 1);
     const sniper2 = spawnUnit(w2, "sniper", "red", c.x - 1, c.y + 3);
@@ -259,7 +260,7 @@ describe("AI and robot infantry", () => {
     const stage = { x: hq.x + ((far.x - hq.x) / len) * 9, y: hq.y + ((far.y - hq.y) / len) * 9 };
     // a wave's worth gathered at the staging point…
     for (let i = 0; i < 12; i++) spawnUnit(w, "stinger", "red", stage.x - 1 + (i % 4) * 0.7, stage.y - 1 + Math.floor(i / 4) * 0.7);
-    // …and a Trooper Squad still on its way there (slow: 1.8 tiles/s)
+    // …and a Tin Soldiers still on its way there (slow: 1.8 tiles/s)
     const late = spawnUnit(w, "trooper", "red", hq.x + ((far.x - hq.x) / len) * 2, hq.y + ((far.y - hq.y) / len) * 2);
     late.order = { type: "attackMove", x: stage.x, y: stage.y };
     step(w, []);
@@ -270,7 +271,7 @@ describe("AI and robot infantry", () => {
     expect(wave[0]!.type === "attackMove" && Math.hypot(wave[0]!.x - stage.x, wave[0]!.y - stage.y) < 1).toBe(false);
   });
 
-  it("Rush opens with an Assembly Bay and fields Troopers alongside its Stingers", () => {
+  it("Rush opens with a Robot Foundry and fields Tin Soldiers alongside its Roadsters", () => {
     const w = createSkirmishWorld();
     const ai = createAiState("rush", "normal", 1);
     runWithAi(w, 180, ai);
@@ -280,7 +281,7 @@ describe("AI and robot infantry", () => {
     expect(units(w, "red", "stinger").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("Ironclad escorts its Mastodons with Rocket Squads, one per Mastodon", () => {
+  it("Ironclad escorts its Behemoths with Bazooka Squads, one per Behemoth", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("ironclad", "normal", 1);
     const hq = hqOf(w, "red")!;
@@ -294,12 +295,12 @@ describe("AI and robot infantry", () => {
       for (const cmd of cmds) if (cmd.type === "produce" && cmd.unit === "rocket-squad") rockets.push(w.tick);
       step(w, cmds);
     }
-    // nothing of the enemy's seen: the Rockets are for its own Mastodons
+    // nothing of the enemy's seen: the Rockets are for its own Behemoths
     expect(ai.seenHeavy).toBe(0);
     expect(rockets).toHaveLength(3);
   });
 
-  /** Red, mid-game: an Airpad, an Assembly Bay, a Condor and a few squads at home. */
+  /** Red, mid-game: an Aerodrome, a Robot Foundry, a Skyliner and a few squads at home. */
   function dropSetup(diff: "normal" | "easy", strategy: "balanced" | "rush" | "boom" = "balanced") {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState(strategy, diff, 1);
@@ -314,7 +315,7 @@ describe("AI and robot infantry", () => {
     return { w, ai };
   }
 
-  it("Balanced loads two squads into its Condor and drops them on the enemy harvesters", () => {
+  it("Balanced loads two squads into its Skyliner and drops them on the enemy harvesters", () => {
     const { w, ai } = dropSetup("normal");
     const blueHq = buildingCenter(hqOf(w, "blue")!);
     const redHq = buildingCenter(hqOf(w, "red")!);
@@ -325,7 +326,7 @@ describe("AI and robot infantry", () => {
       step(w, tickAi(w, "red", ai));
       fx.push(...w.fx.filter((e) => "faction" in e && e.faction === "red"));
       if (dropTick < 0 && fx.some((e) => e.type === "disembark")) dropTick = w.tick;
-      // …and the empty Condor flies home (~40 tiles at 3.6 tiles/s)
+      // …and the empty Skyliner flies home (~40 tiles at 3.6 tiles/s)
       if (dropTick >= 0 && w.tick === dropTick + 20 * TICK_RATE) {
         const condor = units(w, "red", "condor")[0]!;
         homeAfterDrop = Math.hypot(condor.x - redHq.x, condor.y - redHq.y);
@@ -395,7 +396,7 @@ describe("AI and robot infantry", () => {
     }
   }, 30000);
 
-  /** dropSetup, plus SAM sites by blue's home field that red hasn't seen when it plans its drop. */
+  /** dropSetup, plus Sky Batteries by blue's home field that red hasn't seen when it plans its drop. */
   function samSetup(n: number) {
     const s = dropSetup("normal");
     const field = nearestScrapTile(s.w, buildingCenter(hqOf(s.w, "blue")!).x, buildingCenter(hqOf(s.w, "blue")!).y, "blue")!;
@@ -417,14 +418,14 @@ describe("AI and robot infantry", () => {
       step(w, cmds);
       for (const e of w.fx)
         if (e.type === "disembark" && e.faction === "red") {
-          expect(near(e.x, e.y), "dropped under the SAMs").toBe(false);
+          expect(near(e.x, e.y), "dropped under the Sky Batteries").toBe(false);
           if (Math.hypot(e.x - redHq.x, e.y - redHq.y) < 10) homeDrop = true;
         }
     }
     expect(w.units.has(condor.id)).toBe(true);
     expect(condor.hp).toBeGreaterThan(UNITS.condor.hp * (1 - CONDOR_AI.abortLoss));
     expect(homeDrop).toBe(true); // set down at home: they walk
-    expect(trips).toBe(1); // …and no second trip into the SAMs it saw
+    expect(trips).toBe(1); // …and no second trip into the Sky Batteries it saw
   }, 30000);
 
   it("turns a drop back when it takes fire on the way in, even on a straight run", () => {
@@ -505,7 +506,7 @@ describe("AI and robot infantry", () => {
     for (const id of drop!.unitIds) expect(w.units.get(id)!.order).toMatchObject({ type: "attackMove", x: blueHq.x, y: blueHq.y });
   }, 30000);
 
-  it("rebuilds a lost Condor no sooner than CONDOR_AI.rebuild seconds later", () => {
+  it("rebuilds a lost Skyliner no sooner than CONDOR_AI.rebuild seconds later", () => {
     const { w, ai } = dropSetup("normal");
     w.tick -= 10 * TICK_RATE;
     hqOf(w, "blue")!.hp = 1e9; // (a long watch: blue never falls)
@@ -524,8 +525,8 @@ describe("AI and robot infantry", () => {
   }, 30000);
 });
 
-describe("AI Menders", () => {
-  /** Proving Grounds: red's home, blue's HQ, and a red Mender at `at`. */
+describe("AI Tinkers", () => {
+  /** Proving Grounds: red's home, blue's HQ, and a red Tinker at `at`. */
   function scene(at: (blueHq: { x: number; y: number }) => { x: number; y: number }) {
     const w = createMapWorld("proving-grounds");
     const home = buildingCenter(hqOf(w, "red")!);
@@ -536,7 +537,7 @@ describe("AI Menders", () => {
   }
   const army = (w: World) => [...w.units.values()].filter((u) => u.faction === "red" && u.kind !== "harvester");
 
-  it("a Mender left on its own in enemy ground flies home instead of hanging around", () => {
+  it("a Tinker left on its own in enemy ground flies home instead of hanging around", () => {
     const { w, home, blueHq, mender } = scene((b) => ({ x: b.x + 6, y: b.y - 6 }));
     // a lone raider in there isn't worth following
     const raider = spawnUnit(w, "stinger", "red", blueHq.x + 4, blueHq.y - 4);
@@ -580,7 +581,7 @@ describe("AI Menders", () => {
     expect(cmds).toEqual([{ type: "move", faction: "red", unitIds: [mender.id], ...buildingCenter(hq) }]);
   });
 
-  it("the commander sends anti-air after an enemy Mender working near its base", () => {
+  it("the commander sends anti-air after an enemy Tinker working near its base", () => {
     const w = createMapWorld("proving-grounds");
     const home = buildingCenter(hqOf(w, "red")!);
     const mender = spawnUnit(w, "mender", "blue", home.x - 4, home.y + 5);

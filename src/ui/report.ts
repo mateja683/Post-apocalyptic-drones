@@ -37,7 +37,7 @@ import { DUO, isMulti, perSide, rivalsOf, sidesOf } from "../sim/sides";
 
 export interface ReportOpts {
   world: World;
-  /** Who won, or "draw" (Robot Love: two enemy Goliaths fell in love, World.love); null: no result (a sound duel cut short, with `head`). */
+  /** Who won, or "draw" (Robot Love: two enemy Colossi fell in love, World.love); null: no result (a sound duel cut short, with `head`). */
   winner: Faction | "draw" | null;
   /** The local player's side (the report's point of view unless spectating). */
   pov: Faction;
@@ -367,7 +367,7 @@ const EXTRA_LABELS: Record<string, string> = {
   dropsCaptured: "Supply drops taken",
   uplinkSeconds: "Uplink time (s)",
   aircraftKilled: "Aircraft downed",
-  mastodonsKilled: "Mastodons destroyed",
+  mastodonsKilled: "Behemoths destroyed",
   killsByBuildings: "Kills by defences"
 };
 const humanize = (k: string) => {
@@ -418,9 +418,9 @@ function statsHtml(ctx: ReportContext): string {
     row("Units lost", st(p).unitsLost, st(q).unitsLost),
     row("Scrap harvested", st(p).scrapHarvested, st(q).scrapHarvested)
   ];
-  // Goliaths (only when someone fielded one: most matches never get that far)
+  // Colossi (only when someone fielded one: most matches never get that far)
   const gol = goliathsFielded(ctx.chronicle);
-  if (gol.blue + gol.red > 0) rows.splice(3, 0, row("Goliaths fielded", gol[p] ?? 0, gol[q] ?? 0));
+  if (gol.blue + gol.red > 0) rows.splice(3, 0, row("Colossi fielded", gol[p] ?? 0, gol[q] ?? 0));
   // battlefield salvage and calldowns (not every mode has them: rows only when something happened)
   const salv = (f: Faction) => st(f).scrapSalvaged ?? 0;
   if (salv(p) + salv(q) > 0) rows.push(row("Scrap salvaged", salv(p), salv(q)));
@@ -459,7 +459,7 @@ function statsMultiHtml(ctx: ReportContext): string {
     row("Scrap harvested", (f) => st(f).scrapHarvested)
   ];
   const gol = goliathsFielded(ctx.chronicle);
-  if (sides.some((f) => (gol[f] ?? 0) > 0)) rows.splice(3, 0, row("Goliaths fielded", (f) => gol[f] ?? 0));
+  if (sides.some((f) => (gol[f] ?? 0) > 0)) rows.splice(3, 0, row("Colossi fielded", (f) => gol[f] ?? 0));
   if (sides.some((f) => (st(f).scrapSalvaged ?? 0) > 0)) rows.push(row("Scrap salvaged", (f) => st(f).scrapSalvaged ?? 0));
   const calls = calldownCounts(w);
   if (sides.some((f) => calls[f].total > 0)) rows.push(row("Calldowns", (f) => calls[f].total));
@@ -473,7 +473,7 @@ function statsMultiHtml(ctx: ReportContext): string {
   return `<table class="aar-stats multi"><tr><th></th>${head}</tr>${rows.join("")}</table>`;
 }
 
-/** Goliaths each side playing fielded this match: those it started with (Nomads) and those that walked off a Gantry. */
+/** Colossi each side playing fielded this match: those it started with (Nomads) and those that walked off a Gantry. */
 export function goliathsFielded(c: Pick<Chronicle, "built"> & Partial<Pick<Chronicle, "startGoliaths" | "sides">>): PerSide<number> {
   const start = c.startGoliaths;
   return Object.fromEntries((c.sides ?? DUO).map((f) => [f, (start?.[f] ?? 0) + (c.built[f]?.["goliath"] ?? 0)])) as PerSide<number>;

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, OBJECTIVES, UNITS } from "../balance";
 import { TICK_RATE } from "../balance";
 import { buildingBlocker, canPlaceBuilding, nearestReachableResource, nearestScrapTile, unitBlocker } from "../economy";
@@ -82,7 +83,7 @@ export interface Strategy {
   assaultValue: number;
   /** Idle raiders required before a harass raid launches. */
   harassGroup: number;
-  /** Air force first: the Fab Plant only makes anti-air and a small home guard. */
+  /** Air force first: the Motor Works only makes anti-air and a small home guard. */
   airOnly?: boolean;
   /** Lean on heavy tech ground units (mastodons, lancers, mortars). */
   heavy?: boolean;
@@ -90,21 +91,21 @@ export interface Strategy {
   groundRaids?: boolean;
   /**
    * Share of the army's value it keeps in robot infantry once it has an
-   * Assembly Bay (Troopers, with Rocket Squads against armour and air).
-   * Without it, the Bay only answers what it sees: Rockets for Mastodons,
-   * Snipers for enemy infantry.
+   * Robot Foundry (Tin Soldiers, with Bazooka Squads against armour and air).
+   * Without it, the Bay only answers what it sees: Rockets for Behemoths,
+   * Longshots for enemy infantry.
    */
   infantry?: number;
-  /** Rocket Squads it keeps per Mastodon of its own, as escorts (Ironclad). */
+  /** Bazooka Squads it keeps per Behemoth of its own, as escorts (Ironclad). */
   escorts?: number;
-  /** No Assembly Bay in its plans, but it builds one for Rocket Squads once it has seen heavy armour (Mastodons, Hornets). */
+  /** No Robot Foundry in its plans, but it builds one for Bazooka Squads once it has seen heavy armour (Behemoths, Thunderheads). */
   bayVsArmour?: boolean;
 }
 
 export type StrategyName = "balanced" | "rush" | "airswarm" | "boom" | "skyforce" | "ironclad";
 
 export const STRATEGIES: Record<StrategyName, Strategy> = {
-  /** Steady macro: factory, airpad, tech, then an Assembly Bay; standard timing, the odd Condor drop. */
+  /** Steady macro: factory, airpad, tech, then a Robot Foundry; standard timing, the odd Skyliner drop. */
   balanced: {
     name: "balanced",
     label: "Balanced",
@@ -115,10 +116,10 @@ export const STRATEGIES: Record<StrategyName, Strategy> = {
     infantry: 0.25
   },
   /**
-   * Early ground pressure: Troopers from an early Assembly Bay alongside
-   * Stinger raids in packs of five, two factories, the earliest and smallest
-   * waves, Condor drops on the harvesters. A fifth harvester pays for it:
-   * every side's starting Trooper Squad blunts the opening raids (at 4 it
+   * Early ground pressure: Tin Soldiers from an early Robot Foundry alongside
+   * Roadster raids in packs of five, two factories, the earliest and smallest
+   * waves, Skyliner drops on the harvesters. A fifth harvester pays for it:
+   * every side's starting Tin Soldiers blunts the opening raids (at 4 it
    * won 18–26% of tools/pacing.ts games with infantry in; 40% at 5).
    */
   rush: {
@@ -131,7 +132,7 @@ export const STRATEGIES: Record<StrategyName, Strategy> = {
     groundRaids: true,
     infantry: 0.4
   },
-  /** Airpad first: relentless wasp raids, bombers later; Rocket Squads when Mastodons show up. */
+  /** Aerodrome first: relentless wasp raids, bombers later; Bazooka Squads when Behemoths show up. */
   airswarm: {
     name: "airswarm",
     label: "Air Swarm",
@@ -143,9 +144,9 @@ export const STRATEGIES: Record<StrategyName, Strategy> = {
   },
   /**
    * Greedy economy: extra harvesters, a forward depot, a huge late push;
-   * Rocket Squads from an Assembly Bay once Mastodons show up.
-   * (The depot comes after a turret and the Tech Lab: with every side's
-   * starting Trooper Squad on guard, a depot second won it 74–76% of
+   * Bazooka Squads from a Robot Foundry once Behemoths show up.
+   * (The depot comes after a turret and the Atomic Lab: with every side's
+   * starting Tin Soldiers on guard, a depot second won it 74–76% of
    * tools/pacing.ts games; 61% this way.)
    */
   boom: {
@@ -158,8 +159,8 @@ export const STRATEGIES: Record<StrategyName, Strategy> = {
     bayVsArmour: true
   },
   /**
-   * Air force: wasps, raptors and hornets; the late Fab Plant only guards
-   * home, and Rocket Squads from an Assembly Bay join it once Mastodons show up.
+   * Air force: wasps, raptors and hornets; the late Motor Works only guards
+   * home, and Bazooka Squads from a Robot Foundry join it once Behemoths show up.
    */
   skyforce: {
     name: "skyforce",
@@ -172,9 +173,9 @@ export const STRATEGIES: Record<StrategyName, Strategy> = {
     bayVsArmour: true
   },
   /**
-   * Armoured column: rushes the Tech Lab (right after a turret) for Mastodons,
-   * Lancers and Mortars, and an Assembly Bay for the Rocket Squads that
-   * escort the Mastodons. (Waves at 1400: at 1500 it won 72–76% of
+   * Armoured column: rushes the Atomic Lab (right after a turret) for Behemoths,
+   * Ray Skiffs and Bombards, and a Robot Foundry for the Bazooka Squads that
+   * escort the Behemoths. (Waves at 1400: at 1500 it won 72–76% of
    * tools/pacing.ts games once infantry was in, at 1800 82%, at 1300 58%.)
    */
   ironclad: {
@@ -223,7 +224,7 @@ export interface AiState {
   seenGround: number;
   /** Heavily armoured enemy ground units seen (mastodons, harvesters don't count). */
   seenHeavy: number;
-  /** Enemy anti-air seen recently, in Flak Crawlers (intel.ts aaWeight: a Trooper Squad is 0.2). */
+  /** Enemy anti-air seen recently, in Skyguards (intel.ts aaWeight: a Tin Soldiers is 0.2). */
   seenAA: number;
   /** Enemy robot infantry squads seen recently. */
   seenInfantry: number;
@@ -232,7 +233,7 @@ export interface AiState {
   scoutLeg: number;
   /** Deterministic RNG state for tie-breaks. */
   rng: number;
-  /** Extra SAM sites wanted in response to enemy air. */
+  /** Extra Sky Batteries wanted in response to enemy air. */
   extraSams: number;
   /** Extra turrets wanted in response to enemy infantry. */
   extraTurrets: number;
@@ -295,7 +296,7 @@ const HOME_ALARM_VALUE = 400;
 const DEFENSE_RADIUS = 11;
 const GUARD_RADIUS = 5;
 const STAGE_RADIUS = 6;
-/** The army (the Condor is transport, not a combat unit: ai/condor.ts flies it). */
+/** The army (the Skyliner is transport, not a combat unit: ai/condor.ts flies it). */
 const COMBAT_KINDS: UnitKind[] = [
   "stinger", "flak-crawler", "mortar", "mastodon", "lancer", "wasp", "raptor", "hornet", "mender",
   "trooper", "rocket-squad", "sniper"
@@ -382,8 +383,8 @@ function rand(s: AiState): number {
 export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const diff = DIFFICULTY[s.difficulty];
   w.factions[faction].incomeMult = diff.incomeMult;
-  // no HQ, no commander — unless a Goliath fights on (a side is beaten only once its HQ and all
-  // its Goliaths are gone: GOLIATH.md); Last Stand's waves are the director's alone (not even the dodge reflex)
+  // no HQ, no commander — unless a Colossus fights on (a side is beaten only once its HQ and all
+  // its Colossi are gone: GOLIATH.md); Last Stand's waves are the director's alone (not even the dodge reflex)
   const hq = hqOf(w, faction);
   if (!hq && !hasGoliath(w, faction)) return [];
   // calldown reflex: scatter from enemy reticles every tick, not just on decision passes
@@ -402,24 +403,24 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const airlifts = airliftActive(w, faction, s);
   const armyValue = value(army);
   const count = (k: UnitKind) => mine.filter((u) => u.kind === k).length;
-  // (Goliaths are their own planner's, never the army's: ai/goliath.ts)
+  // (Colossi are their own planner's, never the army's: ai/goliath.ts)
   const goliaths = goliathsOf(w, faction).sort((a, b) => a.id - b.id);
-  // (squads training at an anchored Goliath count as queued too)
+  // (squads training at an anchored Colossus count as queued too)
   const queued = (k: UnitKind) =>
     myBuildings.reduce((n, b) => n + b.queue.filter((q) => q.kind === k).length, 0) +
     goliaths.reduce((n, g) => n + g.goliath!.queue.filter((q) => q.kind === k).length, 0);
   const have = (k: UnitKind) => count(k) + queued(k);
   const has = (k: BuildingKind) => myBuildings.some((b) => b.kind === k);
 
-  const seen = seenEnemies(w, faction); // through fog and Sniper concealment alike
+  const seen = seenEnemies(w, faction); // through fog and Longshot concealment alike
   observeEnemy(s, seen, enemyGantryBuilds(w, faction).length);
 
-  // where our HQ stands, or stood (Nomads: where our Goliath started): the enemy's home is its
+  // where our HQ stands, or stood (Nomads: where our Colossus started): the enemy's home is its
   // mirror image, and that stays put (a free-for-all's: the focus rival's corner, homeOf)
   const origin = hq ? buildingCenter(hq) : lostHome(w, faction, s);
   if (hq) noteHome(s, origin);
   const multi = isMulti(w);
-  // the base: the HQ, else (lost, or Nomads) our first dug-in Goliath, else where the HQ stood
+  // the base: the HQ, else (lost, or Nomads) our first dug-in Colossus, else where the HQ stood
   const baseGoliath = hq ? undefined : goliaths.find(isAnchored);
   const hqC = baseGoliath ? { x: baseGoliath.x, y: baseGoliath.y } : origin;
   // island maps: the two landmasses meet only at the bridges, and a field on
@@ -427,7 +428,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const islandMap = !!w.rules?.islands;
   // --- threats: armed intruders near our buildings, harvesters or Uplinks ---
   const threats = findThreats(w, faction, seen, myBuildings, harvesters);
-  // (where our base is, for the raid tally below: the HQ, else a dug-in Goliath, else where the HQ stood)
+  // (where our base is, for the raid tally below: the HQ, else a dug-in Colossus, else where the HQ stood)
   const home0 = hq ? origin : goliaths.find(isAnchored) ?? origin;
   // a free-for-all: who we're out to beat this pass (a raid on our base turns us on the raider)
   const focus = multi ? pickFocus(w, faction, s, origin, raidersAt(w, threats, home0)) : null;
@@ -445,7 +446,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
     : hqC;
 
   threats.sort((a, b) => dist(a.x, a.y, hqC.x, hqC.y) - dist(b.x, b.y, hqC.x, hqC.y));
-  // (a Goliath counts for what it can still fire: ai/goliath.ts threatValue)
+  // (a Colossus counts for what it can still fire: ai/goliath.ts threatValue)
   const atHome = threats.filter((t) => dist(t.x, t.y, hqC.x, hqC.y) <= DEFENSE_RADIUS);
   const raidValue = atHome.reduce((v, t) => v + t.value, 0);
   const threatened = raidValue >= HOME_ALARM_VALUE;
@@ -454,14 +455,14 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
 
   // --- construction: place a ready building, or start the next one -------
   // (late in a match, rich and with an army: a Gantry and whatever it needs first, ai/goliath.ts)
-  // (with no HQ, lost or Nomads, there's a Gantry only while a Goliath is dug in to build round)
+  // (with no HQ, lost or Nomads, there's a Gantry only while a Colossus is dug in to build round)
   const gantryWanted = (!!hq || !!baseGoliath) && wantGantry(w, faction, s, { armyValue, threatened, home: origin, enemyHome });
   /** Where a building of `kind` goes: defences by the mining line, radar forward, the Gantry behind the HQ (it is big, and always seen), the rest by the HQ. */
   const anchorFor = (kind: BuildingKind) =>
     kind === "turret" || kind === "sam-site" || (kind === "depot" && !hq)
       ? guardPoint
       : kind === "radar" ? towardEnemy(w, hqC, 4) : kind === "gantry" ? towardEnemy(w, hqC, -5) : hqC;
-  // (no HQ: every building goes up in a Goliath's ring, and a full ring is skipped, not started and refunded)
+  // (no HQ: every building goes up in a Colossus's ring, and a full ring is skipped, not started and refunded)
   let roomless = false;
   const fits = (kind: BuildingKind) => {
     const ok = !!findPlacementSpot(w, faction, kind, anchorFor(kind));
@@ -469,10 +470,10 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
     return ok;
   };
   const wanted = nextBuilding(w, faction, myBuildings, s, gantryWanted, hq ? undefined : fits);
-  if (roomless) noteNoRoom(w, s); // (the base Goliath may move on to build more: ai/goliath.ts)
+  if (roomless) noteNoRoom(w, s); // (the base Colossus may move on to build more: ai/goliath.ts)
   if (f.pending?.ready) {
     const kind = f.pending.kind;
-    // an outpost goes up in its Goliath's ring (ai/goliath.ts)
+    // an outpost goes up in its Colossus's ring (ai/goliath.ts)
     let spot: { tx: number; ty: number } | null = outpostSpot(w, faction, s, kind, enemyHqPos);
     if (!spot && kind === "depot" && hq) {
       const site = depotSite(w, faction, hqC);
@@ -485,7 +486,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
       if (!hq) noteNoRoom(w, s);
     }
   } else if (!f.pending) {
-    // an outpost for a dug-in Goliath first (cheap, and few), else the base's next building
+    // an outpost for a dug-in Colossus first (cheap, and few), else the base's next building
     const outpost = outpostWanted(w, faction, s, f.scrap);
     if (outpost) cmds.push({ type: "startBuilding", faction, building: outpost });
     else if (wanted && f.scrap >= BUILDINGS[wanted].cost) {
@@ -502,19 +503,19 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const fieldsLeft = !islandMap || ownFieldLeft(w, hqC, ourSide);
   const fieldFrom = (x: number, y: number) =>
     !islandMap ? nearestReachableResource(w, x, y, faction) : fieldsLeft ? nearestReachableResource(w, x, y, faction, ourSide) : null;
-  // the fields our dug-in Goliaths work (ai/goliath.ts): harvesters sent out, and more built for them
+  // the fields our dug-in Colossi work (ai/goliath.ts): harvesters sent out, and more built for them
   const goliathFields = goliathHarvest(w, faction, s, harvesters, () => {
     const at = fieldFrom(hqC.x, hqC.y);
     return at ? { x: at.x + 0.5, y: at.y + 0.5 } : null;
   });
   cmds.push(...goliathFields.cmds);
   const wantHarvesters = Math.max(1, s.strategy.harvesters + diff.extraHarvesters + depots + goliathFields.extra);
-  // (Nomads: no HQ ever — the dug-in Goliath builds them, goliath.ts trainableAt)
+  // (Nomads: no HQ ever — the dug-in Colossus builds them, goliath.ts trainableAt)
   const yard = hq ? { id: hq.id, queue: hq.queue } : baseGoliath && trainableAt(w, "harvester") ? { id: baseGoliath.id, queue: baseGoliath.goliath!.queue } : null;
   if (yard && fieldsLeft && harvesters.length < wantHarvesters && yard.queue.length === 0 && f.scrap >= UNITS.harvester.cost)
     cmds.push({ type: "produce", faction, buildingId: yard.id, unit: "harvester" });
   for (const h of harvesters) {
-    if (goliathFields.keep.has(h.id)) continue; // (working a Goliath's field)
+    if (goliathFields.keep.has(h.id)) continue; // (working a Colossus's field)
     const o = h.order;
     // (a dry field sends a harvester to the nearest one it can reach: never across the bridges)
     const astray = islandMap && o.type === "harvest" && !ourSide(o.fieldX, o.fieldY);
@@ -531,19 +532,19 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   // reserve scrap while an important building is still wanted
   const reserve =
     f.pending || wanted === null ? 0 : wanted === "turret" || wanted === "radar" ? 0 : Math.min(400, BUILDINGS[wanted].cost);
-  // the Goliath savings: a share of income set aside while the Gantry waits for one (ai/goliath.ts)
+  // the Colossus savings: a share of income set aside while the Gantry waits for one (ai/goliath.ts)
   const gantry = myBuildings.find((b) => b.kind === "gantry") ?? null;
   const fundCtx = { gantry: !!gantry || f.pending?.kind === "gantry", armyValue, threatened };
   const fund = goliathFund(w, faction, s, fundCtx);
   let spendable = f.scrap - reserve - fund;
   const liftHeld = liftCondors(w, faction, s);
-  /** Queue `kind` at a producer (a building, or an anchored Goliath for squads) if we can pay its price now. */
+  /** Queue `kind` at a producer (a building, or an anchored Colossus for squads) if we can pay its price now. */
   const produce = (b: { id: number }, kind: UnitKind | null) => {
     if (!kind || unitBlocker(w, faction, kind) || spendable < unitCost(w, faction, kind)) return;
     spendable -= unitCost(w, faction, kind);
     cmds.push({ type: "produce", faction, buildingId: b.id, unit: kind });
   };
-  // --- the Gantry: a Goliath once the fund (and the bank) covers its escalating price
+  // --- the Gantry: a Colossus once the fund (and the bank) covers its escalating price
   if (gantry && gantry.queue.length === 0 && wantGoliath(w, faction, s, { ...fundCtx, spendable: f.scrap - reserve })) {
     cmds.push({ type: "produce", faction, buildingId: gantry.id, unit: "goliath" });
     spendable = f.scrap - reserve - unitCost(w, faction, "goliath");
@@ -553,7 +554,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const enemyDefenses = knownBuildings(w, faction).filter(
     (kb) => kb.kind === "turret" || kb.kind === "sam-site"
   ).length;
-  // anti-air on hand, in Flak Crawlers (intel.ts aaWeight: a Lancer 0.6, a Rocket Squad 1); rifle
+  // anti-air on hand, in Skyguards (intel.ts aaWeight: a Ray Skiff 0.6, a Bazooka Squad 1); rifle
   // squads (0.2 each) don't count — a few of them out with the army leave the harvesters bare
   const ownAA = COMBAT_KINDS.reduce((a, k) => a + (aaWeight(UNITS[k]) >= AA_COVER ? have(k) * aaWeight(UNITS[k]) : 0), 0);
   // a ground army that is mostly robot infantry: splash and rapid fire answer it, not big guns
@@ -561,14 +562,14 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
 
   // floating scrap? keep queues two deep
   const depth = f.scrap > 700 ? 2 : 1;
-  // --- Assembly Bay: robot infantry, mixed to what we've seen -------------
-  // Rockets for armour (and Ironclad's Mastodon escorts), Snipers for enemy squads
-  // (never on Easy), and the personality's share of Troopers. Under Infantry
-  // War the Bays field the whole army: Rockets for the defences, more Snipers.
+  // --- Robot Foundry: robot infantry, mixed to what we've seen -------------
+  // Rockets for armour (and Ironclad's Behemoth escorts), Longshots for enemy squads
+  // (never on Easy), and the personality's share of Tin Soldiers. Under Infantry
+  // War the Bays field the whole army: Rockets for the defences, more Longshots.
   // Island relays (ai/airlift.ts): squads are what holds them, so the Bays
   // come first, keep a bigger share, and make what the airlift is waiting for.
   const infantryWar = infantryArmy(w, faction);
-  // (Airborne: the free Condor needs squads to fly, whatever the personality)
+  // (Airborne: the free Skyliner needs squads to fly, whatever the personality)
   const infantryShare = infantryWar
     ? 1
     : Math.max(
@@ -596,17 +597,17 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
       if (have("rocket-squad") < wantRockets) kind = "rocket-squad";
       else if (have("sniper") < wantSnipers) kind = "sniper";
       else if (liftWants > 0 || (!liftOnly && infantryValue < infantryShare * Math.max(500, forceValue)))
-        // (island garrisons face the enemy's drones alone: Rocket Squads once they fly)
+        // (island garrisons face the enemy's drones alone: Bazooka Squads once they fly)
         kind = ownAA < Math.ceil(s.seenAir * 0.6) || r < 0.2 || (airlifts && s.seenAir >= 2 && r < 0.5) ? "rocket-squad" : "trooper";
       else continue;
       liftWants--;
       produce(bay, kind);
     }
-    // anchored Goliaths train the squads that stand by them (ai/goliath.ts)
+    // anchored Colossi train the squads that stand by them (ai/goliath.ts)
     if (!liftOnly) for (const t of goliathBarracks(w, faction, s, () => rand(s), !!hq)) produce(t, t.kind);
   };
   // (island relays: tanks only reach the islands' war over the bridges, at the enemy's base —
-  // a capped share of the force, the rest goes to squads, Condors and the air that holds islands)
+  // a capped share of the force, the rest goes to squads, Skyliners and the air that holds islands)
   const vehicleCap = airlifts ? AIRLIFT.vehicles * Math.max(1000, forceValue) : Infinity;
   const vehicleValue = airlifts
     ? (["stinger", "flak-crawler", "mortar", "mastodon", "lancer"] as const).reduce((v, k) => v + have(k) * UNITS[k].cost, 0)
@@ -625,7 +626,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
       else if (tech && have("mortar") < Math.min(3, 1 + enemyDefenses) && (enemyDefenses > 0 || r < 0.2))
         kind = "mortar";
       else if (infantryHeavy && r < 0.65)
-        // (a couple of Mortars for the splash; Stingers do the rest — Mortars die fast in a brawl)
+        // (a couple of Bombards for the splash; Roadsters do the rest — Bombards die fast in a brawl)
         kind = tech && have("mortar") < Math.min(3, 1 + Math.floor(s.seenInfantry / 4)) ? "mortar" : "stinger";
       else if (tech && s.seenHeavy >= 2 && r < 0.6) kind = "lancer"; // lasers burn through armour
       else if (tech && (s.strategy.heavy ? r < 0.45 : r < 0.25)) kind = "mastodon";
@@ -636,15 +637,15 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   const runPads = () => {
     for (const pad of myBuildings.filter((b) => b.kind === "airpad")) {
       if (pad.queue.length >= depth) continue;
-      // Air War mutator (no Fab Plants): play the air-only plan, and bring bombers for the defences
+      // Air War mutator (no Motor Works): play the air-only plan, and bring bombers for the defences
       const airWar = bannedBy(w, "fab-plant", faction) !== null; // (or an op's "air only")
       const airOnly = s.strategy.airOnly || airWar;
       // (island relays: the air war over the islands decides who holds them)
       const wantRaptors = Math.min(airWar ? 5 : airOnly ? 7 : airlifts ? AIRLIFT.raptors : 4, Math.ceil(s.seenAir * 0.6));
       const armySize = army.length;
-      // (Condors on, or held for, a Goliath's lift aren't the drop plan's or the airlift's)
+      // (Skyliners on, or held for, a Colossus's lift aren't the drop plan's or the airlift's)
       const condors = have("condor") - liftHeld.size;
-      // Menders for our Goliaths (only Menders repair them): one with any, three for each hurt one
+      // Tinkers for our Colossi (only Tinkers repair them): one with any, three for each hurt one
       const goliathMenders = Math.min(
         GOLIATH_AI.menders,
         Math.max(goliaths.length > 0 ? 1 : 0, goliaths.filter((g) => repairUrgency(g) > 0 || g.hp < UNITS.goliath.hp * 0.85).length * 3)
@@ -689,7 +690,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
     }
 
   // --- expand production when scrap piles up despite full queues ---------
-  // (Infantry War: the Bays are the factories; the Airpad only makes Condors, Scouts and Menders)
+  // (Infantry War: the Bays are the factories; the Aerodrome only makes Skyliners, Skylarks and Tinkers)
   const producers = myBuildings.filter((b) =>
     infantryWar ? b.kind === "assembly-bay" : b.kind === "fab-plant" || b.kind === "airpad"
   );
@@ -703,7 +704,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   )
     s.extraProduction++;
 
-  // --- anti-air response: SAM sites when the skies fill up ---------------
+  // --- anti-air response: Sky Batteries when the skies fill up ---------------
   if (s.seenAir >= 4 && s.extraSams < 1) s.extraSams = 1;
   if (s.seenAir >= 8 && s.extraSams < 2) s.extraSams = 2;
   // --- …and turrets when robot infantry pours in --------------------------
@@ -736,21 +737,21 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
 
   // ======================= tactics =========================================
   const used = new Set<number>(dodgingUnits(w, s)); // units running from a reticle stay put
-  // squads walking up a Condor's ramp, or dropped on a raid, follow the drop plan (ai/condor.ts)
+  // squads walking up a Skyliner's ramp, or dropped on a raid, follow the drop plan (ai/condor.ts)
   for (const id of condorHolds(w, s)) used.add(id);
   for (const id of airliftHolds(w, s)) used.add(id);
   const idleArmy = () => army.filter((u) => u.order.type === "idle" && !used.has(u.id));
 
-  // --- 0. wounded veterans fall back to a Mender or the HQ ----------------
+  // --- 0. wounded veterans fall back to a Tinker or the HQ ----------------
   cmds.push(...veteranRetreats(faction, army, hqC, used, w));
-  // --- 0b. Menders follow whoever needs them, and come home when nobody does
-  // (ai/menders.ts; no wave, guard post or sweep takes them after this; our Goliaths first)
+  // --- 0b. Tinkers follow whoever needs them, and come home when nobody does
+  // (ai/menders.ts; no wave, guard post or sweep takes them after this; our Colossi first)
   cmds.push(...planMenders(faction, army, myBuildings, used, hqC, enemyHqPos, goliaths, w));
 
   // --- 1. threat response: answer unengaged intruders with counters -------
   for (const t of threats.slice(0, 3)) {
     const wantedValue = t.value * 1.5;
-    // (and can hurt it: no Sniper Team sent at a tank)
+    // (and can hurt it: no Longshot Team sent at a tank)
     // (and can get at it: no tank sent at a squad on an island)
     const capable = idleArmy()
       .filter(
@@ -788,7 +789,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
       cmds.push({ type: "attackMove", faction, unitIds: away.map((u) => u.id), x: hqC.x, y: hqC.y });
     }
   }
-  // --- 1c. Goliaths: ours dig in, hold, move on, lift, walk with a wave; theirs are hunted (ai/goliath.ts)
+  // --- 1c. Colossi: ours dig in, hold, move on, lift, walk with a wave; theirs are hunted (ai/goliath.ts)
   // (escorts and strikes already under way stay on task)
   for (const id of goliathHolds(w, s)) used.add(id);
   const staging = towardEnemy(w, hqC, 9, enemyHqPos);
@@ -800,10 +801,10 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
   // Uplink garrisons, capture squads and crate runners stay on task (ai/objectives.ts)
   for (const id of objectiveHolds(w, faction, s)) used.add(id);
 
-  // --- 1d. Condor drops on the enemy's harvesters (ai/condor.ts) ----------
+  // --- 1d. Skyliner drops on the enemy's harvesters (ai/condor.ts) ----------
   // (two cheap squads picked before the guard takes its share: the drop is a deliberate commitment)
-  // (island relays: every Condor flies the airlift instead, ai/airlift.ts)
-  // (never a Condor on, or held for, a Goliath's lift: ai/goliath.ts)
+  // (island relays: every Skyliner flies the airlift instead, ai/airlift.ts)
+  // (never a Skyliner on, or held for, a Colossus's lift: ai/goliath.ts)
   const skip = liftCondors(w, faction, s);
   if (airlifts) cmds.push(...planAirlift(w, faction, s, { mine, army, used, hqC, seen, threatened, skip }));
   else cmds.push(...planCondor(w, faction, s, { army, used, hqC, threatened, skip }));
@@ -860,7 +861,7 @@ export function tickAi(w: World, faction: Faction, s: AiState): Command[] {
     const staged = army.filter(
       (u) => !used.has(u.id) && dist(u.x, u.y, staging.x, staging.y) <= STAGE_RADIUS
     );
-    // (a Goliath waiting there to walk with the wave counts for what it can fire, ai/goliath.ts, but
+    // (a Colossus waiting there to walk with the wave counts for what it can fire, ai/goliath.ts, but
     // never for more than the army staged beside it: alone it would launch empty waves every pass,
     // and the rest of the army would never be called up to the staging point)
     const goliathStaged = goliaths.reduce(
@@ -952,11 +953,11 @@ interface PriorityTarget {
 }
 
 /**
- * Harvesters first, then production buildings, then defences, then the HQ.
- * A Gantry with a Goliath on its cradle (public: GOLIATH.md) comes before
+ * Prospectors first, then production buildings, then defences, then the HQ.
+ * A Gantry with a Colossus on its cradle (public: GOLIATH.md) comes before
  * all of them (killed mid-build, the progress is lost); once the enemy HQ is
- * seen gone, its Goliaths are what's left to beat, so they come first; and
- * with nothing else known, the nearest Goliath beats an empty plot.
+ * seen gone, its Colossi are what's left to beat, so they come first; and
+ * with nothing else known, the nearest Colossus beats an empty plot.
  * A free-for-all's `focus`: that rival's first; anyone's when none of its is known.
  */
 function pickPriorityTarget(w: World, faction: Faction, seen: Unit[], fallback: { x: number; y: number }, focus: Faction | null = null): PriorityTarget {
@@ -1008,7 +1009,7 @@ function pickPriorityTarget(w: World, faction: Faction, seen: Unit[], fallback: 
   return { x: fallback.x, y: fallback.y, domain: "ground", armor: "structure" };
 }
 
-/** Send a wave at a target: attackers attack it, the rest (and anything that can't hurt it, a Sniper Team at a building) escort. */
+/** Send a wave at a target: attackers attack it, the rest (and anything that can't hurt it, a Longshot Team at a building) escort. */
 function launchWave(
   w: World,
   cmds: Command[],
@@ -1039,13 +1040,13 @@ interface Threat {
   x: number;
   y: number;
   kind: UnitKind;
-  /** Where it is now (a Goliath on a lift is in the air). */
+  /** Where it is now (a Colossus on a lift is in the air). */
   domain: Domain;
-  /** What it's worth as a threat (ai/goliath.ts threatValue: a Goliath by what it can still fire). */
+  /** What it's worth as a threat (ai/goliath.ts threatValue: a Colossus by what it can still fire). */
   value: number;
 }
 
-/** Visible armed enemy units (and the Menders keeping them going) close to our buildings or harvesters. */
+/** Visible armed enemy units (and the Tinkers keeping them going) close to our buildings or harvesters. */
 function findThreats(
   w: World,
   faction: Faction,
@@ -1071,10 +1072,10 @@ function findThreats(
 }
 
 /**
- * Tally the enemy units we can see (`seen`: fog and Sniper concealment
- * applied) by domain, heavy armour, anti-air (in Flak, aaWeight) and robot
- * infantry. An enemy Goliath counts as GOLIATH_AI.heavyWeight heavy units
- * (the Rocket Squads, Lancers and Hornets that answer it come with that),
+ * Tally the enemy units we can see (`seen`: fog and Longshot concealment
+ * applied) by domain, heavy armour, anti-air (in Skyguard, aaWeight) and robot
+ * infantry. An enemy Colossus counts as GOLIATH_AI.heavyWeight heavy units
+ * (the Bazooka Squads, Ray Skiffs and Thunderheads that answer it come with that),
  * with the anti-air of the weapons it can fire now; one taking shape on a
  * Gantry (`gantryBuilds`, public) pre-arms the counters.
  */
@@ -1104,10 +1105,10 @@ function observeEnemy(s: AiState, seen: Unit[], gantryBuilds = 0): void {
 }
 
 /**
- * First entry of the build order (plus reactive SAMs) not yet satisfied.
+ * First entry of the build order (plus reactive Sky Batteries) not yet satisfied.
  * `gantry` (ai/goliath.ts wantGantry): a Gantry after the build order, with
  * whatever it still needs of its four prerequisites first. Outposts (built
- * in a Goliath's ring, far from base) don't count toward the base's order.
+ * in a Colossus's ring, far from base) don't count toward the base's order.
  */
 function nextBuilding(
   w: World,
@@ -1121,18 +1122,18 @@ function nextBuilding(
   // (with no HQ every building is an outpost: then they're the base)
   const hasHq = !!hqOf(w, faction);
   for (const b of myBuildings) if (!b.outpost || !hasHq) have.set(b.kind, (have.get(b.kind) ?? 0) + 1);
-  // Infantry War: an Assembly Bay wherever the plan says Fab Plant
+  // Infantry War: a Robot Foundry wherever the plan says Motor Works
   const infantryWar = infantryArmy(w, faction);
   const order = s.strategy.buildOrder.map((k): BuildingKind => (infantryWar && k === "fab-plant" ? "assembly-bay" : k));
   // Last Stand: static defences earn their keep against endless waves
   if (w.survival) order.push("turret", "sam-site", "turret", "turret", "sam-site", "turret");
   for (let i = 0; i < s.extraSams; i++) order.splice(Math.min(order.length, 2 + i), 0, "sam-site");
   for (let i = 0; i < s.extraTurrets; i++) order.splice(Math.min(order.length, 2 + i), 0, "turret");
-  // Mastodons (or Hornets) seen, or a Condor to fill (Airborne): an Assembly Bay, early in the queue
+  // Behemoths (or Thunderheads) seen, or a Skyliner to fill (Airborne): a Robot Foundry, early in the queue
   if (((s.strategy.bayVsArmour && s.seenHeavy >= 2) || flysGivenCondor(w, faction, s)) && !order.includes("assembly-bay"))
     order.splice(Math.min(order.length, 3), 0, "assembly-bay");
-  // island relays (ai/airlift.ts): squads hold them, so the Assembly Bay comes
-  // second; and an Airpad by third, for more Condors and the air that clears
+  // island relays (ai/airlift.ts): squads hold them, so the Robot Foundry comes
+  // second; and an Aerodrome by third, for more Skyliners and the air that clears
   // islands — and a second one by sixth (the islands' war is fought in the air)
   if (airliftActive(w, faction, s)) {
     (["assembly-bay", "airpad"] as const).forEach((k, slot) => {
@@ -1217,13 +1218,13 @@ function findPlacementSpot(
   const a = fr.toFrame(anchor);
   let best: { tx: number; ty: number } | null = null;
   let bestD = Infinity;
-  // round every building of the base (outposts never give build range) and every dug-in Goliath's ring
+  // round every building of the base (outposts never give build range) and every dug-in Colossus's ring
   const centres: { c: { x: number; y: number }; r: number }[] = [];
   for (const b of w.buildings.values())
     if (b.faction === faction && !b.outpost) centres.push({ c: buildingCenter(b), r: ECONOMY.buildRadius + 2 });
   const dugIn = goliathsOf(w, faction).filter(isAnchored);
   if (kind !== "hq") for (const g of dugIn) centres.push({ c: g, r: Math.ceil(GOLIATH.buildRing + size) });
-  /** A tile's lane round a dug-in Goliath's feet stays open (it walks out again once packed up). */
+  /** A tile's lane round a dug-in Colossus's feet stays open (it walks out again once packed up). */
   const atFeet = (tx: number, ty: number) => dugIn.some((g) => distToFootprint(tx, ty, size, g.x, g.y) < GOLIATH.footprint / 2 + 1);
   for (const { c: at, r } of centres) {
     const c = fr.toFrame(at);
@@ -1281,7 +1282,7 @@ function enemyHarvestArea(
   seen: Unit[],
   focus: Faction | null = null
 ): { x: number; y: number; targetId?: number } {
-  // a Gantry with a Goliath on the cradle beats anything (killed mid-build, the build is lost)
+  // a Gantry with a Colossus on the cradle beats anything (killed mid-build, the build is lost)
   const gantry = enemyGantryBuilds(w, faction).sort((a, b) => dist(a.x, a.y, hqC.x, hqC.y) - dist(b.x, b.y, hqC.x, hqC.y) || a.id - b.id)[0];
   if (gantry) return { x: gantry.x, y: gantry.y, targetId: gantry.id };
   // a visible enemy harvester is the best target

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { GOLIATH, TERRAIN, TICK_RATE, UNITS } from "./balance";
 import { strikeDamage } from "./combat";
 import { isTransport } from "./infantry";
@@ -10,52 +11,52 @@ import { sidesOf } from "./sides";
 import { atan2, cos, hypot, sin } from "./fmath";
 
 /**
- * The two-Condor lift (GOLIATH.md). Two empty Condors hook onto a walking
- * Goliath (a `lift` command: select them, tap it) and carry it: `move` flies
- * the lift (at GOLIATH.lift.speedMult of a Condor's speed), `unload` sets it
+ * The two-Skyliner lift (GOLIATH.md). Two empty Skyliners hook onto a walking
+ * Colossus (a `lift` command: select them, tap it) and carry it: `move` flies
+ * the lift (at GOLIATH.lift.speedMult of a Skyliner's speed), `unload` sets it
  * down (long-press a destination, or ⇣ where it is), `stop` hovers.
  *
- * The Goliath keeps the lift on its state (GoliathState.lift); each Condor
+ * The Colossus keeps the lift on its state (GoliathState.lift); each Skyliner
  * holds a `lift` order naming it, and tickMovement leaves them all alone:
- * tickLift moves them. Off the ground the Goliath is an air target
+ * tickLift moves them. Off the ground the Colossus is an air target
  * (world.ts domainOf) and only its machine guns fire (goliath.ts
- * weaponReady). Shot down (either Condor lost: dropLifts, from cleanupDeaths)
+ * weaponReady). Shot down (either Skyliner lost: dropLifts, from cleanupDeaths)
  * it falls: over land it lands heavily damaged (GOLIATH.lift.dropDamage),
  * over water, sea, lava or rock it is destroyed — like squads in a downed
- * Condor. On the Archipelago, a Goliath set down on an island anchors and
+ * Skyliner. On the Archipelago, a Colossus set down on an island anchors and
  * trains there like anywhere else.
  */
 
 // ----------------------------------------------------------- helpers ---
 
-/** The Goliath Condor `c` is lifting (hooking on or carrying), or null. */
+/** The Colossus Skyliner `c` is lifting (hooking on or carrying), or null. */
 export function liftedBy(w: World, c: Unit): Unit | null {
   if (c.order.type !== "lift") return null;
   const g = w.units.get(c.order.goliathId);
   return g?.goliath?.lift?.carriers.includes(c.id) ? g : null;
 }
 
-/** Is Condor `c` free to hook onto a Goliath (own, empty, not on a lift already)? */
+/** Is Skyliner `c` free to hook onto a Colossus (own, empty, not on a lift already)? */
 export const canCarry = (c: Unit): boolean =>
   isTransport(c.kind) && (c.passengers?.length ?? 0) === 0 && c.order.type !== "lift" && c.hp > 0;
 
 /**
- * Why `condors` can't lift Goliath `g` (null: they can). Two empty Condors
- * of its side, a walking Goliath not already on a lift.
+ * Why `condors` can't lift Colossus `g` (null: they can). Two empty Skyliners
+ * of its side, a walking Colossus not already on a lift.
  */
 export function liftBlocker(condors: readonly Unit[], g: Unit): string | null {
-  if (!g.goliath) return "Not a Goliath";
+  if (!g.goliath) return "Not a Colossus";
   const free = condors.filter((c) => c.faction === g.faction && canCarry(c));
-  if (free.length < 2) return "Needs two empty Condors";
+  if (free.length < 2) return "Needs two empty Skyliners";
   if (g.goliath.lift) return "Already on a lift";
   if (g.goliath.mode !== "walking") return "Pack up first";
   return null;
 }
 
-/** Where carrier `i` (0: its left, 1: its right) hangs on a Goliath at (x, y) facing `facing`. */
+/** Where carrier `i` (0: its left, 1: its right) hangs on a Colossus at (x, y) facing `facing`. */
 function hookPoint(x: number, y: number, facing: number, i: number): { x: number; y: number } {
   const s = (i === 0 ? -1 : 1) * GOLIATH.lift.span;
-  // the Goliath's right hand: (cos f, sin f) for a facing clockwise from North
+  // the Colossus's right hand: (cos f, sin f) for a facing clockwise from North
   return { x: x + cos(facing) * s, y: y + sin(facing) * s };
 }
 
@@ -77,7 +78,7 @@ function face(u: Unit, x: number, y: number): void {
   if (hypot(x - u.x, y - u.y) > 1e-6) u.facing = atan2(x - u.x, -(y - u.y));
 }
 
-/** Let the Condors of a lift go (the lift is over): they hover where they are. */
+/** Let the Skyliners of a lift go (the lift is over): they hover where they are. */
 function release(w: World, g: Unit): void {
   const lift = g.goliath?.lift;
   if (!lift) return;
@@ -92,7 +93,7 @@ function release(w: World, g: Unit): void {
 }
 
 /**
- * Where a Goliath set down near (x, y) by `g`'s side touches down: (x, y)
+ * Where a Colossus set down near (x, y) by `g`'s side touches down: (x, y)
  * itself if a walker can stand there, else the centre of the nearest such
  * tile within GOLIATH.lift.setDownSearch (scanned in the side's own frame,
  * so red's choice mirrors blue's). Null when there is none.
@@ -122,7 +123,7 @@ export function setDownPoint(w: World, g: Unit, x: number, y: number): { x: numb
 
 // ----------------------------------------------------------- commands ---
 
-/** Apply a `lift` command: the two nearest free Condors of those named fly in to hook onto the Goliath. */
+/** Apply a `lift` command: the two nearest free Skyliners of those named fly in to hook onto the Colossus. */
 export function applyLiftCommand(w: World, c: Extract<Command, { type: "lift" }>): void {
   const g = w.units.get(c.goliathId);
   if (!g || g.faction !== c.faction || !g.goliath) return;
@@ -159,35 +160,35 @@ export type LiftOrder = Extract<Command, { type: "move" | "attackMove" | "unload
 const isLiftOrder = (c: Command): c is LiftOrder => c.type === "move" || c.type === "attackMove" || c.type === "unload" || c.type === "stop";
 
 /**
- * One tick's memory of the orders hooking Goliaths ignored (sim.ts step keeps
+ * One tick's memory of the orders hooking Colossi ignored (sim.ts step keeps
  * one while it applies the tick's commands, then drops it: nothing of it is
  * in the world, so world hashes and keyframes never see it).
  *
- * A Goliath whose lift is still hooking on ignores an order unless its
- * Condors are named in the same command (that calls the lift off). Sound
+ * A Colossus whose lift is still hooking on ignores an order unless its
+ * Skyliners are named in the same command (that calls the lift off). Sound
  * duels split a long unit list into several commands (SOUND-DUEL.md
- * "Canonicalize and split"), so a select-all can name the Goliath in an
- * earlier piece than its Condors. The Goliath remembers the order for the
+ * "Canonicalize and split"), so a select-all can name the Colossus in an
+ * earlier piece than its Skyliners. The Colossus remembers the order for the
  * rest of the tick and takes it when a later command calls its lift off, so
  * pieces applied in one tick do what the one command would have. (Pieces the
  * lockstep seals into different turns are applied a tick or more apart: there
- * the Goliath still waits, lockstep.ts.)
+ * the Colossus still waits, lockstep.ts.)
  */
 export interface HeldLiftOrders {
-  /** Goliath id → the newest order it ignored this tick, its lift still hooking on. */
+  /** Colossus id → the newest order it ignored this tick, its lift still hooking on. */
   ignored: Map<number, LiftOrder>;
-  /** Goliaths the command just routed called off that had ignored an order this tick, with that order: the caller applies them. */
+  /** Colossi the command just routed called off that had ignored an order this tick, with that order: the caller applies them. */
   freed: [number, LiftOrder][];
 }
 
 /**
  * Commands that reach a lift (sim.ts, before the usual handling): `move` /
  * `attackMove` fly it, `unload` sets it down, `stop` hovers — addressed to
- * either Condor, or to the carried Goliath. Any of them called on a lift
+ * either Skyliner, or to the carried Colossus. Any of them called on a lift
  * still hooking on calls it off. Returns the ids it handled (the caller
  * skips them); `attack` and the rest leave a lift's members alone.
  *
- * With `held` (sim.ts step), a hooking Goliath that ignores such an order
+ * With `held` (sim.ts step), a hooking Colossus that ignores such an order
  * remembers it in `held.ignored`, and when a later command calls that lift
  * off, the order moves to `held.freed` for the caller to apply.
  */
@@ -201,12 +202,12 @@ export function routeLiftCommand(w: World, c: Command, held?: HeldLiftOrders): S
     const lift = g?.goliath?.lift;
     if (!g || !lift) continue;
     handled.add(id);
-    if (!isLiftOrder(c)) continue; // (unarmed carriers; a carried Goliath takes no other orders)
+    if (!isLiftOrder(c)) continue; // (unarmed carriers; a carried Colossus takes no other orders)
     if (lift.phase === "hooking") {
-      if (u.goliath) continue; // the Goliath waits for its Condors
+      if (u.goliath) continue; // the Colossus waits for its Skyliners
       release(w, g); // called off before it left the ground
-      handled.delete(id); // (this Condor takes the order as usual)
-      handled.delete(g.id); // (and so does the Goliath, if it was named before its Condors)
+      handled.delete(id); // (this Skyliner takes the order as usual)
+      handled.delete(g.id); // (and so does the Colossus, if it was named before its Skyliners)
       const ignored = held?.ignored.get(g.id);
       if (held && ignored) {
         // (and the order it ignored earlier this tick, before this one: the newer order still wins)
@@ -229,7 +230,7 @@ export function routeLiftCommand(w: World, c: Command, held?: HeldLiftOrders): S
       lift.setDown = false;
     }
   }
-  // a named Goliath still on a hooking lift ignored this order (its Condors weren't named): it remembers it
+  // a named Colossus still on a hooking lift ignored this order (its Skyliners weren't named): it remembers it
   if (held && isLiftOrder(c))
     for (const id of handled) if (w.units.get(id)?.goliath?.lift?.phase === "hooking") held.ignored.set(id, c);
   return handled;
@@ -238,10 +239,10 @@ export function routeLiftCommand(w: World, c: Command, held?: HeldLiftOrders): S
 // --------------------------------------------------------------- tick ---
 
 /**
- * Per tick, after transport and before movement: Condors fly to their hook
- * points and lift the Goliath once both are on; carried, it flies straight
+ * Per tick, after transport and before movement: Skyliners fly to their hook
+ * points and lift the Colossus once both are on; carried, it flies straight
  * for its destination and is set down there, or hovers. An EMP on any of
- * the three holds the whole lift still. Condors whose Goliath is gone are
+ * the three holds the whole lift still. Skyliners whose Colossus is gone are
  * released.
  */
 export function tickLift(w: World): void {
@@ -258,7 +259,7 @@ export function tickLift(w: World): void {
     const cs = lift.carriers.map((id) => w.units.get(id));
     if (cs.some((c) => !c || c.hp <= 0 || c.order.type !== "lift" || c.order.goliathId !== g.id)) {
       if (lift.phase === "hooking") release(w, g); // (one dropped out before take-off: called off)
-      continue; // (carrying: dropLifts deals with a lost Condor)
+      continue; // (carrying: dropLifts deals with a lost Skyliner)
     }
     const carriers = cs as Unit[];
     if (isStunned(w, g.id) || carriers.some((c) => isStunned(w, c.id))) continue;
@@ -291,7 +292,7 @@ export function tickLift(w: World): void {
         } else lift.dest = null;
       }
     }
-    // the Condors hang on either side of it
+    // the Skyliners hang on either side of it
     carriers.forEach((c, i) => {
       const p = hookPoint(g.x, g.y, g.facing, i);
       c.x = Math.max(0.05, Math.min(w.width - 0.05, p.x));
@@ -301,7 +302,7 @@ export function tickLift(w: World): void {
   }
 }
 
-/** Put a carried Goliath down where it hovers (on ground it can stand on): it walks again, the Condors go free. */
+/** Put a carried Colossus down where it hovers (on ground it can stand on): it walks again, the Skyliners go free. */
 function setDown(w: World, g: Unit): void {
   const ids = [...g.goliath!.lift!.carriers];
   release(w, g);
@@ -312,12 +313,12 @@ function setDown(w: World, g: Unit): void {
 }
 
 /**
- * Called first thing in cleanupDeaths: a lift whose Condor is down (or gone)
- * ends. Still hooking on, it is simply called off. Carried, the Goliath
+ * Called first thing in cleanupDeaths: a lift whose Skyliner is down (or gone)
+ * ends. Still hooking on, it is simply called off. Carried, the Colossus
  * falls: onto ground a walker could stand on (or within reach of some, past
  * a building) it lands with GOLIATH.lift.dropDamage of its max HP in damage;
  * into water, sea, lava or onto rock it is destroyed. Either way the damage
- * is credited to whoever downed the Condor.
+ * is credited to whoever downed the Skyliner.
  */
 export function dropLifts(w: World): void {
   for (const g of w.units.values()) {
@@ -337,7 +338,7 @@ export function dropLifts(w: World): void {
     const [tx, ty] = fr.tile(Math.floor(fp.x), Math.floor(fp.y), 1);
     let lands = inBounds(w, tx, ty) && TERRAIN[terrainAt(w, tx, ty)].ground;
     if (lands && w.occupancy[ty * w.width + tx] !== 0) {
-      // onto a building (or a dug-in Goliath): it slides off to the nearest open ground, if there is any close
+      // onto a building (or a dug-in Colossus): it slides off to the nearest open ground, if there is any close
       const spot = wreckRestingSpot(w, g.x, g.y, g.faction);
       if (spot) {
         g.x = spot.x;
@@ -356,7 +357,7 @@ export function dropLifts(w: World): void {
 
 // ------------------------------------------------------------ mutators ---
 
-/** Goliath Armada: where each side's Goliaths start, as steps of GOLIATH.armada.gap from the HQ's centre (in the side's own frame). */
+/** Colossus Armada: where each side's Colossi start, as steps of GOLIATH.armada.gap from the HQ's centre (in the side's own frame). */
 const ARMADA: readonly (readonly [number, number])[] = [
   [-1, -1],
   [1, -1],
@@ -365,16 +366,16 @@ const ARMADA: readonly (readonly [number, number])[] = [
 ];
 
 /**
- * Goliath Armada (createMapWorld, skirmish): each side's start is cleared
- * (HQ, Harvester, Trooper Squad) and four Goliaths take its place in the air,
+ * Colossus Armada (createMapWorld, skirmish): each side's start is cleared
+ * (HQ, Prospector, Tin Soldiers) and four Colossi take its place in the air,
  * on the corners of a square round where the HQ stood, facing the map
- * centre, each already carried by two Condors. Placed in the side's own
+ * centre, each already carried by two Skyliners. Placed in the side's own
  * frame, so every side's armada is blue's, turned. With no HQ, a side is
- * beaten when its last Goliath falls.
+ * beaten when its last Colossus falls.
  */
 export function armadaStart(w: World): void {
   const centre = { x: w.width / 2, y: w.height / 2 };
-  const edge = GOLIATH.lift.span + 1; // (a Condor's hook point stays over the map)
+  const edge = GOLIATH.lift.span + 1; // (a Skyliner's hook point stays over the map)
   for (const f of sidesOf(w)) {
     const hq = hqOf(w, f);
     if (!hq) continue;

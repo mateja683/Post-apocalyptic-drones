@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi, type StrategyName } from "../src/sim/ai/commander";
 import { objectiveHolds, planObjectives } from "../src/sim/ai/objectives";
@@ -315,7 +316,7 @@ describe("supply drops", () => {
     const w = dropWorld();
     run(w, dropAnnounceTick(0) + 1);
     const [a, b] = w.objectives.crates as [Crate, Crate];
-    // a harvester sits right on crate a; a blue Stinger close by, a red one a bit nearer still
+    // a harvester sits right on crate a; a blue Roadster close by, a red one a bit nearer still
     spawnUnit(w, "harvester", "blue", a.x, a.y);
     spawnUnit(w, "stinger", "blue", a.x + 0.6, a.y);
     const near = spawnUnit(w, "stinger", "red", a.x - 0.4, a.y);
@@ -423,7 +424,7 @@ describe("crate rewards", () => {
     expect(claimed(w)).toMatchObject({ amount: 0, scrap: D.fallbackScrap });
   });
 
-  it("the rare drop: a free veteran Lancer steps out of the crate", () => {
+  it("the rare drop: a free veteran Ray Skiff steps out of the crate", () => {
     const { w, c } = crateWorld("unit");
     const before = w.units.size;
     claimCrate(w, c, "red", 1);
@@ -506,13 +507,13 @@ describe("AI and objectives", () => {
     expect((normal[0] as { unitIds: number[] }).unitIds).toHaveLength(3);
   });
 
-  it("sends robot infantry (double capture weight) to take an Uplink, and parks a Trooper Squad on one it holds", () => {
+  it("sends robot infantry (double capture weight) to take an Uplink, and parks a Tin Soldiers on one it holds", () => {
     const w = createMapWorld("proving-grounds", { seed: 4, objectives: true });
     const s = createAiState("balanced", "normal", 5);
     // (the relay red goes for first: nearer its own HQ)
     const l = w.objectives.uplinks.find((x) => Math.hypot(x.x - 35.5, x.y - 35.5) < 0.1)!;
     w.tick = 60 * TICK_RATE;
-    // a Stinger a little nearer than four Trooper Squads
+    // a Roadster a little nearer than four Tin Soldier squads
     const tank = spawnUnit(w, "stinger", "red", l.x + 8, l.y);
     const squads = [0, 1, 2, 3].map((i) => spawnUnit(w, "trooper", "red", l.x + 11, l.y - 1.5 + i));
     const ctx = {
@@ -522,7 +523,7 @@ describe("AI and objectives", () => {
     const run = planObjectives(w, "red", s, ctx).find((c) => c.type === "attackMove" && c.x === l.x && c.y === l.y);
     expect(run).toBeDefined();
     expect([...(run as { unitIds: number[] }).unitIds].sort()).toEqual(squads.map((u) => u.id).sort());
-    // held: the cheapest unit near it stands guard (a squad, though the Stinger is nearer)
+    // held: the cheapest unit near it stands guard (a squad, though the Roadster is nearer)
     const s2 = createAiState("balanced", "normal", 5);
     l.owner = "red";
     l.progress = -100;

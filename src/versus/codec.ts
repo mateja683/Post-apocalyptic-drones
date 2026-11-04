@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The sound duel's command codec (SOUND-DUEL.md "Command codec"): orders as
  * few bits as a 188-bit packet allows, lossless for canonical commands and
@@ -42,7 +43,7 @@
  * Where the spec is silent:
  *  - a placeBuilding tile that isn't an integer can't be encoded: dropped;
  *  - a lift longer than C_MAX is dropped: it can't be split (the sim picks the
- *    nearest two of the Condors it names), and the controller only sends pairs;
+ *    nearest two of the Skyliners it names), and the controller only sends pairs;
  *  - a one-unit piece can't be split either: it passes C_MAX only with ids
  *    near 2^24, and still fits an empty turn;
  *  - the decoder also rejects an id ≥ 2^24, so whatever it accepts is
@@ -331,7 +332,7 @@ export function canonicalize(c: Command, ctx: CanonContext): Command[] {
   const k = canonical(c, ctx);
   if (!k) return [];
   if (!("unitIds" in k) || commandBits(k, ctx) <= C_MAX) return [k];
-  // a lift names the Condors the sim picks the nearest two of: it can't be split, and one this long is never
+  // a lift names the Skyliners the sim picks the nearest two of: it can't be split, and one this long is never
   // the pair the controller sends, so it is dropped rather than left to block the queue
   if (!SPLITTABLE.has(k.type)) return [];
   const ids = k.unitIds;

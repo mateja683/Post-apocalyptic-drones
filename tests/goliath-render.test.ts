@@ -10,7 +10,7 @@ import type { Building, FxEvent, Unit, World } from "../src/sim/types";
 import { createWorld, spawnBuilding, spawnUnit } from "../src/sim/world";
 import { SIDE_NAME } from "../src/game/side-style";
 
-// The Goliath and Gantry views headless: a real scene graph, a stubbed view (flat ground), no WebGL
+// The Colossus and Gantry views headless: a real scene graph, a stubbed view (flat ground), no WebGL
 // (as in render.test.ts). Effects are counted by name.
 const noop: unknown = new Proxy(function () {}, { get: (_t, k) => (k === Symbol.toPrimitive ? () => 0 : noop), apply: () => noop });
 (globalThis as { document?: unknown }).document ??= { createElement: () => ({ width: 0, height: 0, getContext: () => noop, style: {} }) };
@@ -61,8 +61,8 @@ function meshes(o: THREE.Object3D): THREE.Mesh[] {
   return out;
 }
 
-describe("always visible: the Goliath and the Gantry", () => {
-  it("draws an enemy Goliath and Gantry deep in the fog, live and clear of it (fog-free twins of the model materials)", () => {
+describe("always visible: the Colossus and the Gantry", () => {
+  it("draws an enemy Colossus and Gantry deep in the fog, live and clear of it (fog-free twins of the model materials)", () => {
     const { r, w, sync } = setup({ shown: (u) => u.kind === "goliath" || u.x < 20 });
     const g = spawnUnit(w, "goliath", "red", 50, 50);
     const b = spawnBuilding(w, "gantry", "red", 40, 40);
@@ -105,7 +105,7 @@ describe("always visible: the Goliath and the Gantry", () => {
 
 const BUILDINGS_GANTRY_HP = 1200;
 
-describe("a Goliath's guns", () => {
+describe("a Colossus's guns", () => {
   it("fires each weapon from its own muzzle: mortars from the shoulder pods, the laser from the eye, cannons from the arms", () => {
     const { r, w, sync } = setup();
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
@@ -158,7 +158,7 @@ describe("anchoring", () => {
   });
 });
 
-describe("a Goliath's death", () => {
+describe("a Colossus's death", () => {
   it("topples, slams down and sinks away, then its view goes", () => {
     const { r, w, sync, fx } = setup();
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
@@ -187,7 +187,7 @@ describe("the Gantry's stages", () => {
   }
   const shown = (p: Record<string, THREE.Object3D>) => [0, 1, 2, 3].filter((i) => p[`stage${i}`]!.visible);
 
-  it("builds the Goliath up in four stages from the head of its queue, lights on while it works", () => {
+  it("builds the Colossus up in four stages from the head of its queue, lights on while it works", () => {
     const { rig, b, parts } = gantry();
     expect(shown(parts())).toEqual([]);
     expect(parts().lightsOn!.visible).toBe(false);
@@ -201,7 +201,7 @@ describe("the Gantry's stages", () => {
     expect(parts().lightsOn!.visible).toBe(true);
   });
 
-  it("rolls out: the mech leaves the cradle as the real Goliath, starting where it stood, and the arms swing clear", () => {
+  it("rolls out: the mech leaves the cradle as the real Colossus, starting where it stood, and the arms swing clear", () => {
     const { rig, b, parts } = gantry();
     const total = UNITS.goliath.buildTime * TICK_RATE;
     b.queue.push({ kind: "goliath", remaining: Math.round(total * 0.05) });
@@ -234,7 +234,7 @@ describe("the Gantry's stages", () => {
 });
 
 describe("Robot Love", () => {
-  it("walks the two Goliaths to meet, eyes pink, hearts rising", () => {
+  it("walks the two Colossi to meet, eyes pink, hearts rising", () => {
     const { r, w, sync, fx } = setup();
     const a = spawnUnit(w, "goliath", "blue", 8, 10);
     const b = spawnUnit(w, "goliath", "red", 12, 10);
@@ -259,9 +259,9 @@ describe("the finale's banner", () => {
   it("keeps its keys, and names what decided it", () => {
     expect(finaleBanner({ ...at, cause: "hq", winner: "blue" })).toMatchObject({ key: "victory", text: "Enemy HQ destroyed" });
     expect(finaleBanner({ ...at, cause: "hq", winner: "red" })).toMatchObject({ key: "defeat", text: "Our HQ has fallen" });
-    expect(finaleBanner({ ...at, cause: "goliath", winner: "blue" })).toMatchObject({ key: "victory", text: "Enemy Goliath destroyed" });
-    expect(finaleBanner({ ...at, cause: "goliath", winner: "red" })).toMatchObject({ key: "defeat", text: "Our last Goliath has fallen" });
-    expect(finaleBanner({ ...at, spectator: true, cause: "goliath", winner: "blue" })).toMatchObject({ key: "hq-destroyed", text: `${SIDE_NAME.red} Goliath destroyed` });
+    expect(finaleBanner({ ...at, cause: "goliath", winner: "blue" })).toMatchObject({ key: "victory", text: "Enemy Colossus destroyed" });
+    expect(finaleBanner({ ...at, cause: "goliath", winner: "red" })).toMatchObject({ key: "defeat", text: "Our last Colossus has fallen" });
+    expect(finaleBanner({ ...at, spectator: true, cause: "goliath", winner: "blue" })).toMatchObject({ key: "hq-destroyed", text: `${SIDE_NAME.red} Colossus destroyed` });
     expect(finaleBanner({ ...at, spectator: true, cause: "hq", winner: "red" })).toMatchObject({ key: "hq-destroyed", text: `${SIDE_NAME.blue} HQ destroyed` });
     expect(finaleBanner({ ...at, cause: "love", winner: "draw" })).toMatchObject({ key: "draw", sub: "It's a draw", tone: "good" });
   });
@@ -271,13 +271,13 @@ describe("final review regressions", () => {
   const group = (r: EntityRenderer) => (r as unknown as { group: THREE.Group }).group;
   /** The four lift cables (meshes tagged to draw clear of the fog, straight under the renderer's group). */
   const cables = (r: EntityRenderer) => group(r).children.filter((o) => (o as THREE.Mesh).isMesh && o.userData.clear) as THREE.Mesh[];
-  /** Hook Condors a and b onto g, carrying. */
+  /** Hook Skyliners a and b onto g, carrying. */
   const carry = (g: Unit, a: Unit, b: Unit) => {
     g.goliath!.lift = { carriers: [a.id, b.id], phase: "carrying", dest: null, setDown: false };
     for (const c of [a, b]) c.order = { type: "lift", goliathId: g.id };
   };
 
-  it("a replay seek back past Robot Love ends the love scene: the Goliaths follow the sim again", () => {
+  it("a replay seek back past Robot Love ends the love scene: the Colossi follow the sim again", () => {
     const { r, w, sync } = setup({ shown: () => true });
     const a = spawnUnit(w, "goliath", "blue", 10, 10);
     const b = spawnUnit(w, "goliath", "red", 14, 10);
@@ -301,7 +301,7 @@ describe("final review regressions", () => {
     expect(views(r).get(b.id)!.goliath!.inLove).toBe(false);
   });
 
-  it("a replay seek back to before a Goliath was built drops its view quietly (no topple)", () => {
+  it("a replay seek back to before a Colossus was built drops its view quietly (no topple)", () => {
     const { r, w, sync, fx } = setup();
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
     sync(2);
@@ -314,7 +314,7 @@ describe("final review regressions", () => {
     expect(fx.get("slam")).toBeUndefined();
   });
 
-  it("an enemy lift in the fog: the cables rise to where its hidden Condors fly, drawn clear of the fog", () => {
+  it("an enemy lift in the fog: the cables rise to where its hidden Skyliners fly, drawn clear of the fog", () => {
     const { r, w, sync } = setup({ shown: (u) => u.kind === "goliath" || u.x < 20 });
     const g = spawnUnit(w, "goliath", "red", 40, 40);
     const a = spawnUnit(w, "condor", "red", 39.5, 40);
@@ -326,13 +326,13 @@ describe("final review regressions", () => {
     expect(cs).toHaveLength(4);
     for (const c of cs) {
       expect(c.visible).toBe(true);
-      // (up toward the Condors, not down into the ground where their hidden views were last drawn)
+      // (up toward the Skyliners, not down into the ground where their hidden views were last drawn)
       expect(new THREE.Vector3(0, 1, 0).applyQuaternion(c.quaternion).y).toBeGreaterThan(0.3);
       expect(c.material).toBe(clearMat("normal"));
     }
   });
 
-  it("the cables hold on as a set-down Goliath eases to the ground", () => {
+  it("the cables hold on as a set-down Colossus eases to the ground", () => {
     const { r, w, sync } = setup();
     const g = spawnUnit(w, "goliath", "blue", 10, 10);
     const a = spawnUnit(w, "condor", "blue", 9.5, 10);
@@ -351,7 +351,7 @@ describe("final review regressions", () => {
     expect(cables(r).filter((c) => c.visible)).toHaveLength(0);
   });
 
-  it("in love, a Goliath that was digging in draws no progress arc and no rings", () => {
+  it("in love, a Colossus that was digging in draws no progress arc and no rings", () => {
     const { r, w, sync } = setup({ shown: () => true });
     const a = spawnUnit(w, "goliath", "blue", 10, 10);
     const b = spawnUnit(w, "goliath", "red", 14, 10);

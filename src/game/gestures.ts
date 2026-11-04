@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Pointer-event gesture recognizer implementing the DESIGN.md control spec.
  * Pure and engine-free: callers feed pointer events with timestamps and call
@@ -81,7 +82,7 @@ export function strandedPointers(
  * Was this box (start and end corners) really a long-press released without
  * dragging? The recognizer reports such a hold as a degenerate box
  * (onBoxStart + onBoxEnd at about the same point); callers give it its own
- * meaning — loaded Condors drop their squads there (GameScene) — but only
+ * meaning — loaded Skyliners drop their squads there (GameScene) — but only
  * when onBoxEnd says it was `released`.
  */
 export function isHoldRelease(x0: number, y0: number, x1: number, y1: number): boolean {

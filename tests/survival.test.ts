@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { TICK_RATE, UNITS } from "../src/sim/balance";
@@ -54,7 +55,7 @@ describe("Last Stand setup", () => {
     const w = createMapWorld("riverlands");
     expect(w.survival).toBeFalsy();
     expect(hqOf(w, "red")).not.toBeNull();
-    // red keeps its starting harvester and Trooper Squad
+    // red keeps its starting harvester and Tin Soldiers
     expect(red(w).map((u) => u.kind).sort()).toEqual(["harvester", "trooper"]);
   });
 
@@ -105,7 +106,7 @@ describe("wave schedule", () => {
       // the first block always shows the threats with their own answers (anti-air, anti-infantry)
       expect([1, 2, 3, 4].map((i) => waveTheme(w, i))).toEqual(expect.arrayContaining(["air", "swarm"]));
       // each boss is previewed in its block: an Air Raid before a Bomber Wing, and so on
-      const preview: Record<string, WaveTheme> = { "Mastodon Spearhead": "armour", "Bomber Wing": "air", "Elite Strike Force": "mixed" };
+      const preview: Record<string, WaveTheme> = { "Behemoth Spearhead": "armour", "Bomber Wing": "air", "Elite Strike Force": "mixed" };
       for (let block = 0; block < 40; block++) {
         const boss = waveName(w, block * 5 + 5);
         expect([1, 2, 3, 4].map((i) => waveTheme(w, block * 5 + i)), `${boss} at ${block * 5 + 5}`).toContain(preview[boss]);
@@ -184,7 +185,7 @@ describe("Bot Swarm", () => {
 
   it("is a named, announced theme with its counter and icon", () => {
     expect(THEME_NAMES.swarm).toBe("Bot Swarm");
-    expect(THEME_COUNTERS.swarm).toMatch(/Mortars/);
+    expect(THEME_COUNTERS.swarm).toMatch(/Bombards/);
     expect(THEME_ICONS.swarm).toBeTruthy();
     expect(swarms.length).toBeGreaterThan(50);
     for (let seed = 1; seed <= 20; seed++) {
@@ -196,7 +197,7 @@ describe("Bot Swarm", () => {
     }
   });
 
-  it("is Troopers and Rocket Squads, with a capped share of Sniper Teams from wave 6", () => {
+  it("is Tin Soldiers and Bazooka Squads, with a capped share of Longshot Teams from wave 6", () => {
     for (const p of swarms) {
       expect(p.units.every((k) => ["trooper", "rocket-squad", "sniper"].includes(k)), p.units.join()).toBe(true);
       expect(p.units.filter((k) => k === "trooper").length).toBeGreaterThanOrEqual(1);
@@ -206,7 +207,7 @@ describe("Bot Swarm", () => {
       // never more squads than the live cap: a full swarm marches off at once
       expect(p.units.length).toBeLessThanOrEqual(SURVIVAL.swarmMaxUnits);
       expect(SURVIVAL.swarmMaxUnits).toBeLessThanOrEqual(SURVIVAL.maxLive);
-      // Sniper Teams enter last, behind the squads
+      // Longshot Teams enter last, behind the squads
       const firstSniper = p.units.indexOf("sniper");
       if (firstSniper >= 0) expect(p.units.slice(firstSniper).every((k) => k === "sniper")).toBe(true);
     }
@@ -244,7 +245,7 @@ describe("Bot Swarm", () => {
 
   it("enters on walkable ground, marches as a column, then comes for the base", () => {
     const cases = [
-      // a mid-sized wave with Sniper Teams, and a full 30-squad swarm
+      // a mid-sized wave with Longshot Teams, and a full 30-squad swarm
       { map: "riverlands", difficulty: "easy", ok: (p: WavePlan) => p.units.includes("sniper") && p.units.length < SURVIVAL.swarmMaxUnits },
       { map: "ashlands", difficulty: "easy", ok: (p: WavePlan) => p.units.includes("sniper") && p.units.length < SURVIVAL.swarmMaxUnits },
       { map: "dune-sea", difficulty: "normal", ok: (p: WavePlan) => p.units.length === SURVIVAL.swarmMaxUnits }
@@ -283,7 +284,7 @@ describe("Bot Swarm", () => {
     }
   });
 
-  it("Sniper Teams pick off units rather than buildings, and hang back with their squads", () => {
+  it("Longshot Teams pick off units rather than buildings, and hang back with their squads", () => {
     const w = lastStand("riverlands", 4);
     w.survival!.nextWaveTick = 1e9; // no wave: just the snipers placed here
     for (const u of [...w.units.values()]) w.units.delete(u.id);
@@ -559,7 +560,7 @@ describe("AI defender", () => {
     expect(sig()).toBe(sig());
   });
 
-  it("is never pointed at a wave Sniper Team hidden in the woods", () => {
+  it("is never pointed at a wave Longshot Team hidden in the woods", () => {
     const w = lastStand("proving-grounds");
     const s = w.survival!;
     const hq = buildingCenter(hqOf(w, s.defender)!);

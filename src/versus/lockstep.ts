@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Lockstep for sound duels (SOUND-DUEL.md "Lockstep"): both phones run the
  * whole sim, and only the players' orders cross the air. A turn is one tick;
@@ -189,15 +190,15 @@
  *    ever behind the rest. It happens on the sender before encoding, so it
  *    can't desync anything.
  *
- * The one exception to "outright" is the one the split rule has too: a Goliath
- * whose lift is still hooking on follows an order only when its Condors are
+ * The one exception to "outright" is the one the split rule has too: a Colossus
+ * whose lift is still hooking on follows an order only when its Skyliners are
  * named in the same command. The sim lets pieces of one order sealed in the
- * same turn act as the whole order did (a Goliath that ignored one remembers
+ * same turn act as the whole order did (a Colossus that ignored one remembers
  * it for the rest of the tick: lift.ts HeldLiftOrders). But even an idle
  * window takes at most 109–115 bits of commands into a turn (113 at D = 5),
  * and the pieces of one split order add up to more, so they practically never
- * share a turn: they land a tick or more apart, and a hooking Goliath named in
- * an earlier piece than its Condors still waits for them.
+ * share a turn: they land a tick or more apart, and a hooking Colossus named in
+ * an earlier piece than its Skyliners still waits for them.
  */
 import { composeTick } from "../game/local-side";
 import type { OutFrame } from "../link/transport";
@@ -445,7 +446,7 @@ const MOVE_REPLACES: ReadonlySet<CommandType> = new Set(["move", "attackMove", "
  * The queued orders a newer one of each type replaces outright, unit by unit
  * (sim.ts applyCommand). A move or attackMove resets everything those set:
  * the order, the path, the auto-target, a lift's destination, and it packs an
- * anchored Goliath up. An attack sets less than a move (no auto-target reset,
+ * anchored Colossus up. An attack sets less than a move (no auto-target reset,
  * nothing for a unit on a lift), so it replaces only attacks, and a stop (no
  * pack-up) only stops. A harvest replaces nothing: the sim skips it off a
  * resource field or for a unit that isn't a harvester.
@@ -457,7 +458,7 @@ const REPLACES: Partial<Record<CommandType, ReadonlySet<CommandType>>> = {
   stop: new Set(["stop"])
 };
 
-/** Every unit a command names: its unit list, and a Condor boarded or a Goliath lifted. */
+/** Every unit a command names: its unit list, and a Skyliner boarded or a Colossus lifted. */
 function namedUnits(c: Command): number[] {
   const ids = "unitIds" in c ? c.unitIds.slice() : [];
   if (c.type === "board") ids.push(c.carrierId);

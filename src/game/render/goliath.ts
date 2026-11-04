@@ -16,11 +16,11 @@ import type { Fx } from "./fx";
 import { SIDE_HEX } from "../side-style";
 
 /**
- * The Goliath and its Gantry on the map (render only: it reads the sim and
- * never writes it). EntityRenderer keeps one GoliathView per Goliath and one
+ * The Colossus and its Gantry on the map (render only: it reads the sim and
+ * never writes it). EntityRenderer keeps one GoliathView per Colossus and one
  * GantryView per Gantry and feeds them every frame.
  *
- * A Goliath walks on planted feet with dust at every footfall, its torso
+ * A Colossus walks on planted feet with dust at every footfall, its torso
  * twisting to whatever it shoots, each weapon kicking from its own muzzle.
  * Anchoring, it sinks on its hydraulics, splays its legs, swings out its
  * stabiliser spikes and drives them in (dust, a thump, a little shake), then
@@ -28,7 +28,7 @@ import { SIDE_HEX } from "../side-style";
  * colour; packing up runs the same in reverse with steam. Damage shows per
  * weapon: a smoking shoulder when the mortars are down, a dark eye when the
  * laser is, cannons hanging limp; a reboot relights the eye in flickers and
- * cycles the mortar tubes. Lifted, it hangs between its two Condors on four
+ * cycles the mortar tubes. Lifted, it hangs between its two Skyliners on four
  * cables, legs dangling. Destroyed, it staggers and topples, slams down in
  * a cloud of dust and shards, smoulders and sinks away.
  *
@@ -37,7 +37,7 @@ import { SIDE_HEX } from "../side-style";
  * hips and torso frame with the crane lowering armour plates in, the arm
  * cannons and mortars mounted, then the head (eye dark) and team panels with
  * steam venting and beacons blinking — and the scaffold arms swing clear as
- * the finished Goliath walks off the cradle.
+ * the finished Colossus walks off the cradle.
  */
 
 /** What the views need from the entity renderer. */
@@ -47,15 +47,15 @@ export interface GoliathHost {
   fx: Fx;
   /** The group the views' extra meshes (lift cables) go in. */
   group: THREE.Group;
-  /** Another unit's rendered ground point and body height (a carrier Condor), or null. */
+  /** Another unit's rendered ground point and body height (a carrier Skyliner), or null. */
   unitPose(id: number): { gx: number; gy: number; bh: number; visible: boolean } | null;
 }
 
 /** Team colours of rings on the ground. */
 const TEAM: Record<Faction, number> = { ...SIDE_HEX };
-/** A carried Goliath hangs this high (tiles, its feet clear of the ground). */
+/** A carried Colossus hangs this high (tiles, its feet clear of the ground). */
 export const LIFT_H = 0.55;
-/** A Condor carrying a Goliath flies this far above the top of it (tiles). */
+/** A Skyliner carrying a Colossus flies this far above the top of it (tiles). */
 export const CARRY_CLEAR = 0.5;
 /** The topple: staggering, falling, lying there smouldering, sinking away (ms of render time). */
 const STAGGER_MS = 520;
@@ -101,7 +101,7 @@ function p3(v: THREE.Vector3, out = at): P3 {
   return out;
 }
 
-/** A lift cable: a unit-tall dark steel box, stretched between a Condor and a pauldron (shared, never disposed). */
+/** A lift cable: a unit-tall dark steel box, stretched between a Skyliner and a pauldron (shared, never disposed). */
 let cableGeo: THREE.BufferGeometry | null = null;
 function cable(): THREE.Mesh {
   if (!cableGeo) {
@@ -111,11 +111,11 @@ function cable(): THREE.Mesh {
   }
   const m = modelMesh(cableGeo, false);
   m.userData.clear = true;
-  m.material = clearMat("normal"); // (drawn over the fog, like the Goliath it holds up)
+  m.material = clearMat("normal"); // (drawn over the fog, like the Colossus it holds up)
   return m;
 }
 
-/** How far weapon `k` of Goliath `u` is through its reboot (0–1, at the frame's fraction of a tick), or -1 if it isn't rebooting. */
+/** How far weapon `k` of Colossus `u` is through its reboot (0–1, at the frame's fraction of a tick), or -1 if it isn't rebooting. */
 function rebooted(u: Unit, k: GoliathWeapon, tickFrac: number): number {
   const ws = u.goliath!.weapons[k];
   return ws.reboot >= 0 ? clamp01(1 - (ws.reboot + tickFrac) / Math.round(GOLIATH.reboot * TICK_RATE)) : -1;
@@ -144,7 +144,7 @@ interface Fall {
   smokeT: number;
 }
 
-// ------------------------------------------------------------ Goliath ---
+// ------------------------------------------------------------ Colossus ---
 
 export class GoliathView {
   readonly rig: GoliathRig;
@@ -192,7 +192,7 @@ export class GoliathView {
   private stepT = 0;
   private visible = true;
   private cables: THREE.Mesh[] = [];
-  /** The Condors of its last lift: the cables stay on them while it eases down after a set-down. */
+  /** The Skyliners of its last lift: the cables stay on them while it eases down after a set-down. */
   private carriers: [number, number] | null = null;
   private fall: Fall | null = null;
   /** This frame's pose for the rig (reused, no per-frame garbage), and the ground under its feet. */
@@ -267,7 +267,7 @@ export class GoliathView {
     this.rig.kick(gun);
   }
 
-  /** Where the last shot of this weapon left the Goliath (world tiles + height). */
+  /** Where the last shot of this weapon left the Colossus (world tiles + height). */
   muzzle(fx: WeaponFx): P3 {
     const gun = this.last[fx] ?? (fx === "laser" ? "eye" : fx === "shell" ? "podL" : fx === "heavy-cannon" ? "cannonL" : "mgL");
     this.rig.muzzle(gun, tmp);
@@ -289,7 +289,7 @@ export class GoliathView {
   /** Its sim events: anchoring and packing, weapons going and coming back, the lift. */
   onFx(ev: FxEvent): void {
     if (ev.type === "goliathLift" && ev.state === "dropped") {
-      // a Condor went down: it falls off its cables
+      // a Skyliner went down: it falls off its cables
       this.dropping = true;
       this.vy = 0;
     }
@@ -355,7 +355,7 @@ export class GoliathView {
     if (rig.zoom > 64 && rig.onScreen(p.x, p.z, 40)) rig.shake(70, 0.0009);
   }
 
-  /** Robot Love: it turns to face the Goliath at (px, py), walks to meet it near (mx, my), and falls in love. */
+  /** Robot Love: it turns to face the Colossus at (px, py), walks to meet it near (mx, my), and falls in love. */
   love(mx: number, my: number, px: number, py: number): void {
     if (this.script || this.fall) return;
     const d = Math.hypot(px - this.gx, py - this.gy) || 1;
@@ -655,7 +655,7 @@ export class GoliathView {
     if (rig.onScreen(this.gx, this.gy, 40)) rig.shake(260, 0.006);
   }
 
-  /** The cables from each carrier Condor's belly to its pauldron, two a side (hidden when there's no lift). */
+  /** The cables from each carrier Skyliner's belly to its pauldron, two a side (hidden when there's no lift). */
   private cablesTo(carriers: [number, number] | null, show: boolean): void {
     if (!show || !carriers || !this.visible) {
       for (const c of this.cables) c.visible = false;
@@ -675,7 +675,7 @@ export class GoliathView {
           continue;
         }
         this.rig.point(side ? "shoulderR" : "shoulderL", [side ? 0.1 : -0.1, 0.24, n ? 0.16 : -0.16], tmp);
-        // (a Condor out of sight has no height on show: where it would fly, above the Goliath)
+        // (a Skyliner out of sight has no height on show: where it would fly, above the Colossus)
         tmp2.set(cp.gx, (cp.visible ? cp.bh : this.bh + this.top + CARRY_CLEAR) - 0.08, cp.gy);
         const len = tmp.distanceTo(tmp2);
         c.visible = len > 0.05;
@@ -768,7 +768,7 @@ export class GoliathView {
     return sink >= 1;
   }
 
-  /** How a dead Goliath holds itself: knees going, arms limp, eye out. */
+  /** How a dead Colossus holds itself: knees going, arms limp, eye out. */
   private deadPose(dtMs: number, slump: number, hang: number): GoliathPose {
     const p = this.pose;
     p.dt = dtMs;
@@ -847,7 +847,7 @@ export class GoliathView {
   }
 }
 
-/** The Goliath's height above its root (model units): bars and labels sit above it. */
+/** The Colossus's height above its root (model units): bars and labels sit above it. */
 const GOLIATH_TOP = 2.55;
 
 // ------------------------------------------------------------- Gantry ---
@@ -877,7 +877,7 @@ export class GantryView {
   private stage = -1;
   /** Its own clock for the crane and the welding: stopped while it's EMP'd or the game is paused. */
   private work = 0;
-  /** ms since a Goliath rolled out (-1: none). */
+  /** ms since a Colossus rolled out (-1: none). */
   private roll = -1;
   private weldT = 0;
   private steamT = 0;
@@ -899,12 +899,12 @@ export class GantryView {
     this.show(-1);
   }
 
-  /** Where a Goliath stands on the cradle (tiles, height on the deck). */
+  /** Where a Colossus stands on the cradle (tiles, height on the deck). */
   get cradle(): { x: number; y: number; h: number } {
     return { x: this.cx, y: this.cy, h: this.base + CRADLE_H };
   }
 
-  /** A Goliath just walked off it. */
+  /** A Colossus just walked off it. */
   rollout(): void {
     this.roll = 0;
     this.show(-1);

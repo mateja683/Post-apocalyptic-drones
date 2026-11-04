@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { createAiState, tickAi, type Difficulty, type Strategy, type StrategyName } from "../src/sim/ai/commander";
 import { BUILDINGS, TICK_RATE, UNITS } from "../src/sim/balance";
 import { canPlaceBuilding, nearestReachableResource, unitBlocker } from "../src/sim/economy";
@@ -78,7 +79,7 @@ export interface ScriptCfg {
   /** Where each kind goes (default: toward the map centre from the HQ). */
   anchor?: (w: World, kind: BuildingKind) => Pt;
   harvesters: number;
-  /** What a Fab Plant / Airpad should make next (null = nothing). */
+  /** What a Motor Works / Aerodrome should make next (null = nothing). */
   fab?: (w: World, army: Unit[]) => UnitKind | null;
   air?: (w: World, army: Unit[]) => UnitKind | null;
   /** Where the idle army waits. */
@@ -206,8 +207,8 @@ export const scriptPilot =
 
 /**
  * Decapitation: micro a fixed strike group — gather short of the enemy base,
- * then fighters hunt aircraft and fly cover, ground units kill Flak first,
- * bombers take out SAM sites and turrets, and everyone finishes the HQ.
+ * then fighters hunt aircraft and fly cover, ground units kill Skyguard first,
+ * bombers take out Sky Batteries and turrets, and everyone finishes the HQ.
  */
 export const strikePilot: PilotFactory = () => {
   let gathered = false;
@@ -342,7 +343,7 @@ export const PILOTS: Record<string, Record<string, PilotFactory>> = {
     rusher: scriptPilot({
       build: [],
       harvesters: 0,
-      // the mix alternates by vehicles built so far (the starting Trooper Squad doesn't shift it)
+      // the mix alternates by vehicles built so far (the starting Tin Soldiers doesn't shift it)
       fab: (_w, f) => (vehicles(f) % 3 === 0 ? "mastodon" : "stinger"),
       air: (_w, f) => (vehicles(f) % 2 === 0 ? "hornet" : "raptor"),
       hold: () => ({ x: 12, y: 36 }),

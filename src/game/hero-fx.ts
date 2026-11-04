@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { UNITS } from "../sim/balance";
 import type { Faction, FxEvent, PowerKind, Unit, World } from "../sim/types";
 import { announce } from "./announce";
@@ -11,7 +12,7 @@ import { SIDE_NAME } from "./side-style";
 /**
  * Veteran-hero presentation: floating promotion titles over the unit, and
  * the toasts / announcements that make named units matter — "★★ Viper is
- * now Hardened", "Viper (Lancer, 9 kills) destroyed". GameScene feeds it
+ * now Hardened", "Viper (Ray Skiff, 9 kills) destroyed". GameScene feeds it
  * every FxEvent and calls flush() once per tick so simultaneous losses in a
  * big fight become one toast instead of a stack.
  */
@@ -23,7 +24,7 @@ export interface HeroPresenterOpts {
   spectator: boolean;
   /** May the local player see this tile position? */
   seesPoint(x: number, y: number): boolean;
-  /** May the local player see this unit (its tile in sight, and not a Sniper Team hidden in the woods)? */
+  /** May the local player see this unit (its tile in sight, and not a Longshot Team hidden in the woods)? */
   seesUnit(u: Unit): boolean;
   /** Rendered position of a unit (tiles) and the height of its top, if drawn. */
   unitPos(id: number): { x: number; y: number; top: number } | null;
@@ -79,7 +80,7 @@ export class HeroPresenter {
         // both sides' real heroes, not every rank-2 grunt
         if (ev.rank >= 3 || ev.kills >= 6) this.lost.push({ ...rec, line: `${SIDE_NAME[ev.faction]}'s ${rec.line}` });
       } else if (ev.faction === this.opts.player) this.lost.push(rec);
-      // an enemy veteran that actually hurt you, seen going down (a Goliath is seen anywhere: it can't hide)
+      // an enemy veteran that actually hurt you, seen going down (a Colossus is seen anywhere: it can't hide)
       else if ((ev.rank >= 3 || ev.kills >= 3) && (UNITS[ev.unitKind].alwaysVisible || this.opts.seesPoint(ev.x, ev.y))) this.aces.push(rec);
     }
   }
@@ -135,7 +136,7 @@ export class HeroPresenter {
       announce({
         key: "unit-elite",
         text: `${name} is Elite`,
-        // (elites patch themselves up; a Goliath doesn't: only Menders repair it, GOLIATH.md)
+        // (elites patch themselves up; a Colossus doesn't: only Tinkers repair it, GOLIATH.md)
         sub: `${stars(3)} ${kind} · ${killsLabel(u.kills)}${u.goliath ? "" : " · self-repairing"}`,
         tone: "epic",
         x: u.x,

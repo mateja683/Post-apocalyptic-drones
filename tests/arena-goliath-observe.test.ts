@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { Arena } from "../src/arena/match";
 import { frameOf } from "../src/arena/frame";
@@ -8,7 +9,7 @@ import { anchorBlocker, goliathsOf } from "../src/sim/goliath";
 
 const arena = () => new Arena({ map: "archipelago", seed: 42, mutators: ["armada"], seats: { blue: { kind: "agent" }, red: { kind: "agent" } } });
 
-describe("Goliath Armada briefing and observations", () => {
+describe("Colossus Armada briefing and observations", () => {
   it("plays and deterministically replays an Archipelago landing, anchoring, and first production for both sides", () => {
     const a = arena();
     a.resolve();
@@ -40,9 +41,9 @@ describe("Goliath Armada briefing and observations", () => {
     const a = arena();
     for (const side of ["blue", "red"] as const) {
       const text = a.briefing(side);
-      expect(text).toContain("four airborne Goliaths carried by eight Condors");
+      expect(text).toContain("four airborne Colossi carried by eight Skyliners");
       expect(text).toContain("You have no HQ");
-      expect(text).toContain("last Goliath is destroyed");
+      expect(text).toContain("last Colossus is destroyed");
       expect(text).toContain('"anchor"');
       expect(text).toContain('"pack_up"');
       expect(text).toContain('"lift"');

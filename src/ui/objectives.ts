@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { TICK_RATE } from "../sim/balance";
 import { isVisible } from "../sim/fog";
 import { dropLandTick } from "../sim/objectives";
@@ -27,7 +28,7 @@ export function createObjectivePill(world: World, player: Faction, spectator: bo
   if (!bar || (o.uplinks.length === 0 && o.dropSites.length === 0)) return null;
   const el = document.createElement("div");
   el.className = "objpill";
-  el.innerHTML = `<span class="ol" title="Uplinks"><b>📡</b><span class="pips"></span></span><span class="lf" title="A free Condor is on its way" hidden></span><span class="od" title="Supply drops"></span>`;
+  el.innerHTML = `<span class="ol" title="Uplinks"><b>📡</b><span class="pips"></span></span><span class="lf" title="A free Skyliner is on its way" hidden></span><span class="od" title="Supply drops"></span>`;
   bar.appendChild(el);
   const pipsEl = el.querySelector<HTMLElement>(".pips")!;
   const dropEl = el.querySelector<HTMLElement>(".od")!;
@@ -67,7 +68,7 @@ export function createObjectivePill(world: World, player: Faction, spectator: bo
       const unmanned = held.filter(idle).length;
       el.title = `Uplinks: you hold ${held.length} of ${o.uplinks.length}${unmanned ? ` (${unmanned} with no troops on them: not paying)` : ""}`;
     }
-    // a free replacement Condor on its way (lifeline.ts)
+    // a free replacement Skyliner on its way (lifeline.ts)
     const due = spectator ? null : world.lifeline?.[player]?.due ?? null;
     const life = due === null ? "" : `🚁 ${clock(due - world.tick)}`;
     if (life !== lastLife) {

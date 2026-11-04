@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The arena (AGENT-BATTLES.md "The runner"): one process holds the only
  * copy of the world and plays it in rounds. Every round both seats see the
@@ -321,12 +322,12 @@ export class Arena {
     const e = this.record.end;
     if (!e) return "The battle is still on.";
     const how =
-      e.reason === "hq" ? "the enemy has no HQ or Goliaths left"
+      e.reason === "hq" ? "the enemy has no HQ or Colossi left"
       : e.reason === "time" ? `time ran out at ${clock(e.tick)}`
-      : e.reason === "love" ? "two Goliaths fell in love"
+      : e.reason === "love" ? "two Colossi fell in love"
       : "the battle was stopped";
     const verdict = e.winner === null ? "DRAW" : e.winner === side ? "YOU WON" : "YOU LOST";
-    const hq = e.reason === "hq" && e.winner !== side ? "you have no HQ or Goliaths left" : how;
+    const hq = e.reason === "hq" && e.winner !== side ? "you have no HQ or Colossi left" : how;
     return `THE BATTLE IS OVER at ${clock(e.tick)}: ${verdict} (${hq}). No more orders are needed.`;
   }
 
@@ -462,6 +463,6 @@ export class Arena {
   }
 }
 
-const urgentText = (u: Urgent) => ({ hq: "your HQ is under attack", goliath: "your Goliath is under attack", strike: "an enemy strike was called", inbound: "enemies are near your base" })[u];
+const urgentText = (u: Urgent) => ({ hq: "your HQ is under attack", goliath: "your Colossus is under attack", strike: "an enemy strike was called", inbound: "enemies are near your base" })[u];
 
 export { enemyOf };

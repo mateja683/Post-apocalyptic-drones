@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, TERRAIN, TICK_RATE, UNITS } from "./balance";
 import { canWalk, goliathReachAt, isLifted } from "./goliath";
 import { crushes, isInfantry, tickCrush } from "./infantry";
@@ -252,7 +253,7 @@ export function moveUnitToward(w: World, u: Unit, x: number, y: number): boolean
   return false;
 }
 
-/** How close a unit needs to get to attack target `id` (a Goliath: its weapons still up that can hit it). */
+/** How close a unit needs to get to attack target `id` (a Colossus: its weapons still up that can hit it). */
 function reachFor(w: World, u: Unit, id: number): number {
   if (!u.goliath) return UNITS[u.kind].range;
   const t = w.units.get(id);
@@ -290,7 +291,7 @@ export function vehicleSpots(w: World): Map<number, { x: number; y: number }> {
 
 /**
  * Per-tick movement for move / attack-move orders (combat may pause it),
- * then separation, then crushing: a Mastodon that drove this tick rolls over
+ * then separation, then crushing: a Behemoth that drove this tick rolls over
  * the enemy squads under it (infantry.ts). `spots` is vehicleSpots from the
  * start of the tick (squads only step aside for a vehicle that drove).
  */
@@ -301,7 +302,7 @@ export function tickMovement(w: World, pausedIds: Set<number>, spots: Map<number
   for (const u of w.units.values()) {
     const o = u.order;
     if (pausedIds.has(u.id)) continue;
-    if (!canWalk(u)) continue; // a Goliath digging in, anchored, packing up or on a lift (its order waits)
+    if (!canWalk(u)) continue; // a Colossus digging in, anchored, packing up or on a lift (its order waits)
     if (o.type === "move" || o.type === "attackMove") {
       if (moveUnitToward(w, u, o.x, o.y)) u.order = { type: "idle" };
     } else if (o.type === "attack") {
@@ -344,16 +345,16 @@ const KIND_INDEX: Record<string, number> = Object.fromEntries(Object.keys(UNITS)
  * Gentle separation so same-domain units don't stack. Robot infantry give
  * way: a squad and a FRIENDLY vehicle that drove this tick (`driving`) part
  * by moving only the squad (it steps aside), and a squad and an ENEMY
- * vehicle don't part at all (tanks roll through squads — and Mastodons crush
+ * vehicle don't part at all (tanks roll through squads — and Behemoths crush
  * them). Squads among themselves, vehicles among themselves, and a squad
  * and a PARKED friendly vehicle share the push as usual (a squad walking up
  * to one shoulders it aside, as a second vehicle would — else it would be
  * pinned there, short of its goal, for good).
  *
- * A dug-in Goliath (anchoring, anchored or packing up) is never pushed:
+ * A dug-in Colossus (anchoring, anchored or packing up) is never pushed:
  * whatever it meets takes the whole push (its footprint is in the occupancy
  * grid, so paths already go round it). A walking one parts like any unit. A
- * Goliath on a lift and its Condors are placed by the lift (lift.ts), so
+ * Colossus on a lift and its Skyliners are placed by the lift (lift.ts), so
  * they sit separation out.
  */
 function separate(w: World, driving: Set<number>): void {
@@ -397,7 +398,7 @@ function separate(w: World, driving: Set<number>): void {
       const planted = (u: Unit) => !!u.goliath && !canWalk(u);
       if (planted(a) && planted(b)) continue; // (two dug in never budge: their footprints can't overlap anyway)
       if (planted(a) !== planted(b)) {
-        // a dug-in Goliath doesn't budge: the other takes the whole push
+        // a dug-in Colossus doesn't budge: the other takes the whole push
         if (planted(a)) nudge(w, b, ux * push * 2, uy * push * 2);
         else nudge(w, a, -ux * push * 2, -uy * push * 2);
         continue;

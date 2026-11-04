@@ -1,12 +1,13 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { UNITS } from "../balance";
 import type { Command, Faction, Unit, World } from "../types";
 import { canGetWithin, dist, moveClassOf, onHomeLand } from "../world";
 
 /**
  * The AI values its veterans the way a player would: a ranked unit that is
- * badly hurt falls back to a Mender (one behind it) or to the HQ instead of
+ * badly hurt falls back to a Tinker (one behind it) or to the HQ instead of
  * trading itself away, rests there until it's patched up, and an idle
- * Mender comes to it. Same rules as the player — it's just ordinary orders.
+ * Tinker comes to it. Same rules as the player — it's just ordinary orders.
  */
 
 export const VETERAN_RETREAT = {
@@ -33,9 +34,9 @@ export function isWoundedVeteran(u: Unit): boolean {
 /**
  * Retreat orders for wounded veterans among `army` not already in `used`
  * (a unit dodging a reticle finishes that first). Every wounded veteran is
- * added to `used` (so no other tactic recruits it); idle Menders not in
+ * added to `used` (so no other tactic recruits it); idle Tinkers not in
  * `used` are sent to veterans resting at home. Given the world, a veteran
- * only falls back to a Mender it can walk to (not one hovering over the
+ * only falls back to a Tinker it can walk to (not one hovering over the
  * sea), and one cut off from home (a squad on an island) holds where it is.
  */
 export function veteranRetreats(
@@ -55,7 +56,7 @@ export function veteranRetreats(
     const walks = !!w && UNITS[u.kind].domain !== "air";
     if (walks && !onHomeLand(w!, faction, Math.floor(u.x), Math.floor(u.y))) continue; // no way home: it holds
     const dHome = dist(u.x, u.y, home.x, home.y);
-    // a Mender behind the unit (nearer home) beats the long walk back
+    // a Tinker behind the unit (nearer home) beats the long walk back
     let dest: { x: number; y: number } | null = null;
     let best = Infinity;
     for (const m of menders) {
@@ -79,7 +80,7 @@ export function veteranRetreats(
     if (o.type === "move" && dist(o.x, o.y, dest.x, dest.y) <= VETERAN_RETREAT.arrive) continue; // on its way
     cmds.push({ type: "move", faction, unitIds: [u.id], x: dest.x, y: dest.y });
   }
-  // patch up whoever is resting: the nearest idle Mender comes over
+  // patch up whoever is resting: the nearest idle Tinker comes over
   for (const v of resting) {
     let pick: Unit | null = null;
     let best = Infinity;

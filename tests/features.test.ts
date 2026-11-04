@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { BUILDINGS, ECONOMY, TICK_RATE, UNITS } from "../src/sim/balance";
 import { canPlaceBuilding } from "../src/sim/economy";
@@ -75,7 +76,7 @@ describe("terrain", () => {
 });
 
 describe("tech tree and buildings", () => {
-  it("the Tech Lab needs a Fab Plant or Airpad, and gates advanced units", () => {
+  it("the Atomic Lab needs a Motor Works or Aerodrome, and gates advanced units", () => {
     const w = createWorld(24, 24);
     const hq = spawnBuilding(w, "hq", "blue", 2, 2);
     void hq;
@@ -194,7 +195,7 @@ describe("new weapons", () => {
     b.hp = 100;
     runTicks(w, 8 * TICK_RATE);
     expect(hurt.hp).toBeGreaterThan(120);
-    // the Stinger (1.5× HP since the longer-fights pass) is topped up first
+    // the Roadster (1.5× HP since the longer-fights pass) is topped up first
     runTicks(w, 40 * TICK_RATE);
     expect(b.hp).toBeGreaterThan(300);
   });

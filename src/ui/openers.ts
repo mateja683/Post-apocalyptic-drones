@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, UNITS } from "../sim/balance";
 import { OPENERS, OPENER_IDS, type OpenerId } from "../sim/openers";
 import type { Faction, UnitKind } from "../sim/types";
@@ -32,7 +33,7 @@ function pills(id: OpenerId, side: Faction): string {
   const counts = new Map<UnitKind, number>();
   for (const k of o.units) counts.set(k, (counts.get(k) ?? 0) + 1);
   for (const [k, n] of counts) items.push({ icon: k, label: `${n} ${UNITS[k].name}s` });
-  items.push({ icon: "harvester", label: `${o.harvesters} Harvesters` });
+  items.push({ icon: "harvester", label: `${o.harvesters} Prospectors` });
   if (o.scrap > 0) items.push({ label: `+${o.scrap} scrap` });
   if (o.scrap < 0) items.push({ label: `−${-o.scrap} scrap`, cls: "neg" });
   return items

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { replay } from "../src/arena/record";
 import { planTicks } from "../src/game/awareness";
@@ -341,7 +342,7 @@ describe("VersusFeed as GameScene drives it", () => {
     expect([...p.stepped.values()].some((cmds) => cmds.some((c) => c.type === "stop"))).toBe(true);
   });
 
-  /** A blue Goliath first in id order, 27 blue units, then two Condors far off, with spent ids between them (a long match's gaps). */
+  /** A blue Colossus first in id order, 27 blue units, then two Skyliners far off, with spent ids between them (a long match's gaps). */
   const army = (ids: { g: number; condors: number[]; all: number[] }) => (w: World) => {
     const hq = hqOf(w, "blue")!;
     const spend = () => {
@@ -390,7 +391,7 @@ describe("VersusFeed as GameScene drives it", () => {
 
   it("hands a hooking lift to the lockstep as its own command first: a 30-unit select-all all moves", { timeout: 60_000 }, () => {
     const { r, blue, ids, to, hooking } = liftAndMove(false);
-    // the codec would have split it, the Goliath into an earlier piece than its Condors
+    // the codec would have split it, the Colossus into an earlier piece than its Skyliners
     const w = blue.feed!.world;
     const moves = [...blue.stepped.values()].flatMap((cmds) => cmds.filter((c): c is Extract<Command, { type: "move" }> => c.type === "move"));
     expect(moves.length).toBeGreaterThanOrEqual(3);
@@ -398,7 +399,7 @@ describe("VersusFeed as GameScene drives it", () => {
     for (const p of [r.host, r.guest]) {
       const pw = p.feed!.world;
       expect(pw.units.get(ids.g)!.goliath!.lift).toBeNull();
-      // (the pieces land a round trip apart: the fast Condors may be there already)
+      // (the pieces land a round trip apart: the fast Skyliners may be there already)
       for (const id of ids.all) {
         const u = pw.units.get(id)!;
         if (u.order.type !== "move") expect(Math.hypot(u.x - to.x, u.y - to.y), `unit ${id} (${u.kind}) is ${u.order.type}`).toBeLessThan(1.5);
@@ -413,14 +414,14 @@ describe("VersusFeed as GameScene drives it", () => {
       { type: "move", faction: "blue", unitIds: [ids.g, ...ids.condors], x: 1.5, y: 1.5 },
       { type: "move", faction: "blue", unitIds: rest, x: 1.5, y: 1.5 }
     ]);
-    // a hooking Goliath whose Condors aren't named: unchanged (it waits, as one command leaves it)
+    // a hooking Colossus whose Skyliners aren't named: unchanged (it waits, as one command leaves it)
     const noCondors: Command = { type: "stop", faction: "blue", unitIds: [ids.g, ...rest] };
     expect(liftGroupsFirst(hooking, [noCondors])).toEqual([noCondors]);
     // (and once it is up, or with no lift at all, nothing changes)
     expect(liftGroupsFirst(w, [{ type: "move", faction: "blue", unitIds: ids.all, x: 1.5, y: 1.5 }])).toHaveLength(1);
   });
 
-  it("(control) without the grouping, the hooking Goliath misses the split order", { timeout: 60_000 }, () => {
+  it("(control) without the grouping, the hooking Colossus misses the split order", { timeout: 60_000 }, () => {
     const { r, ids } = liftAndMove(true);
     for (const p of [r.host, r.guest]) {
       const pw = p.feed!.world;
@@ -460,7 +461,7 @@ describe("VersusFeed as GameScene drives it", () => {
       const g = p.feed!.world.units.get(ids.g)!;
       // (the lift landed first, hooking on; the group called it off and took the order)
       expect(g.goliath!.lift).toBeNull();
-      expect(g.order, "the Goliath").toMatchObject({ type: "move", ...to });
+      expect(g.order, "the Colossus").toMatchObject({ type: "move", ...to });
     }
     expect(ls(r.host).desync || ls(r.guest).desync).toBe(false);
     // (liftGroupsFirst with a lift on its way, or one earlier in the same drain: the same group; one after it: nothing)
@@ -668,7 +669,7 @@ describe("taps that build on your own last order, the world D ticks behind", () 
       const u = p.feed!.world.units.get(id);
       return !!u && ok(u, p.feed!.world);
     });
-  /** Blue's Goliath and two empty Condors a few tiles off (riverlands). */
+  /** Blue's Colossus and two empty Skyliners a few tiles off (riverlands). */
   const liftParty = (ids: { g: number; a: number; b: number }) => (w: World) => {
     const hq = hqOf(w, "blue")!;
     ids.g = spawnUnit(w, "goliath", "blue", hq.tx + 4, hq.ty - 8).id;

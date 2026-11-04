@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { GOLIATH } from "../src/sim/balance";
 import { unitBlocker } from "../src/sim/economy";
@@ -16,21 +17,21 @@ function field(): World {
   return w;
 }
 
-/** Dig a Goliath in where it stands (as the sim leaves it once anchoring is done). */
+/** Dig a Colossus in where it stands (as the sim leaves it once anchoring is done). */
 const anchored = (g: Unit, mode: "anchoring" | "anchored" | "packing" = "anchored") => {
   g.goliath!.mode = mode;
   g.goliath!.modeTicks = mode === "anchored" ? 0 : 20;
   return g;
 };
 
-/** Hook Condors a and b onto Goliath g (as the sim's lift command does), still hooking or already carrying. */
+/** Hook Skyliners a and b onto Colossus g (as the sim's lift command does), still hooking or already carrying. */
 const hook = (g: Unit, a: Unit, b: Unit, phase: "hooking" | "carrying" = "hooking") => {
   for (const c of [a, b]) c.order = { type: "lift", goliathId: g.id };
   g.goliath!.lift = { carriers: [a.id, b.id], phase, dest: null, setDown: false };
 };
 
-describe("Goliath orders from taps", () => {
-  it("a ground tap with only anchored Goliaths selected sets their rally point, it doesn't pack them up", () => {
+describe("Colossus orders from taps", () => {
+  it("a ground tap with only anchored Colossi selected sets their rally point, it doesn't pack them up", () => {
     const w = field();
     const c = new Controller(w);
     const g = anchored(spawnUnit(w, "goliath", "blue", 12, 12));
@@ -47,7 +48,7 @@ describe("Goliath orders from taps", () => {
     expect(c.tip).toBeNull(); // (the same lesson isn't repeated straight away)
   });
 
-  it("in a group, the army marches and the anchored Goliath stays put", () => {
+  it("in a group, the army marches and the anchored Colossus stays put", () => {
     const w = field();
     const c = new Controller(w);
     const g = anchored(spawnUnit(w, "goliath", "blue", 12, 12));
@@ -65,7 +66,7 @@ describe("Goliath orders from taps", () => {
     expect(c.dropAt(25.5, 20.5)).toBe(false);
   });
 
-  it("a Goliath packing up takes the move: it walks once it is free", () => {
+  it("a Colossus packing up takes the move: it walks once it is free", () => {
     const w = field();
     const c = new Controller(w);
     const g = anchored(spawnUnit(w, "goliath", "blue", 12, 12), "packing");
@@ -75,7 +76,7 @@ describe("Goliath orders from taps", () => {
     expect(c.drainCommands()).toEqual([{ type: "attackMove", faction: "blue", unitIds: [g.id], x: 25.5, y: 20.5 }]);
   });
 
-  it("⚔ Select army leaves anchored Goliaths at their posts, and 💤 Idle never lists a busy one", () => {
+  it("⚔ Select army leaves anchored Colossi at their posts, and 💤 Idle never lists a busy one", () => {
     const w = field();
     const c = new Controller(w);
     const walker = spawnUnit(w, "goliath", "blue", 12, 12);
@@ -88,7 +89,7 @@ describe("Goliath orders from taps", () => {
     expect(c.idleArmy()).toEqual([walker.id, tank.id]);
   });
 
-  it("G anchors walking Goliaths, packs up anchored ones, and says why when the ground won't take it", () => {
+  it("G anchors walking Colossi, packs up anchored ones, and says why when the ground won't take it", () => {
     const w = field();
     const c = new Controller(w);
     const g = spawnUnit(w, "goliath", "blue", 15, 15);
@@ -115,8 +116,8 @@ describe("Goliath orders from taps", () => {
   });
 });
 
-describe("the two-Condor lift from taps", () => {
-  /** A walking Goliath at (20, 20), two empty Condors near it, a third further off and a tank. */
+describe("the two-Skyliner lift from taps", () => {
+  /** A walking Colossus at (20, 20), two empty Skyliners near it, a third further off and a tank. */
   function pad() {
     const w = field();
     const c = new Controller(w);
@@ -128,7 +129,7 @@ describe("the two-Condor lift from taps", () => {
     return { w, c, g, near, mid, far, tank };
   }
 
-  it("two or more empty Condors selected + tap the Goliath: the two nearest hook on, and the lift is the selection", () => {
+  it("two or more empty Skyliners selected + tap the Colossus: the two nearest hook on, and the lift is the selection", () => {
     const { c, g, near, mid, far, tank } = pad();
     c.selectUnits([far.id, mid.id, near.id, tank.id]);
     c.tapWorld(20, 20, { kind: "ownUnit", id: g.id });
@@ -137,19 +138,19 @@ describe("the two-Condor lift from taps", () => {
     expect(c.lastFeedback).toEqual({ kind: "board", x: 20, y: 20 });
   });
 
-  it("says why not, and selects the Goliath: one Condor, Condors with squads aboard, a Goliath dug in", () => {
+  it("says why not, and selects the Colossus: one Skyliner, Skyliners with squads aboard, a Colossus dug in", () => {
     const { w, c, g, near, mid } = pad();
     c.selectUnits([near.id]);
     c.tapWorld(20, 20, { kind: "ownUnit", id: g.id });
     expect(c.drainCommands()).toEqual([]);
-    expect(c.tip).toBe("Two empty Condors lift a Goliath");
+    expect(c.tip).toBe("Two empty Skyliners lift a Colossus");
     expect([...c.selectedUnits]).toEqual([g.id]);
     const squad = spawnUnit(w, "trooper", "blue", 5, 5);
     w.units.delete(squad.id);
     mid.passengers!.push(squad);
     c.selectUnits([near.id, mid.id]);
     c.tapWorld(20, 20, { kind: "ownUnit", id: g.id });
-    expect(c.tip).toBe("Unload the Condors first");
+    expect(c.tip).toBe("Unload the Skyliners first");
     mid.passengers = [];
     anchored(g);
     c.selectUnits([near.id, mid.id]);
@@ -158,7 +159,7 @@ describe("the two-Condor lift from taps", () => {
     expect(c.drainCommands()).toEqual([]);
   });
 
-  it("orders given while the Condors hook on wait for take-off (an order to them would call it off)", () => {
+  it("orders given while the Skyliners hook on wait for take-off (an order to them would call it off)", () => {
     const { c, g, near, mid } = pad();
     hook(g, near, mid);
     c.selectUnits([near.id, mid.id, g.id]);
@@ -192,7 +193,7 @@ describe("the two-Condor lift from taps", () => {
     expect(c.lastFeedback?.kind).toBe("drop");
     expect(c.unloadSelected()).toBe(true);
     expect(c.drainCommands()).toEqual([{ type: "unload", faction: "blue", unitIds: [g.id] }]);
-    // the lifted Goliath on its own flies the lift the same way
+    // the lifted Colossus on its own flies the lift the same way
     c.selectUnits([g.id]);
     c.tapWorld(8.5, 8.5, { kind: "ground" });
     expect(c.drainCommands()).toEqual([{ type: "move", faction: "blue", unitIds: [g.id], x: 8.5, y: 8.5 }]);
@@ -220,8 +221,8 @@ describe("the two-Condor lift from taps", () => {
   });
 });
 
-describe("training from an anchored Goliath", () => {
-  it("queues on a selected anchored Goliath first, else the shortest queue (buildings first on a tie)", () => {
+describe("training from an anchored Colossus", () => {
+  it("queues on a selected anchored Colossus first, else the shortest queue (buildings first on a tie)", () => {
     const w = field();
     const bay = spawnBuilding(w, "assembly-bay", "blue", 10, 4);
     const g = anchored(spawnUnit(w, "goliath", "blue", 20, 20));
@@ -231,20 +232,20 @@ describe("training from an anchored Goliath", () => {
     expect(pickProducer(w, "trooper", new Set([g.id]))?.id).toBe(g.id);
     bay.queue.push({ kind: "trooper", remaining: 100 });
     expect(pickProducer(w, "trooper", none)?.id).toBe(g.id);
-    // a walking Goliath doesn't train
+    // a walking Colossus doesn't train
     expect(pickProducer(w, "trooper", new Set([walker.id]))?.id).toBe(g.id);
     // the selected one full: the others take it
     while (g.goliath!.queue.length < 6) g.goliath!.queue.push({ kind: "trooper", remaining: 100 });
     expect(pickProducer(w, "trooper", new Set([g.id]))?.id).toBe(bay.id);
     while (bay.queue.length < 6) bay.queue.push({ kind: "trooper", remaining: 100 });
     expect(pickProducer(w, "trooper", new Set([g.id]))).toBeNull();
-    // no Bay at all: the Goliath is the barracks
+    // no Bay at all: the Colossus is the barracks
     w.buildings.delete(bay.id);
     g.goliath!.queue.length = 0;
     expect(pickProducer(w, "rocket-squad", none)?.id).toBe(g.id);
   });
 
-  it("under Nomads, Harvesters queue on the anchored Goliath, and a ground tap gives it a rally point", () => {
+  it("under Nomads, Prospectors queue on the anchored Colossus, and a ground tap gives it a rally point", () => {
     const w = createMapWorld("riverlands", { mutators: ["nomads"] });
     expect(hqOf(w, "blue")).toBeNull();
     const g = [...w.units.values()].find((u) => u.goliath && u.faction === "blue")!;
@@ -256,14 +257,14 @@ describe("training from an anchored Goliath", () => {
     c.selectUnits([g.id]);
     c.tapWorld(g.x + 4.5, g.y, { kind: "ground" });
     expect(c.drainCommands()).toEqual([{ type: "rally", faction: "blue", buildingId: g.id, x: g.x + 4.5, y: g.y }]);
-    // the opening shot frames the Goliath, the base that walks
+    // the opening shot frames the Colossus, the base that walks
     const box = homeBox(w, "blue")!;
     expect((box.x0 + box.x1) / 2).toBeCloseTo(g.x);
     expect((box.y0 + box.y1) / 2).toBeCloseTo(g.y);
     expect(startBox(w, "blue")).not.toBeNull();
   });
 
-  it("a Gantry holds one Goliath at a time", () => {
+  it("a Gantry holds one Colossus at a time", () => {
     const w = field();
     const gantry = spawnBuilding(w, "gantry", "blue", 10, 10);
     expect(pickProducer(w, "goliath", new Set())?.id).toBe(gantry.id);
@@ -273,7 +274,7 @@ describe("training from an anchored Goliath", () => {
 });
 
 describe("outposts: the build zone", () => {
-  it("is base range plus the rings of anchored Goliaths (anything but an HQ), outposts never counting", () => {
+  it("is base range plus the rings of anchored Colossi (anything but an HQ), outposts never counting", () => {
     const w = field();
     // blue HQ at (4,4)–(7,7): base range reaches a few tiles past it
     expect(zoneAt(w, "blue", "turret", 9, 5)).toBe(1);
@@ -285,7 +286,7 @@ describe("outposts: the build zone", () => {
     expect(zoneAt(w, "blue", "turret", 25 + GOLIATH.buildRing + 1, 6)).toBe(0);
     expect(zoneAt(w, "blue", "hq", 25, 5)).toBe(0);
     expect(zoneAt(w, "red", "turret", 25, 5)).toBe(0); // (ours, not theirs)
-    // an outpost out there doesn't extend the zone once the Goliath moves on
+    // an outpost out there doesn't extend the zone once the Colossus moves on
     const depot = spawnBuilding(w, "depot", "blue", 26, 8);
     depot.outpost = true;
     g.goliath!.mode = "walking";

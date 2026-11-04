@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { planMenders } from "../src/sim/ai/menders";
 import { BUILDINGS, COMBAT, ECONOMY, GOLIATH, SALVAGE, TERRAIN, TICK_RATE, UNITS } from "../src/sim/balance";
@@ -120,7 +121,7 @@ const cancel = (faction: Faction, buildingId: number, unit: UnitKind): Command =
 const anchorCmd = (g: Unit): Command => ({ type: "anchor", faction: g.faction, unitIds: [g.id] });
 const packCmd = (g: Unit): Command => ({ type: "packUp", faction: g.faction, unitIds: [g.id] });
 
-/** Spawn a Goliath at (x, y) and anchor it there (through the command). */
+/** Spawn a Colossus at (x, y) and anchor it there (through the command). */
 function anchoredAt(w: World, faction: Faction, x: number, y: number): Unit {
   const g = spawnUnit(w, "goliath", faction, x, y);
   run(w, ANCHOR_TICKS + 1, [anchorCmd(g)]);
@@ -138,7 +139,7 @@ function placeNow(w: World, faction: Faction, kind: BuildingKind, tx: number, ty
   return null;
 }
 
-/** Which of Goliath `g`'s weapons have fired since tick `t0`. */
+/** Which of Colossus `g`'s weapons have fired since tick `t0`. */
 const firedSince = (g: Unit, t0: number): Record<GoliathWeapon, boolean> =>
   Object.fromEntries(WEAPONS.map((k) => [k, g.goliath!.weapons[k].firedTick >= t0])) as Record<GoliathWeapon, boolean>;
 
@@ -148,7 +149,7 @@ const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 // ------------------------------------------------------------- the Gantry ---
 
 describe("the Gantry: tech", () => {
-  it("needs ALL of Fab Plant, Airpad, Tech Lab and Assembly Bay, and names every one that is missing", () => {
+  it("needs ALL of Motor Works, Aerodrome, Atomic Lab and Robot Foundry, and names every one that is missing", () => {
     expect([...(BUILDINGS.gantry.requiresAll ?? [])].sort()).toEqual([...PREREQS].sort());
     // every proper subset (none, any one, any two, any three) is refused, naming exactly what's missing
     for (let mask = 0; mask < 15; mask++) {
@@ -203,13 +204,13 @@ describe("the Gantry: tech", () => {
     expect(buildingBlocker(w2, "blue", "gantry")).toBeNull();
   });
 
-  it("is banned, along with the Goliath, by every mutator that bans ground combat (Air War)", () => {
+  it("is banned, along with the Colossus, by every mutator that bans ground combat (Air War)", () => {
     const groundBanners = (Object.keys(MUTATORS) as MutatorId[]).filter((id) => MUTATORS[id].bansUnits?.includes("mastodon"));
     expect(groundBanners).toContain("airwar");
     for (const id of groundBanners) {
       const w = field();
       giveTech(w, "blue", PREREQS);
-      spawnBuilding(w, "gantry", "red", 40, 40); // (red has one already: it can't build Goliaths either)
+      spawnBuilding(w, "gantry", "red", 40, 40); // (red has one already: it can't build Colossi either)
       applyMutators(w, [id]);
       expect(buildingBlocker(w, "blue", "gantry"), id).toContain(MUTATORS[id].name);
       expect(unitBlocker(w, "blue", "goliath"), id).toContain(MUTATORS[id].name);
@@ -227,10 +228,10 @@ describe("the Gantry: tech", () => {
   });
 });
 
-describe("the Goliath's price", () => {
+describe("the Colossus's price", () => {
   const price = (n: number) => Math.round(UNITS.goliath.cost * (1 + GOLIATH.costStep * n));
 
-  it("is list with none, +costStep of list per Goliath owned (alive or queued), refunds what was paid, and drops after a loss", () => {
+  it("is list with none, +costStep of list per Colossus owned (alive or queued), refunds what was paid, and drops after a loss", () => {
     const { w, gantry } = gantryBase();
     expect(goliathCost(w, "blue")).toBe(UNITS.goliath.cost);
     expect(unitCost(w, "blue", "goliath")).toBe(UNITS.goliath.cost);
@@ -266,7 +267,7 @@ describe("the Goliath's price", () => {
     expect(w.factions.blue.scrap).toBe(20_000 - price(0));
   });
 
-  it("a Gantry queues at most GOLIATH.queueMax Goliaths (and charges for no more)", () => {
+  it("a Gantry queues at most GOLIATH.queueMax Colossi (and charges for no more)", () => {
     const { w, gantry } = gantryBase();
     const cmds = Array.from({ length: GOLIATH.queueMax + 2 }, () => produce("blue", gantry.id, "goliath"));
     step(w, cmds);
@@ -283,7 +284,7 @@ describe("the Goliath's price", () => {
 });
 
 describe("Gantry production", () => {
-  it("announces the build (started once, nearlyDone once past GOLIATH.nearlyDone), then rolls a ready Goliath out clear of the Gantry", () => {
+  it("announces the build (started once, nearlyDone once past GOLIATH.nearlyDone), then rolls a ready Colossus out clear of the Gantry", () => {
     const { w, gantry } = gantryBase();
     const fx: { tick: number; e: FxEvent; progress: number }[] = [];
     let rolled: Ev<"goliathRollout"> | undefined;
@@ -384,7 +385,7 @@ describe("anchoring", () => {
     expect(at((w) => spawnUnit(w, "harvester", "red", 30.5, 30.5)).why).toBe("Unit in the way");
     // an aircraft overhead is not in the way
     expect(at((w) => spawnUnit(w, "wasp", "blue", 29.5, 29.5)).why).toBeNull();
-    // on a lift (Condors hooking on)
+    // on a lift (Skyliners hooking on)
     const { w, g, why } = at((w, g) => {
       const a = spawnUnit(w, "condor", "blue", 27, 28);
       const b = spawnUnit(w, "condor", "blue", 33, 28);
@@ -434,7 +435,7 @@ describe("anchoring", () => {
     run(w, ANCHOR_TICKS);
     expect(g.goliath!.mode).toBe("anchored");
     g.order = { type: "move", x: 40, y: 30 };
-    // a friendly tank driving through it is shoved aside, not the Goliath
+    // a friendly tank driving through it is shoved aside, not the Colossus
     const tank = spawnUnit(w, "mastodon", "blue", 26, 30);
     run(w, 30, [{ type: "move", faction: "blue", unitIds: [tank.id], x: 34, y: 30 }]);
     still();
@@ -448,8 +449,8 @@ describe("anchoring", () => {
     expect(g.x).toBeGreaterThan(p.x + 0.5); // now it walks
   });
 
-  // (regression: two Goliaths once shared separation's push, so a walking one shoved a dug-in one off its ground)
-  it("stays dug in when another Goliath (either side) walks into it", () => {
+  // (regression: two Colossi once shared separation's push, so a walking one shoved a dug-in one off its ground)
+  it("stays dug in when another Colossus (either side) walks into it", () => {
     for (const f of ["blue", "red"] as const) {
       const w = field();
       const g = anchoredAt(w, "blue", 30, 30);
@@ -461,7 +462,7 @@ describe("anchoring", () => {
     }
   });
 
-  it("a move order to an anchored Goliath packs it up first, then it walks to the point", () => {
+  it("a move order to an anchored Colossus packs it up first, then it walks to the point", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     const p = { x: g.x, y: g.y };
@@ -492,7 +493,7 @@ describe("scrap drop-off", () => {
     return { w, h };
   }
 
-  it("a harvester unloads at an anchored Goliath far from base", () => {
+  it("a harvester unloads at an anchored Colossus far from base", () => {
     const { w, h } = farField();
     anchoredAt(w, "blue", 48, 12);
     // (re-arm the hold: it may have been parked a while)
@@ -543,13 +544,13 @@ describe("scrap drop-off", () => {
   it("once it starts packing up, a harvester bound for it reroutes to the nearest other drop-off", () => {
     const { w, h } = farField();
     const g = anchoredAt(w, "blue", 46, 12);
-    const depot = spawnBuilding(w, "depot", "blue", 38, 20); // nearer than the HQ, farther than the Goliath
+    const depot = spawnBuilding(w, "depot", "blue", 38, 20); // nearer than the HQ, farther than the Colossus
     h.x = 38.5;
     h.y = 11.5;
     h.cargo = ECONOMY.harvesterCapacity;
     h.order = { type: "harvest", fieldX: 56, fieldY: 11, phase: "toBase" };
     run(w, 3);
-    expect(nearestDropSite(w, "blue", h.x, h.y)?.id).toBe(g.id); // bound for the Goliath
+    expect(nearestDropSite(w, "blue", h.x, h.y)?.id).toBe(g.id); // bound for the Colossus
     expect(h.order.type === "harvest" && h.order.phase).toBe("toBase");
     const fx: FxEvent[] = [];
     step(w, [packCmd(g)]);
@@ -564,8 +565,8 @@ describe("scrap drop-off", () => {
 });
 
 describe("an unreachable drop-off", () => {
-  // (regression: drop sites were picked by straight-line distance; a Goliath or outpost must be reachable by ground)
-  it("a harvester never unloads across the sea at an island Goliath: it takes its load home", () => {
+  // (regression: drop sites were picked by straight-line distance; a Colossus or outpost must be reachable by ground)
+  it("a harvester never unloads across the sea at an island Colossus: it takes its load home", () => {
     const w = createWorld(64, 30);
     w.rules = { ...DEFAULT_RULES, bannedUnits: [], bannedBuildings: [], startUnits: [], mutators: [], hqTrickle: 0, islands: true };
     const hq = spawnBuilding(w, "hq", "blue", 1, 12);
@@ -584,15 +585,15 @@ describe("an unreachable drop-off", () => {
   });
 });
 
-describe("getting past a Goliath", () => {
-  // (regression: paths ignored a dug-in Goliath and jammed against it; its footprint is now in the occupancy grid)
-  it("a harvester rerouted past the packed-up Goliath reaches the other drop-off", () => {
+describe("getting past a Colossus", () => {
+  // (regression: paths ignored a dug-in Colossus and jammed against it; its footprint is now in the occupancy grid)
+  it("a harvester rerouted past the packed-up Colossus reaches the other drop-off", () => {
     const w = createWorld(64, 24);
     w.rules = { ...DEFAULT_RULES, bannedUnits: [], bannedBuildings: [], startUnits: [], mutators: [], hqTrickle: 0 };
     spawnBuilding(w, "hq", "blue", 1, 10);
     spawnBuilding(w, "hq", "red", 1, 1);
     const g = anchoredAt(w, "blue", 46, 12);
-    const depot = spawnBuilding(w, "depot", "blue", 56, 18); // beyond the Goliath
+    const depot = spawnBuilding(w, "depot", "blue", 56, 18); // beyond the Colossus
     const h = spawnUnit(w, "harvester", "blue", 36.5, 11.5);
     paint(w, 56, 10, 58, 12, Terrain.Scrap);
     h.cargo = ECONOMY.harvesterCapacity;
@@ -606,7 +607,7 @@ describe("getting past a Goliath", () => {
   });
 
   // (regression: same cause as above, for every ground unit size)
-  it("ground units driving straight through a parked Goliath's spot get round it", () => {
+  it("ground units driving straight through a parked Colossus's spot get round it", () => {
     for (const kind of ["harvester", "mastodon", "stinger", "trooper"] as UnitKind[])
       for (const anchored of [false, true]) {
         const w = field();
@@ -617,7 +618,7 @@ describe("getting past a Goliath", () => {
           step(w, [{ type: "move", faction: "blue", unitIds: [u.id], x: 36.5, y: 30.5 }]);
           return runUntil(w, () => Math.hypot(u.x - 36.5, u.y - 30.5) < 1, 400);
         })();
-        expect(t, `${kind} past a ${anchored ? "anchored" : "walking"} Goliath`).toBeLessThan(400);
+        expect(t, `${kind} past a ${anchored ? "anchored" : "walking"} Colossus`).toBeLessThan(400);
       }
   });
 });
@@ -625,7 +626,7 @@ describe("getting past a Goliath", () => {
 // ------------------------------------------------------------- training ---
 
 describe("training infantry", () => {
-  it("an anchored Goliath trains squads (no Assembly Bay needed); they appear by it; cancel refunds", () => {
+  it("an anchored Colossus trains squads (no Robot Foundry needed); they appear by it; cancel refunds", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     expect([...w.buildings.values()].some((b) => b.kind === "assembly-bay")).toBe(false);
@@ -675,7 +676,7 @@ describe("training infantry", () => {
     expect(w.factions.red.scrap).toBe(5000);
   });
 
-  it("a Sniper Team needs a Tech Lab", () => {
+  it("a Longshot Team needs an Atomic Lab", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     w.factions.blue.scrap = 5000;
@@ -716,7 +717,7 @@ describe("training infantry", () => {
 // -------------------------------------------------------------- outposts ---
 
 describe("outposts", () => {
-  it("anything but an HQ can go up within GOLIATH.buildRing of an anchored Goliath far from base, as an outpost", () => {
+  it("anything but an HQ can go up within GOLIATH.buildRing of an anchored Colossus far from base, as an outpost", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     // a turret beside it, far outside base range
@@ -743,7 +744,7 @@ describe("outposts", () => {
     expect(canPlaceBuilding(w, "red", "turret", Math.floor(r.x) + 1, Math.floor(r.y))).toBe(true);
   });
 
-  it("a walking or still-anchoring Goliath has no build ring", () => {
+  it("a walking or still-anchoring Colossus has no build ring", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 30, 30);
     expect(canPlaceBuilding(w, "blue", "turret", 32, 30)).toBe(false);
@@ -756,26 +757,26 @@ describe("outposts", () => {
     expect(canPlaceBuilding(w, "blue", "turret", 32, 30)).toBe(false);
   });
 
-  it("nothing can be built off an outpost alone: its ring goes when the Goliath packs up", () => {
+  it("nothing can be built off an outpost alone: its ring goes when the Colossus packs up", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     const depot = placeNow(w, "blue", "depot", 32, 29)!;
     expect(depot.outpost).toBe(true);
-    // in range of the outpost but out of the ring: no, even with the Goliath still anchored
+    // in range of the outpost but out of the ring: no, even with the Colossus still anchored
     expect(canPlaceBuilding(w, "blue", "turret", 38, 30)).toBe(false);
     expect(placementBlocker(w, "blue", "turret", 38, 30)).toBe("Too far from base");
     run(w, PACK_TICKS + 2, [packCmd(g)]);
     run(w, 1, [{ type: "move", faction: "blue", unitIds: [g.id], x: 20, y: 30 }]);
     run(w, 60);
     for (let ty = 25; ty <= 36; ty++) for (let tx = 26; tx <= 40; tx++) expect(canPlaceBuilding(w, "blue", "turret", tx, ty), `${tx},${ty}`).toBe(false);
-    // an outpost isn't base: a building in its range still counts as one when it goes up (once a Goliath anchors again)
+    // an outpost isn't base: a building in its range still counts as one when it goes up (once a Colossus anchors again)
     anchoredAt(w, "blue", 37, 34);
     const t = placeNow(w, "blue", "turret", 38, 31);
     expect(t).not.toBeNull();
     expect(t!.outpost).toBe(true);
   });
 
-  it("an outpost Depot keeps taking harvester scrap after the Goliath has gone", () => {
+  it("an outpost Depot keeps taking harvester scrap after the Colossus has gone", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 40, 30);
     const depot = placeNow(w, "blue", "depot", 42, 29)!;
@@ -795,12 +796,12 @@ describe("outposts", () => {
     expect(evs(fx, "deposit").some((e) => Math.hypot(e.x - c.x, e.y - c.y) < 0.01)).toBe(true);
   });
 
-  it("a building placed inside normal base range is a normal building, even beside an anchored Goliath", () => {
+  it("a building placed inside normal base range is a normal building, even beside an anchored Colossus", () => {
     const w = field();
-    // blue's HQ covers (1..4, 1..4); the Goliath anchors just outside it
+    // blue's HQ covers (1..4, 1..4); the Colossus anchors just outside it
     const g = anchoredAt(w, "blue", 8, 5);
     expect(canPlaceBuilding(w, "blue", "turret", 12, 3)).toBe(false); // (outside base range and ring)
-    const t = placeNow(w, "blue", "turret", 6, 3); // in base range AND the Goliath's ring
+    const t = placeNow(w, "blue", "turret", 6, 3); // in base range AND the Colossus's ring
     expect(t).not.toBeNull();
     expect(t!.outpost ?? false).toBe(false);
     // so it is base: build off it, beyond the HQ's reach and the ring's
@@ -808,7 +809,7 @@ describe("outposts", () => {
     expect(canPlaceBuilding(w, "blue", "turret", 12, 3)).toBe(true);
   });
 
-  it("can't overlap a Goliath's body (anchored or walking, either side)", () => {
+  it("can't overlap a Colossus's body (anchored or walking, either side)", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     expect({ x: g.x, y: g.y }).toEqual({ x: 30, y: 30 });
@@ -827,7 +828,7 @@ describe("outposts", () => {
     expect(canPlaceBuilding(w2, "blue", "turret", 8, 6)).toBe(true);
   });
 
-  it("placementBlocker agrees with canPlaceBuilding (null exactly when placeable) all round an anchored Goliath", () => {
+  it("placementBlocker agrees with canPlaceBuilding (null exactly when placeable) all round an anchored Colossus", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 30, 30);
     spawnUnit(w, "stinger", "blue", 33.5, 30.5);
@@ -951,7 +952,7 @@ describe("weapons and damage stages", () => {
     expect(t).toBeGreaterThanOrEqual(REBOOT_TICKS);
   });
 
-  /** Blue Goliath at (30, 30) (optionally hurt) and a frozen red target `dist` tiles east; which weapons fire in 3 s. */
+  /** Blue Colossus at (30, 30) (optionally hurt) and a frozen red target `dist` tiles east; which weapons fire in 3 s. */
   function shootout(kind: UnitKind, dist: number, hpShare = 1) {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 30, 30);
@@ -991,7 +992,7 @@ describe("weapons and damage stages", () => {
     expect(t.hp).toBeLessThan(UNITS.wasp.hp);
   });
 
-  it("a damaged Goliath can no longer shell a base: weapons offline don't fire", () => {
+  it("a damaged Colossus can no longer shell a base: weapons offline don't fire", () => {
     const far = (longest + W.mortars.range) / 2;
     expect(shootout("stinger", far, W.mortars.lostBelow - 0.01).fired.mortars).toBe(false);
     const air = (Math.max(W.mortars.minRange ?? 0, 0) + Math.min(W.mg.range, W.cannons.range)) / 2;
@@ -1015,7 +1016,7 @@ describe("weapons and damage stages", () => {
 // ---------------------------------------------------------------- repair ---
 
 describe("repair", () => {
-  it("a Field Repair crate doesn't heal a Goliath (it heals the units beside it)", () => {
+  it("a Field Repair crate doesn't heal a Colossus (it heals the units beside it)", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     g.hp = MAX_HP * 0.5;
@@ -1028,7 +1029,7 @@ describe("repair", () => {
     expect(s.hp).toBeGreaterThan(50);
   });
 
-  it("a rank-3 Goliath doesn't patch itself up like other elites", () => {
+  it("a rank-3 Colossus doesn't patch itself up like other elites", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     g.rank = 3;
@@ -1042,7 +1043,7 @@ describe("repair", () => {
     expect(COMBAT.eliteRegen).toBeGreaterThan(0);
   });
 
-  it("a Mender repairs it, which brings a lost weapon back", () => {
+  it("a Tinker repairs it, which brings a lost weapon back", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     const line = W.mortars.lostBelow;
@@ -1059,7 +1060,7 @@ describe("repair", () => {
     expect(evs(fx, "goliathWeapon").map((e) => `${e.weapon}:${e.state}`)).toEqual(["mortars:rebooting", "mortars:online"]);
   });
 
-  it("a Mender favours a Goliath with a weapon down over an equally hurt tank", () => {
+  it("a Tinker favours a Colossus with a weapon down over an equally hurt tank", () => {
     const share = W.mortars.lostBelow - 0.02;
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 22, 20);
@@ -1076,7 +1077,7 @@ describe("repair", () => {
     expect(m.hp).toBe(m0);
   });
 
-  it("the Mender AI sends a Mender to a Goliath with a weapon down before an equally far, slightly more hurt tank", () => {
+  it("the Tinker AI sends a Tinker to a Colossus with a weapon down before an equally far, slightly more hurt tank", () => {
     const w = field();
     const share = W.mortars.lostBelow - 0.02;
     const g = spawnUnit(w, "goliath", "red", 30, 40);
@@ -1093,7 +1094,7 @@ describe("repair", () => {
     expect(Math.hypot(order!.x - g.x, order!.y - g.y)).toBeLessThan(1);
   });
 
-  it("an EMP on the Goliath blocks a Mender's repair while it lasts", () => {
+  it("an EMP on the Colossus blocks a Tinker's repair while it lasts", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     g.hp = MAX_HP * 0.5;
@@ -1105,7 +1106,7 @@ describe("repair", () => {
     expect(g.hp).toBeGreaterThan(MAX_HP * 0.5);
   });
 
-  it("an EMP'd Mender repairs nothing", () => {
+  it("an EMP'd Tinker repairs nothing", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     g.hp = MAX_HP * 0.5;
@@ -1119,7 +1120,7 @@ describe("repair", () => {
 // ------------------------------------------------------------ visibility ---
 
 describe("sight and visibility", () => {
-  it("the enemy always sees a Goliath, deep in the fog", () => {
+  it("the enemy always sees a Colossus, deep in the fog", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 45, 10);
     const s = spawnUnit(w, "stinger", "blue", 45, 14);
@@ -1145,7 +1146,7 @@ describe("sight and visibility", () => {
     expect(w.fog.red.known.has(gantry.id)).toBe(false);
   });
 
-  it("a Goliath sees further than any other unit", () => {
+  it("a Colossus sees further than any other unit", () => {
     for (const k of Object.keys(UNITS) as UnitKind[])
       if (k !== "goliath") expect(UNITS.goliath.sight, k).toBeGreaterThan(UNITS[k].sight);
     const w = field();
@@ -1158,7 +1159,7 @@ describe("sight and visibility", () => {
 // ---------------------------------------------------------------- defeat ---
 
 describe("defeat", () => {
-  it("HQ destroyed while the side has a Goliath: no winner; its last Goliath destroyed: the enemy wins", () => {
+  it("HQ destroyed while the side has a Colossus: no winner; its last Colossus destroyed: the enemy wins", () => {
     const w = field();
     const g1 = spawnUnit(w, "goliath", "blue", 30, 30);
     const g2 = spawnUnit(w, "goliath", "blue", 36, 30);
@@ -1174,7 +1175,7 @@ describe("defeat", () => {
     expect(w.winner).toBe("red");
   });
 
-  it("a Goliath on a lift still keeps its side in the game", () => {
+  it("a Colossus on a lift still keeps its side in the game", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 30, 30);
     const a = spawnUnit(w, "condor", "blue", 28, 28);
@@ -1186,7 +1187,7 @@ describe("defeat", () => {
     expect(w.winner).toBeNull();
   });
 
-  it("a Goliath destroyed with the HQ standing decides nothing", () => {
+  it("a Colossus destroyed with the HQ standing decides nothing", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "red", 30, 30);
     g.hp = 0;
@@ -1195,7 +1196,7 @@ describe("defeat", () => {
     expect(w.winner).toBeNull();
   });
 
-  it("HQ and last Goliath lost on the same tick: the enemy wins", () => {
+  it("HQ and last Colossus lost on the same tick: the enemy wins", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "red", 30, 30);
     g.hp = 0;
@@ -1204,14 +1205,14 @@ describe("defeat", () => {
     expect(w.winner).toBe("blue");
   });
 
-  it("a classic match without Goliaths: HQ death still decides at once", () => {
+  it("a classic match without Colossi: HQ death still decides at once", () => {
     const w = field();
     hqOf(w, "red")!.hp = 0;
     step(w, []);
     expect(w.winner).toBe("blue");
   });
 
-  it("after the HQ falls the side still builds: by an anchored Goliath and in range of surviving buildings, but never an HQ", () => {
+  it("after the HQ falls the side still builds: by an anchored Colossus and in range of surviving buildings, but never an HQ", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 40, 30);
     spawnBuilding(w, "depot", "blue", 10, 10);
@@ -1231,7 +1232,7 @@ describe("defeat", () => {
 // ----------------------------------------------------------- death salvage ---
 
 describe("death salvage", () => {
-  it("a destroyed Goliath leaves no hull but GOLIATH.salvage piles spread round where it fell, worth its share of list price", () => {
+  it("a destroyed Colossus leaves no hull but GOLIATH.salvage piles spread round where it fell, worth its share of list price", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 30, 30);
     const friend = spawnUnit(w, "stinger", "blue", 31.5, 30);
@@ -1277,7 +1278,7 @@ describe("death salvage", () => {
     expect(w.factions.blue.scrap).toBeGreaterThanOrEqual(s0 + p.value - 1e-6);
   });
 
-  /** A Gantry destroyed `ticks` into a Goliath build (null: nothing on the cradle). */
+  /** A Gantry destroyed `ticks` into a Colossus build (null: nothing on the cradle). */
   function gantryDeath(ticks: number | null): { ps: Wreck[]; progress: number; paid: number; c: { x: number; y: number } } {
     const { w, gantry } = gantryBase();
     let progress = 0;
@@ -1315,10 +1316,10 @@ describe("death salvage", () => {
 
 // ------------------------------------------------------------------ lift ---
 
-describe("two-Condor lift", () => {
+describe("two-Skyliner lift", () => {
   const condorStep = UNITS.condor.speed / TICK_RATE;
 
-  /** A blue Goliath at (20, 20) with two empty Condors above it, hooked on and carrying it. */
+  /** A blue Colossus at (20, 20) with two empty Skyliners above it, hooked on and carrying it. */
   function lifted(w = field()): { w: World; g: Unit; a: Unit; b: Unit; fx: FxEvent[] } {
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     const a = spawnUnit(w, "condor", "blue", 17, 18);
@@ -1329,7 +1330,7 @@ describe("two-Condor lift", () => {
     return { w, g, a, b, fx };
   }
 
-  it("two empty Condors hook on ('hooked'), fly it at about speedMult of a Condor's speed, and set it down with unload ('setDown')", () => {
+  it("two empty Skyliners hook on ('hooked'), fly it at about speedMult of a Skyliner's speed, and set it down with unload ('setDown')", () => {
     const { w, g, a, b, fx } = lifted();
     const hooked = evs(fx, "goliathLift");
     expect(hooked).toHaveLength(1);
@@ -1337,7 +1338,7 @@ describe("two-Condor lift", () => {
     expect([...hooked[0]!.carrierIds].sort()).toEqual([a.id, b.id].sort());
     expect(g.goliath!.lift?.phase).toBe("carrying");
     expect(domainOf(g)).toBe("air");
-    // flies (a move to either Condor flies the lift)
+    // flies (a move to either Skyliner flies the lift)
     run(w, 2, [{ type: "move", faction: "blue", unitIds: [a.id], x: 50, y: 20 }]);
     const x0 = g.x;
     run(w, 10);
@@ -1345,7 +1346,7 @@ describe("two-Condor lift", () => {
     expect(perTick).toBeCloseTo(condorStep * GOLIATH.lift.speedMult, 6);
     expect(perTick).toBeLessThan(condorStep);
     expect(g.y).toBeCloseTo(20, 6);
-    // the Condors stay with it
+    // the Skyliners stay with it
     for (const c of [a, b]) expect(Math.hypot(c.x - g.x, c.y - g.y)).toBeLessThanOrEqual(GOLIATH.lift.span + 0.01);
     // set down at a point
     const fx2: FxEvent[] = [];
@@ -1390,7 +1391,7 @@ describe("two-Condor lift", () => {
     expect(distToBuilding(fab, onto.g.x, onto.g.y)).toBeGreaterThan(0);
   });
 
-  it("refuses an anchored Goliath, and Condors carrying squads", () => {
+  it("refuses an anchored Colossus, and Skyliners carrying squads", () => {
     const w = field();
     const g = anchoredAt(w, "blue", 20, 20);
     const a = spawnUnit(w, "condor", "blue", 17, 18);
@@ -1412,9 +1413,9 @@ describe("two-Condor lift", () => {
     run(w2, 30, [{ type: "lift", faction: "blue", unitIds: [c1.id, c2.id], goliathId: g2.id }]);
     expect(g2.goliath!.lift).toBeNull();
     expect(evs(w2.fx, "goliathLift")).toHaveLength(0);
-    // one Condor alone can't
+    // one Skyliner alone can't
     expect(liftBlocker([c1], g2)).not.toBeNull();
-    // enemy Condors can't
+    // enemy Skyliners can't
     const r1 = spawnUnit(w2, "condor", "red", 18, 22);
     const r2 = spawnUnit(w2, "condor", "red", 22, 22);
     run(w2, 30, [{ type: "lift", faction: "red", unitIds: [r1.id, r2.id], goliathId: g2.id }]);
@@ -1447,7 +1448,7 @@ describe("two-Condor lift", () => {
     expect(g.hp).toBeLessThan(MAX_HP);
   });
 
-  it("a Condor shot down over land drops it: it lands with about dropDamage × max HP of damage", () => {
+  it("a Skyliner shot down over land drops it: it lands with about dropDamage × max HP of damage", () => {
     const { w, g, a, b } = lifted();
     run(w, 10, [{ type: "move", faction: "blue", unitIds: [a.id], x: 40, y: 20 }]);
     const hp0 = g.hp;
@@ -1464,7 +1465,7 @@ describe("two-Condor lift", () => {
   });
 
   for (const [name, t] of [["water", Terrain.Water], ["open sea", Terrain.Deep], ["rock", Terrain.Rock]] as const)
-    it(`a Condor shot down over ${name}: the Goliath is destroyed`, () => {
+    it(`a Skyliner shot down over ${name}: the Colossus is destroyed`, () => {
       const { w, g, b } = lifted();
       paint(w, Math.floor(g.x) - 3, Math.floor(g.y) - 3, Math.floor(g.x) + 3, Math.floor(g.y) + 3, t);
       b.hp = 0;
@@ -1487,7 +1488,7 @@ describe("two-Condor lift", () => {
     expect(w.units.has(g.id)).toBe(false);
   });
 
-  it("a Condor lost while still hooking on calls the lift off: the Goliath stays on its feet, unharmed", () => {
+  it("a Skyliner lost while still hooking on calls the lift off: the Colossus stays on its feet, unharmed", () => {
     const w = field();
     const g = spawnUnit(w, "goliath", "blue", 20, 20);
     const a = spawnUnit(w, "condor", "blue", 10, 10);
@@ -1506,7 +1507,7 @@ describe("two-Condor lift", () => {
     expect(g.x).toBeGreaterThan(20.5);
   });
 
-  it("squads can't board a Condor that's on a lift", () => {
+  it("squads can't board a Skyliner that's on a lift", () => {
     const { w, a } = lifted();
     const sq = spawnUnit(w, "trooper", "blue", a.x, a.y + 0.5);
     run(w, 40, [{ type: "board", faction: "blue", unitIds: [sq.id], carrierId: a.id }]);
@@ -1515,7 +1516,7 @@ describe("two-Condor lift", () => {
     expect(sq.order.type).not.toBe("board");
   });
 
-  it("a Goliath destroyed while carried lets its Condors go", () => {
+  it("a Colossus destroyed while carried lets its Skyliners go", () => {
     const { w, g, a, b } = lifted();
     g.hp = 0;
     run(w, 2);
@@ -1531,7 +1532,7 @@ describe("no special island rules", () => {
   const island = (w: World, tx: number, ty: number) => !onHomeLand(w, "blue", tx, ty) && !onHomeLand(w, "red", tx, ty);
 
   /**
-   * An Archipelago island spot (on neither side's home land) where a Goliath could anchor, with
+   * An Archipelago island spot (on neither side's home land) where a Colossus could anchor, with
    * open island ground for a 2×2 building just north of it, in its build ring.
    */
   function islandSpot(w: World): { x: number; y: number } {
@@ -1553,11 +1554,11 @@ describe("no special island rules", () => {
     return spot!;
   }
 
-  it("on the Archipelago, a Goliath lifted onto an island anchors, trains squads and builds outposts there", () => {
+  it("on the Archipelago, a Colossus lifted onto an island anchors, trains squads and builds outposts there", () => {
     const w = createMapWorld("archipelago");
     expect(w.rules?.islands).toBe(true);
     const spot = islandSpot(w);
-    // the nearest open home ground to it, for the Goliath and its Condors to start from
+    // the nearest open home ground to it, for the Colossus and its Skyliners to start from
     let start: { x: number; y: number } | null = null;
     let best = Infinity;
     for (let y = 2; y < w.height - 2; y++)
@@ -1597,7 +1598,7 @@ describe("no special island rules", () => {
   });
 
   // (regression: outposts spawned on home land only, so an island outpost dropped units in the sea)
-  it("an outpost Assembly Bay on an island rolls its squads out onto the island", () => {
+  it("an outpost Robot Foundry on an island rolls its squads out onto the island", () => {
     const w = createMapWorld("archipelago");
     const spot = islandSpot(w);
     anchoredAt(w, "blue", spot.x, spot.y);
@@ -1618,7 +1619,7 @@ describe("no special island rules", () => {
 // --------------------------------------------------------- determinism ---
 
 describe("determinism", () => {
-  /** A short skirmish with every Goliath system in play; returns a snapshot of the end state. */
+  /** A short skirmish with every Colossus system in play; returns a snapshot of the end state. */
   function scenario(): string {
     const w = field();
     giveTech(w, "blue", PREREQS);
@@ -1649,7 +1650,7 @@ describe("determinism", () => {
     });
   }
 
-  it("mirror-image Goliaths anchor, roll out and scatter their salvage as mirror images", () => {
+  it("mirror-image Colossi anchor, roll out and scatter their salvage as mirror images", () => {
     const S = 60;
     const m = (p: { x: number; y: number }) => ({ x: S - p.x, y: S - p.y });
     const key = (ws: Wreck[], flip: boolean) =>
@@ -1678,7 +1679,7 @@ describe("determinism", () => {
     const one = scenario();
     const two = scenario();
     expect(two).toBe(one);
-    // (and it did something: a Goliath fell and scattered its salvage)
+    // (and it did something: a Colossus fell and scattered its salvage)
     expect(JSON.parse(one).wrecks.some((r: unknown[]) => r[4] === true)).toBe(true);
   });
 });

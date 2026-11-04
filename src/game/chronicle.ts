@@ -81,9 +81,9 @@ export interface HeroRec {
 
 /**
  * A story beat: first blood, the biggest battle, the turning point (or the
- * moment one side pulled away), the first Goliath to walk off a Gantry, an
- * HQ that fell while its Goliath fought on (GOLIATH.md: the match goes on),
- * and Robot Love's ending, two Goliaths falling in love (a draw).
+ * moment one side pulled away), the first Colossus to walk off a Gantry, an
+ * HQ that fell while its Colossus fought on (GOLIATH.md: the match goes on),
+ * and Robot Love's ending, two Colossi falling in love (a draw).
  */
 export type MomentKind = "first-blood" | "battle" | "turn" | "lead" | "goliath" | "hq" | "love";
 
@@ -129,7 +129,7 @@ export class Chronicle {
   readonly built: Record<Faction, Record<string, number>> = perSide(() => ({}));
   /** Game second each building kind was first completed. */
   readonly firstBuilt: Record<Faction, Record<string, number>> = perSide(() => ({}));
-  /** Goliaths each side started with (Nomads: one each, never "built"). */
+  /** Colossi each side started with (Nomads: one each, never "built"). */
   readonly startGoliaths: Record<Faction, number> = perSide(() => 0);
   /** Factory samples: total, and idle while the side could afford a unit. */
   readonly factories: Record<Faction, { total: number; idleRich: number }> = perSide(() => ({ total: 0, idleRich: 0 }));
@@ -138,7 +138,7 @@ export class Chronicle {
   readonly sides: readonly Faction[];
   /** A free-for-all's knock-outs, in order: who, when (game seconds) and by whom. */
   readonly out: { faction: Faction; t: number; by: Faction | null }[] = [];
-  /** Robot Love: when and where two enemy Goliaths fell in love and ended the match in a draw. */
+  /** Robot Love: when and where two enemy Colossi fell in love and ended the match in a draw. */
   love: { t: number; x: number; y: number } | null = null;
   /** The best fallen unit per side (living units are checked at the end). */
   private fallen: Record<Faction, HeroRec | null> = perSide(() => null);
@@ -224,11 +224,11 @@ export class Chronicle {
     for (const u of w.units.values()) {
       if (u.kind === "harvester") harvesters[u.faction]++;
       else army[u.faction] += (UNITS[u.kind].cost * Math.max(0, u.hp)) / UNITS[u.kind].hp;
-      // squads riding in a Condor still count toward the army
+      // squads riding in a Skyliner still count toward the army
       for (const p of u.passengers ?? []) army[p.faction] += (UNITS[p.kind].cost * Math.max(0, p.hp)) / UNITS[p.kind].hp;
     }
     for (const b of w.buildings.values()) {
-      // (no Gantry: it builds one Goliath at a time and idles between them by design)
+      // (no Gantry: it builds one Colossus at a time and idles between them by design)
       if (b.kind !== "fab-plant" && b.kind !== "airpad" && b.kind !== "assembly-bay") continue;
       const fc = this.factories[b.faction];
       fc.total++;
@@ -288,7 +288,7 @@ export class Chronicle {
   /** The best unit per side by kills, fallen or alive. */
   mvp(): Record<Faction, HeroRec | null> {
     const best: Record<Faction, HeroRec | null> = { ...this.fallen };
-    // (squads riding in a Condor are off the field, but very much alive)
+    // (squads riding in a Skyliner are off the field, but very much alive)
     for (const u of this.w.units.values())
       for (const x of u.passengers?.length ? [u, ...u.passengers] : [u]) {
         if (x.kills <= 0) continue;
@@ -494,7 +494,7 @@ const shortK = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(
 /** An HQ that fell this long before the end of the match was fought on without (sim seconds). */
 const FOUGHT_ON_S = 5;
 
-/** The first Goliath of the match (any side), from the first-built log. */
+/** The first Colossus of the match (any side), from the first-built log. */
 function firstGoliath(firstBuilt: PerSide<Record<string, number>> | undefined): { faction: Faction; t: number } | null {
   let best: { faction: Faction; t: number } | null = null;
   for (const f of FACTIONS) {
@@ -506,9 +506,9 @@ function firstGoliath(firstBuilt: PerSide<Record<string, number>> | undefined): 
 
 /**
  * The story beats, in time order, phrased for `pov` (null = spectator). With
- * `firstBuilt` (the chronicle has it) the Goliath beats join in: the first
- * one to walk off a Gantry, and an HQ that fell while its Goliath fought on.
- * One Goliath beat (the match's first, not one per side) and at most one HQ
+ * `firstBuilt` (the chronicle has it) the Colossus beats join in: the first
+ * one to walk off a Gantry, and an HQ that fell while its Colossus fought on.
+ * One Colossus beat (the match's first, not one per side) and at most one HQ
  * beat per side, so the chart's numbered marks stay readable. With `love`, a
  * Robot Love draw is the last beat.
  */
@@ -598,19 +598,19 @@ export function moments(
     }
   }
 
-  // the first Goliath to walk off a Gantry (the match's first: one beat, not one per side; under
-  // Nomads the Goliaths a side starts with were never built, so "off the Gantry" still holds)
+  // the first Colossus to walk off a Gantry (the match's first: one beat, not one per side; under
+  // Nomads the Colossi a side starts with were never built, so "off the Gantry" still holds)
   const fg = firstGoliath(c.firstBuilt);
   if (fg) {
     const f = fg.faction;
     out.push({
-      kind: "goliath", t: fg.t, title: "Goliath",
-      text: `${Cap(yours(f))} first Goliath walked off ${pov !== null && f !== pov ? "their" : "the"} Gantry`,
+      kind: "goliath", t: fg.t, title: "Colossus",
+      text: `${Cap(yours(f))} first Colossus walked off ${pov !== null && f !== pov ? "their" : "the"} Gantry`,
       tone: toneFor(f)
     });
   }
 
-  // an HQ that fell while the match went on: its Goliath fought on (a side that never fielded one isn't this story)
+  // an HQ that fell while the match went on: its Colossus fought on (a side that never fielded one isn't this story)
   const end = c.samples.at(-1)?.t ?? 0;
   for (const d of c.deaths) {
     if (d.buildingKind !== "hq" || end - d.t < FOUGHT_ON_S) continue;
@@ -618,17 +618,17 @@ export function moments(
     if (had === undefined || had > d.t) continue;
     out.push({
       kind: "hq", t: d.t, title: "HQ destroyed",
-      text: `${Cap(yours(d.faction))} HQ fell; ${yours(d.faction)} Goliath fought on for ${fmtTime(end - d.t)}`,
+      text: `${Cap(yours(d.faction))} HQ fell; ${yours(d.faction)} Colossus fought on for ${fmtTime(end - d.t)}`,
       tone: toneFor(other(d.faction))
     });
   }
 
-  // Robot Love: the match ended with two Goliaths falling for each other (a draw, so nobody's beat)
+  // Robot Love: the match ended with two Colossi falling for each other (a draw, so nobody's beat)
   if (c.love) {
     const where = placeName(c.refs, c.love.x, c.love.y, pov);
     out.push({
       kind: "love", t: c.love.t, title: "Robot Love",
-      text: pov === null ? `${SIDE_NAME.blue}'s and ${SIDE_NAME.red}'s Goliaths fell in love ${where}: a draw` : `Your Goliath and theirs fell in love ${where}: a draw`,
+      text: pov === null ? `${SIDE_NAME.blue}'s and ${SIDE_NAME.red}'s Colossi fell in love ${where}: a draw` : `Your Colossus and theirs fell in love ${where}: a draw`,
       tone: "neutral"
     });
   }
@@ -638,7 +638,7 @@ export function moments(
 /**
  * A free-for-all's story beats (moments, four sides): first blood, the
  * biggest brawl and who came off worst, each knock-out (and by whom), and
- * the first Goliath. Who led on army value swings too often between four
+ * the first Colossus. Who led on army value swings too often between four
  * sides to make a "turning point", so there is none.
  */
 function momentsMulti(
@@ -683,7 +683,7 @@ function momentsMulti(
   }
 
   const fg = firstGoliath(c.firstBuilt);
-  if (fg) out.push({ kind: "goliath", t: fg.t, title: "Goliath", text: `${Cap(yours(fg.faction))} first Goliath walked off the Gantry`, tone: toneFor(fg.faction) });
+  if (fg) out.push({ kind: "goliath", t: fg.t, title: "Colossus", text: `${Cap(yours(fg.faction))} first Colossus walked off the Gantry`, tone: toneFor(fg.faction) });
   return out.sort((a, b2) => a.t - b2.t);
 }
 
@@ -699,7 +699,7 @@ export interface TipInput {
   deaths: DeathRec[];
   samples: Sample[];
   factories: PerSide<{ total: number; idleRich: number }>;
-  /** Goliaths each side started with (Nomads), on top of those built. */
+  /** Colossi each side started with (Nomads), on top of those built. */
   startGoliaths?: PerSide<number>;
   /** Everyone `pov` fought (a free-for-all's three; default the duel's one): "they" in the tips is all of them. */
   rivals?: readonly Faction[];
@@ -720,29 +720,29 @@ export function pickTip(i: TipInput): string {
   if (enemyAir >= 6 && myAA <= 1)
     tips.push({
       score: 90,
-      text: `The enemy fielded ${enemyAir} aircraft; you built ${myAA < 1 ? "almost no" : "barely any"} anti-air. Flak Crawlers, Raptors and SAM Sites shred them.`
+      text: `The enemy fielded ${enemyAir} aircraft; you built ${myAA < 1 ? "almost no" : "barely any"} anti-air. Skyguards, Jetstreams and Sky Batteries shred them.`
     });
 
-  // the Goliath's tuned answers (GOLIATH.md); its Menders keep it alive and its weapons coming back
+  // the Colossus's tuned answers (GOLIATH.md); its Tinkers keep it alive and its weapons coming back
   const goliaths = n(them, "goliath") + rivals.reduce((s, r) => s + (i.startGoliaths?.[r] ?? 0), 0);
   if (goliaths >= 1 && n(me, "rocket-squad", "wasp", "lancer", "hornet") <= 2)
     tips.push({
       score: 80,
-      text: `They fielded ${goliaths === 1 ? "a Goliath" : `${goliaths} Goliaths`}. Rocket Squads, Wasps, Lancers and Hornets bring one down; shoot its Menders first.`
+      text: `They fielded ${goliaths === 1 ? "a Colossus" : `${goliaths} Colossi`}. Bazooka Squads, Comets, Ray Skiffs and Thunderheads bring one down; shoot its Tinkers first.`
     });
 
   const mastodons = n(them, "mastodon");
   if (mastodons >= 4 && n(me, "lancer", "wasp", "hornet", "rocket-squad") <= 2)
-    tips.push({ score: 75, text: `They built ${mastodons} Mastodons. Rocket Squads, Lancers and Wasps burn through heavy armour.` });
+    tips.push({ score: 75, text: `They built ${mastodons} Behemoths. Bazooka Squads, Ray Skiffs and Comets burn through heavy armour.` });
 
-  // robot infantry: splash and Snipers are the answer (Mastodons only scratch them, unless they roll over them)
+  // robot infantry: splash and Longshots are the answer (Behemoths only scratch them, unless they roll over them)
   const squads = n(them, "trooper", "rocket-squad", "sniper");
   if (squads >= 8 && n(me, "mortar", "hornet", "sniper", "turret") <= 1)
-    tips.push({ score: 72, text: `They fielded ${squads} infantry squads. Mortars, Hornets and Sniper Teams tear through robot infantry.` });
+    tips.push({ score: 72, text: `They fielded ${squads} infantry squads. Bombards, Thunderheads and Longshot Teams tear through robot infantry.` });
 
   const harvLost = i.deaths.filter((d) => d.faction === me && d.unitKind === "harvester").length;
   if (harvLost >= 5)
-    tips.push({ score: 70 + harvLost, text: `You lost ${harvLost} harvesters. A Turret by the mining line, or a couple of escorts, pays for itself.` });
+    tips.push({ score: 70 + harvLost, text: `You lost ${harvLost} harvesters. A Pillbox by the mining line, or a couple of escorts, pays for itself.` });
 
   const late = i.samples.filter((s) => s.t >= 90);
   const avgHarv = late.length ? late.reduce((s, x) => s + (x.harvesters[me] ?? 0), 0) / late.length : 4;
@@ -757,13 +757,13 @@ export function pickTip(i: TipInput): string {
   const banked = i.samples.filter((s) => s.t >= 120);
   const avgBank = banked.length ? banked.reduce((s, x) => s + (x.bank[me] ?? 0), 0) / banked.length : 0;
   if (avgBank > 800)
-    tips.push({ score: 55, text: `You sat on ${Math.round(avgBank / 100) * 100} scrap on average. Spend it: add a second Fab Plant or Airpad.` });
+    tips.push({ score: 55, text: `You sat on ${Math.round(avgBank / 100) * 100} scrap on average. Spend it: add a second Motor Works or Aerodrome.` });
 
   const artillery = i.deaths.filter(
     (d) => d.faction === me && d.buildingKind && (d.killerKind === "mortar" || d.killerKind === "hornet")
   ).length;
   if (artillery >= 3)
-    tips.push({ score: 50, text: `Mortars and Hornets wrecked ${artillery} of your buildings. Wasps catch Mortars; Flak, Raptors and SAMs stop Hornets.` });
+    tips.push({ score: 50, text: `Bombards and Thunderheads wrecked ${artillery} of your buildings. Comets catch Bombards; Skyguard, Jetstreams and Sky Batteries stop Thunderheads.` });
 
   // (a Drop Pod's thump barely counts: Barrages and Sky Hammers are the ones to dodge)
   const struck = i.deaths.filter((d) => d.faction === me && d.unitKind && d.power && d.power !== "droppod").length;
@@ -775,11 +775,11 @@ export function pickTip(i: TipInput): string {
 
   const byTowers = i.deaths.filter((d) => d.faction === me && d.unitKind && d.byBuilding).length;
   if (byTowers >= 8)
-    tips.push({ score: 45, text: `Defences killed ${byTowers} of your units. Crack turrets with Mortars or Hornets before you push.` });
+    tips.push({ score: 45, text: `Defences killed ${byTowers} of your units. Crack turrets with Bombards or Thunderheads before you push.` });
 
   const tech = i.firstBuilt[me]?.["tech-lab"];
   if (i.duration > 420 && (tech === undefined || tech > 360))
-    tips.push({ score: 40, text: "No Tech Lab by 6:00. It unlocks Mastodons, Lancers, Mortars, Hornets and Sniper Teams." });
+    tips.push({ score: 40, text: "No Atomic Lab by 6:00. It unlocks Behemoths, Ray Skiffs, Bombards, Thunderheads and Longshot Teams." });
 
   if (i.won)
     tips.push({

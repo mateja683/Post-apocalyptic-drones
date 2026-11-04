@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The host of a four-player online battle (FFA.md "The host"): the page that
  * made the battle code. It holds the "host" seat of each friend seat's relay
@@ -181,7 +182,7 @@ export class FfaHost {
     if (this.match) return this.match.setup;
     const o = this.o;
     const rnd = () => (o.random() * 0x7fffffff) | 0;
-    // (the rules may ban an opener, Air War's Fab Plants: every pick is checked against a world set up without any)
+    // (the rules may ban an opener, Air War's Motor Works: every pick is checked against a world set up without any)
     const bare = setupWorld({ map: o.map, seed: 0, mutators: o.mutators, openers: {} });
     const seats: SeatPlan[] = [{ side: SEAT_SIDE[0]!, kind: "human", name: this.name }];
     for (const f of this.seats)

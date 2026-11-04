@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Scripted seats (AGENT-BATTLES.md "Scripted seats"): a seat that plays a
  * fixed list of orders through the same tools as any agent, so a whole arena
@@ -17,8 +18,8 @@ export interface Script {
 }
 
 /**
- * The default script: Blitz, a turret and an Assembly Bay, Stingers and
- * Troopers off the line, and every minute the whole army attack-moves on
+ * The default script: Blitz, a turret and a Robot Foundry, Roadsters and
+ * Tin Soldiers off the line, and every minute the whole army attack-moves on
  * the enemy HQ. Not clever, but it exercises the order vocabulary and it can
  * win against an idle opponent.
  */

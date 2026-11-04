@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { OBJECTIVES, TICK_RATE, UNITS } from "../balance";
 import { unitSeenBy } from "../infantry";
 import { captureWeight, uplinkBar } from "../objectives";
@@ -11,10 +12,10 @@ import { hypot } from "../fmath";
  * The commander's play for the map objectives (objectives.ts): it races for
  * Uplinks with a squad that can actually hold one (robot infantry first: a
  * squad captures twice as fast), parks a cheap unit on each Uplink it owns
- * (a Trooper Squad does nicely), and diverts its nearest idle units —
+ * (a Tin Soldiers does nicely), and diverts its nearest idle units —
  * infantry included — to announced supply crates. Everything it reads is
  * public (Uplink bars, crate announcements) or seen through its own fog
- * (Sniper concealment included); it never peeks at what a crate holds.
+ * (Longshot concealment included); it never peeks at what a crate holds.
  */
 
 /** Squad value that goes to take an Uplink (more if the enemy is there). */
@@ -130,7 +131,7 @@ function enemyValueNear(w: World, faction: Faction, x: number, y: number, r: num
   return v;
 }
 
-/** Can we see (or remember) enemy anti-air covering this spot (half a Flak Crawler's worth or more)? */
+/** Can we see (or remember) enemy anti-air covering this spot (half a Skyguard's worth or more)? */
 const aaCover = (w: World, faction: Faction, x: number, y: number): boolean =>
   aaStrengthAt(aaSources(w, faction), x, y) >= AA_COVER;
 
@@ -193,7 +194,7 @@ export function planObjectives(w: World, faction: Faction, s: AiState, ctx: Obje
   const far = (l: Uplink) => dist(l.x, l.y, ctx.enemyHqPos.x, ctx.enemyHqPos.y);
   const ownFlank = [...o.uplinks].sort((a, b) => near(a) - far(a) - (near(b) - far(b)))[0];
   const targets = o.uplinks
-    // (island relays only a Condor's squads reach: the airlift's business, ai/airlift.ts)
+    // (island relays only a Skyliner's squads reach: the airlift's business, ai/airlift.ts)
     .filter((l) => !l.infantryOnly && (l.owner !== faction || (l.pushing !== null && l.pushing !== faction)))
     // Boom only holds its own flank (the relay nearest its base); everyone else contests everything
     .filter((l) => s.strategy.name !== "boom" || l === ownFlank)

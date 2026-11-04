@@ -12,6 +12,30 @@ sun-faded battlefield. The four sides are now original factions:
 | Green | **The Verdigris Directorate** | A sealed bureau of scientists, building tomorrow underground |
 | Purple | **The Choir of the Last Light** | Pilgrims of the sleeping warhead, waiting for its second dawn |
 
+## The arsenal
+
+Every unit and building has an atomic-age name, and many have new details on
+their models: tail fins, chrome trim, bubble canopies and dome-headed robots.
+
+| Was | Now | | Was | Now |
+|---|---|---|---|---|
+| Harvester | Prospector | | HQ | HQ |
+| Scout | Skylark | | Fab Plant | Motor Works |
+| Stinger | Roadster | | Airpad | Aerodrome |
+| Flak Crawler | Skyguard | | Tech Lab | Atomic Lab |
+| Mortar | Bombard | | Depot | Depot |
+| Mastodon | Behemoth | | Turret | Pillbox |
+| Lancer | Ray Skiff | | SAM Site | Sky Battery |
+| Wasp | Comet | | Radar | Radar |
+| Raptor | Jetstream | | Assembly Bay | Robot Foundry |
+| Hornet | Thunderhead | | Gantry | Gantry |
+| Mender | Tinker | | | |
+| Trooper Squad | Tin Soldiers | | | |
+| Rocket Squad | Bazooka Squad | | | |
+| Sniper Team | Longshot Team | | | |
+| Condor | Skyliner | | | |
+| Goliath | Colossus | | | |
+
 ## License and changes
 
 Battle Drones is licensed under the Apache License 2.0, and so is this
@@ -23,9 +47,13 @@ the original author. Changes from upstream, in summary:
 - Model paint and lighting: `src/game/three/models.ts`, `stage.ts`, `materials.ts`.
 - UI theme: `src/ui/theme-atomic.css` (new), and `src/ui/style.css` recoloured by
   `tools/reskin/warm-css.py` (new).
-- HUD portraits re-rendered from the recoloured models (`public/assets/icons/`).
+- HUD portraits re-rendered from the reworked models (`public/assets/icons/`).
 - Title, app name and credits: `index.html`, `vite.config.ts`, `src/main.ts`.
 - Tests that checked side names now read them from `side-style.ts`.
+- Unit and building names throughout the game's text, renamed by
+  `tools/reskin/rename-units.py` (new) in `src/` and `tests/`.
+- New model details in `src/game/three/models.ts`, `infantry.ts` and `goliath.ts`.
+- Pages: `tools/build-pages.mjs` publishes at the repository's own path.
 - Fonts: Limelight and Big Shoulders Text (SIL Open Font License), via `@fontsource`.
 
 Each changed source file carries a one-line notice saying so at its top.

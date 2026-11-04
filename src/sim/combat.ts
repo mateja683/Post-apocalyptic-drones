@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, COMBAT, DAMAGE_VS, GOLIATH, INFANTRY, OBJECTIVES, TERRAIN, TICK_RATE, UNITS, shotDamage, type ArmedStats } from "./balance";
 import { GOLIATH_WEAPONS, canWalk, goliathReachAt, hasGoliath, repairUrgency, unplant, weaponReady } from "./goliath";
 import { dropLifts } from "./lift";
@@ -17,7 +18,7 @@ type Attacker = { unit: Unit } | { building: Building };
 export const canHit = (targets: TargetDomain, domain: Domain): boolean =>
   targets === "both" || targets === domain;
 
-/** (A Goliath on a lift is an air target: world.ts domainOf.) */
+/** (A Colossus on a lift is an air target: world.ts domainOf.) */
 function unitDomain(u: Unit): Domain {
   return domainOf(u);
 }
@@ -31,8 +32,8 @@ interface TargetRef {
 
 /**
  * Best valid enemy (unit or building) within `radius` of (x, y): nearest,
- * with Menders preferred over everything (COMBAT.healerPriority), and armed
- * units over unarmed ones and buildings. A Sniper Team concealed from
+ * with Tinkers preferred over everything (COMBAT.healerPriority), and armed
+ * units over unarmed ones and buildings. A Longshot Team concealed from
  * `faction` in Woods (infantry.ts) is never picked.
  */
 export function findTarget(
@@ -99,7 +100,7 @@ const ignoring = (w: World, u: Unit, id: number): boolean => !!u.ignore && u.ign
 /**
  * An idle squad crewing an island relay its side holds (or is taking): it
  * holds its post and fires from there, never chasing out of the ring after a
- * target (a Scout hovering offshore would otherwise lure it off, and an empty
+ * target (a Skylark hovering offshore would otherwise lure it off, and an empty
  * island relay pays nothing).
  */
 function crewing(w: World, u: Unit): boolean {
@@ -238,7 +239,7 @@ export function strikeDamage(w: World, hits: { id: number; damage: number }[], a
 }
 
 /**
- * One weapon system of a multi-weapon unit (a Goliath's, goliath.ts): its
+ * One weapon system of a multi-weapon unit (a Colossus's, goliath.ts): its
  * stats and its own clock. The shooter's torso is aimed by the caller.
  */
 interface WeaponMount {
@@ -261,7 +262,7 @@ function fire(w: World, attacker: Attacker, targetId: number, incidents: Inciden
   holder.firedTick = w.tick;
   clock.firedTick = w.tick;
   if (mount) {
-    // (the caller turns a Goliath's torso)
+    // (the caller turns a Colossus's torso)
   } else if (isUnit) {
     const u = attacker.unit;
     u.aim = angle;
@@ -316,7 +317,7 @@ function tickProjectiles(w: World, incidents: Incident[]): void {
   w.projectiles = keep;
 }
 
-/** Menders: repair the most damaged friendly nearby. */
+/** Tinkers: repair the most damaged friendly nearby. */
 function tickHealer(w: World, u: Unit, engaged: Set<number>): void {
   const stats = UNITS[u.kind];
   const reach = stats.range + COMBAT.acquireBonus + (u.order.type === "idle" ? 2.5 : 0);
@@ -324,10 +325,10 @@ function tickHealer(w: World, u: Unit, engaged: Set<number>): void {
   let bestScore = Infinity;
   for (const o of w.units.values()) {
     if (o.faction !== u.faction || o.id === u.id || o.hp >= UNITS[o.kind].hp) continue;
-    if (o.goliath && isStunned(w, o.id)) continue; // an EMP blocks repair on a Goliath while it lasts
+    if (o.goliath && isStunned(w, o.id)) continue; // an EMP blocks repair on a Colossus while it lasts
     const d = hypot(o.x - u.x, o.y - u.y);
     if (d > reach) continue;
-    // (a Goliath with a weapon down, or about to come back, comes first)
+    // (a Colossus with a weapon down, or about to come back, comes first)
     const s = d + (o.hp / UNITS[o.kind].hp) * 3 - (o.goliath ? repairUrgency(o) : 0);
     if (s < bestScore) {
       bestScore = s;
@@ -375,7 +376,7 @@ export function tickCombat(w: World): Set<number> {
   const engaged = new Set<number>();
   const incidents: Incident[] = [];
 
-  // Menders on the field this tick (rarely more than a handful): auto-targeting switches to one in range
+  // Tinkers on the field this tick (rarely more than a handful): auto-targeting switches to one in range
   const healers: Unit[] = [];
   for (const u of w.units.values()) if (UNITS[u.kind].heal) healers.push(u);
 
@@ -387,7 +388,7 @@ export function tickCombat(w: World): Set<number> {
       continue;
     }
     const stats = UNITS[u.kind];
-    // (veterans patch themselves up; a Goliath only takes a Mender's repair)
+    // (veterans patch themselves up; a Colossus only takes a Tinker's repair)
     if (u.rank >= 3 && !u.goliath && u.hp < stats.hp && w.tick % TICK_RATE === 0)
       u.hp = Math.min(stats.hp, u.hp + stats.hp * COMBAT.eliteRegen);
     if (u.goliath) {
@@ -464,10 +465,10 @@ export function tickCombat(w: World): Set<number> {
 }
 
 /**
- * A Goliath's weapon systems, each on its own clock (goliath.ts): every one
- * that is up shoots the Goliath's ordered target when it can reach it, else
+ * A Colossus's weapon systems, each on its own clock (goliath.ts): every one
+ * that is up shoots the Colossus's ordered target when it can reach it, else
  * keeps on what it was shooting while that stays in its reach (switching to
- * an enemy Mender that comes into it: kill the healer first), else takes the
+ * an enemy Tinker that comes into it: kill the healer first), else takes the
  * best target in its own reach. It fires on the move. The torso turns to the
  * heaviest weapon's target. Returns true when it should hold its ground: an
  * attack order's target is under fire, or (attack-move) anything is.
@@ -478,7 +479,7 @@ function goliathWeapons(w: World, u: Unit, healers: Unit[], incidents: Incident[
   if (u.order.type === "attack") {
     const id = u.order.targetId;
     const t = targetPosition(w, id);
-    // (the reach of the weapons it still has that can hit it: a Goliath's shrinks as they go)
+    // (the reach of the weapons it still has that can hit it: a Colossus's shrinks as they go)
     const reach = t ? goliathReachAt(u, t.domain) : 0;
     if (!t || hidden(w, u.faction, id) || reach === 0) {
       u.order = { type: "idle" }; // gone, out of reach, or vanished into the woods
@@ -512,7 +513,7 @@ function goliathWeapons(w: World, u: Unit, healers: Unit[], incidents: Incident[
       else {
         const found = findTarget(w, u.faction, st.targets, u.x, u.y, st.range, minR);
         const fu = found ? w.units.get(found.id) : undefined;
-        // a Mender that came into reach takes over; otherwise keep what we had
+        // a Tinker that came into reach takes over; otherwise keep what we had
         tid = keep !== null && !(fu && UNITS[fu.kind].heal) ? keep : found?.id ?? null;
       }
     }
@@ -526,7 +527,7 @@ function goliathWeapons(w: World, u: Unit, healers: Unit[], incidents: Incident[
   return holds;
 }
 
-/** The nearest enemy Mender `u` can hit right now (within weapon range), if any. */
+/** The nearest enemy Tinker `u` can hit right now (within weapon range), if any. */
 function healerInRange(u: Unit, healers: Unit[], range: number, minRange: number): number | null {
   const targets = UNITS[u.kind].targets;
   let best: number | null = null;
@@ -542,7 +543,7 @@ function healerInRange(u: Unit, healers: Unit[], range: number, minRange: number
   return best;
 }
 
-/** Is unit `id` an enemy Sniper Team hidden from `faction` in Woods? (Buildings never are.) */
+/** Is unit `id` an enemy Longshot Team hidden from `faction` in Woods? (Buildings never are.) */
 function hidden(w: World, faction: Faction, id: number): boolean {
   const u = w.units.get(id);
   return !!u && concealedFrom(w, faction, u);
@@ -638,20 +639,20 @@ function killerOfId(w: World, id: number | null): { killerId: number | null; kil
  * every kill is credited while all of this tick's dead are still on the map
  * (so mutual kills credit both sides whatever the id order), then they go.
  *
- * A Condor shot down with squads aboard (transport.ts): over ground they
+ * A Skyliner shot down with squads aboard (transport.ts): over ground they
  * could stand on they bail out, hurt; otherwise they go down with it, each
- * a unit lost and killed with its own `death` event (the Condor's killer
+ * a unit lost and killed with its own `death` event (the Skyliner's killer
  * gets the credit).
  *
- * A Goliath on a lift whose Condor fell drops first (lift.ts), so one the
+ * A Colossus on a lift whose Skyliner fell drops first (lift.ts), so one the
  * fall destroys dies in this same pass. A side is beaten when its HQ falls
- * with no Goliath left, or its last Goliath falls with no HQ left.
+ * with no Colossus left, or its last Colossus falls with no HQ left.
  */
 export function cleanupDeaths(w: World): void {
   dropLifts(w);
   const deadUnits: { u: Unit; killer: ReturnType<typeof killerOf> }[] = [];
   const deadBuildings: { b: Building; killer: ReturnType<typeof killerOf> }[] = [];
-  /** Passengers lost with their Condor (over water or rock), and Condors whose squads bail out. */
+  /** Passengers lost with their Skyliner (over water or rock), and Skyliners whose squads bail out. */
   const lost: { u: Unit; carrier: Unit; killer: ReturnType<typeof killerOf> }[] = [];
   const bail: Unit[] = [];
   for (const u of w.units.values()) {
@@ -675,7 +676,7 @@ export function cleanupDeaths(w: World): void {
   for (const { u, killer } of deadUnits) {
     const id = u.id;
     w.units.delete(id);
-    unplant(w, u); // (a dug-in Goliath's ground opens up)
+    unplant(w, u); // (a dug-in Colossus's ground opens up)
     w.factions[u.faction].stats.unitsLost++;
     const air = unitDomain(u) === "air";
     w.fx.push({ type: "explosion", x: u.x, y: u.y, size: UNITS[u.kind].radius * 2, air, kind: "unit" });
@@ -697,7 +698,7 @@ export function cleanupDeaths(w: World): void {
   }
   for (const { carrier } of lost) carrier.passengers = [];
   for (const { b, killer } of deadBuildings) {
-    if (b.kind === "gantry") scatterGantry(w, b); // a half-built Goliath strews scrap
+    if (b.kind === "gantry") scatterGantry(w, b); // a half-built Colossus strews scrap
     removeBuilding(w, b);
     w.factions[b.faction].stats.buildingsLost++;
     const value = BUILDINGS[b.kind].cost || 500;
@@ -712,7 +713,7 @@ export function cleanupDeaths(w: World): void {
   }
   // a free-for-all: sides are knocked out one by one, and the last one standing wins
   if (isMulti(w)) return settleFreeForAll(w);
-  // the last Goliath of a side whose HQ is already gone (not Last Stand's waves: they never had one)
+  // the last Colossus of a side whose HQ is already gone (not Last Stand's waves: they never had one)
   for (const { u } of deadUnits)
     if (u.goliath && w.winner === null && !hqOf(w, u.faction) && !hasGoliath(w, u.faction) && (!w.survival || u.faction === w.survival.defender))
       w.winner = otherSide(u.faction);
@@ -725,7 +726,7 @@ export const isOut = (w: World, f: Faction): boolean => !!w.out?.some((o) => o.f
 export const sidesLeft = (w: World): Faction[] => sidesOf(w).filter((f) => !isOut(w, f));
 
 /**
- * Knock `f` out of a free-for-all (its HQ and every Goliath gone, or it
+ * Knock `f` out of a free-for-all (its HQ and every Colossus gone, or it
  * resigned): it goes down in `World.out`, its Uplinks fall neutral, and
  * everything it still has self-destructs (hp 0, no killer: no one's kill,
  * XP or ⚡). The wrecks are anyone's salvage. The next cleanupDeaths takes
@@ -768,9 +769,9 @@ function selfDestruct(w: World, f: Faction): boolean {
 }
 
 /**
- * After a free-for-all's deaths: a side left with no HQ and no Goliath is
+ * After a free-for-all's deaths: a side left with no HQ and no Colossus is
  * knocked out (by whoever killed the last of them this tick), and anything a
- * knocked-out side still has (squads that bailed out of a Condor it lost)
+ * knocked-out side still has (squads that bailed out of a Skyliner it lost)
  * goes too, the dead cleared at once. Then the last side standing wins (none
  * left, a draw: the last ones fell together).
  */
@@ -783,7 +784,7 @@ function settleFreeForAll(w: World): void {
       continue;
     }
     if (hqOf(w, f) || hasGoliath(w, f)) continue;
-    // who finished it: whoever killed its HQ or last Goliath this tick
+    // who finished it: whoever killed its HQ or last Colossus this tick
     let by: Faction | null = null;
     for (const ev of w.fx)
       if (ev.type === "death" && ev.faction === f && (ev.buildingKind === "hq" || ev.unitKind === "goliath")) by = ev.by ?? null;

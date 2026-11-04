@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { endOf, replay, type BattleRecord } from "../src/arena/record";
 import { parseRecord } from "../src/game/replay";
@@ -552,7 +553,7 @@ describe("lockstep turns and frames", () => {
       const cases: [Command["type"], Command["type"], boolean][] = [
         ["move", "move", true], ["attack", "move", true], ["harvest", "attackMove", true], ["stop", "move", true],
         ["move", "attackMove", true], ["stop", "stop", true], ["attack", "attack", true],
-        // a stop doesn't pack an anchored Goliath up, an attack leaves a lift's destination, a harvest may not apply
+        // a stop doesn't pack an anchored Colossus up, an attack leaves a lift's destination, a harvest may not apply
         ["move", "stop", false], ["move", "attack", false], ["attackMove", "attack", false], ["harvest", "harvest", false],
         ["anchor", "move", false], ["unload", "move", false]
       ];

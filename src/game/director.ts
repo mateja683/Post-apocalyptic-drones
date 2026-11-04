@@ -1,10 +1,11 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The cinematic camera for AI vs AI: a director that watches the battle's
  * events and decides where to look. Fights, kills and strikes heat up a
  * coarse grid of "interest" that cools off over time; the director holds
  * on the hottest action (following it as it moves), switches when somewhere
  * else gets clearly more exciting, tours both armies while it's quiet, and
- * now and then cuts straight to a surprise (a calldown, a Goliath rolling
+ * now and then cuts straight to a surprise (a calldown, a Colossus rolling
  * out, a first strike on an HQ) when it happens far off screen. The camera
  * itself springs smoothly toward the shot, drifts a little so it never sits
  * dead still, and breathes its zoom in and out.
@@ -335,7 +336,7 @@ export class Director {
     const C = CINE.cell * 2;
     const grid = new Map<number, { sx: number; sy: number; n: number }>();
     for (const u of this.world.units.values()) {
-      // (a Goliath's guns are its own weapon systems, not a dps figure)
+      // (a Colossus's guns are its own weapon systems, not a dps figure)
       if (u.faction !== side || (UNITS[u.kind].dps <= 0 && !u.goliath)) continue;
       const key = Math.floor(u.y / C) * 4096 + Math.floor(u.x / C);
       const g = grid.get(key) ?? { sx: 0, sy: 0, n: 0 };

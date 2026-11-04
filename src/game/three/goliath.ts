@@ -1,12 +1,13 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Faction } from "../../sim/types";
 import { ModelBuilder, type Vec3 } from "./builder";
 import { ik } from "./infantry";
-import { AMBER, BARREL, GM, GM_D, GM_L, HAZ, HAZ_D, TEAMS, TRACK, modelMesh } from "./models";
+import { AMBER, BARREL, CHROME, GM, GM_D, GM_L, HAZ, HAZ_D, TEAMS, TRACK, modelMesh } from "./models";
 
 /**
- * The Goliath: a giant two-legged walking mech in the vehicles' painted
+ * The Colossus: a giant two-legged walking mech in the vehicles' painted
  * style, half again as tall as an HQ. Gunmetal armour on dark joints, big
  * team-colour shoulder pauldrons, mortar pods and a deck plate that read from
  * the tilted top-down camera, one amber cyclops eye (the laser), an arm
@@ -20,13 +21,13 @@ import { AMBER, BARREL, GM, GM_D, GM_L, HAZ, HAZ_D, TEAMS, TRACK, modelMesh } fr
  * ground under each foot), the anchoring stance (body down on its
  * hydraulics, legs splayed, spikes driven, hopper and crane unfolded), arms
  * that droop and pods that sag as weapons go offline, a torso that twists
- * to its target, recoil per weapon. A few draw calls per Goliath, no
+ * to its target, recoil per weapon. A few draw calls per Colossus, no
  * skinning: there are only ever a handful on the map.
  *
  * `bake()` freezes a pose into one plain geometry, and only the parts asked
  * for: the model gallery's statue, unitDef's hull, and the half-built mech
  * on the Gantry's cradle at each stage (GANTRY_STAGES) — the same parts the
- * finished Goliath walks off with.
+ * finished Colossus walks off with.
  *
  * Model units are about tiles (unitScale scales the whole rig). Like every
  * unit it faces north (-Z) with its origin on the ground between its feet.
@@ -116,7 +117,7 @@ export type GoliathPart =
   | "head" | "eyeLit" | "eyeDark" | "eyeLove" | "spikes" | "hopper" | "crane";
 
 /**
- * The half-built Goliath on a Gantry's cradle, stage by stage (render/goliath.ts):
+ * The half-built Colossus on a Gantry's cradle, stage by stage (render/goliath.ts):
  * Foundation (feet and legs), Frame (hips and the torso's skeleton), Armament
  * (plated, arm cannons and mortars mounted), Finishing (head on with its eye
  * still dark, team panels, guns, spikes, hopper and crane).
@@ -255,7 +256,9 @@ function buildParts(t: Team): Part[] {
   b.block(0.36, 0.26, 0.34, [0, 0.12, 0], GM_L, { taper: 0.18, bevel: 0.04, edge: 1.35 });
   b.block(0.4, 0.06, 0.14, [0, 0.23, -0.12], GM_D, { rot: [-0.35, 0, 0], bevel: 0.015 });
   b.pairBlock(0.07, 0.18, 0.28, [0.2, 0.09, 0.0], GM, { bevel: 0.02 });
-  b.box(0.07, 0.04, 0.3, [0, 0.27, 0.02], t.main);
+  // (reskin) a deco crest instead of a flat strip: a stepped team fin with a chrome leading edge
+  b.prism([[0, -0.16], [0, 0.22], [0.26, 0.3], [0.26, 0.04]], 0.07, [0.035, 0.25, 0], t.main, { rot: [0, 0, Math.PI / 2] });
+  b.box(0.03, 0.03, 0.3, [0, 0.52, 0.17], CHROME, { rot: [0.3, 0, 0] });
   b.cyl(0.012, 0.012, 0.22, 4, [0.13, 0.33, 0.1], GM_D);
   lamp(b, [0.13, 0.45, 0.1], 0.03);
   b.drum(0.105, 0.095, 0.07, 10, [0, 0.11, -0.17], GM_D, { rot: [-HALF, 0, 0], bevel: 0.015 });
@@ -382,11 +385,11 @@ export interface GoliathPose {
   pitch: number;
   /** Arm cannons hanging limp (0 raised … 1 drooped): cannons offline. */
   droop: number;
-  /** Mortar pods tipped from their rest pitch (rad: − sags, + cycles up). */
+  /** Bombard pods tipped from their rest pitch (rad: − sags, + cycles up). */
   pods: number;
   /** The eye lit (≥ 0.5) or dark. */
   eye: number;
-  /** Off the ground under its Condors: legs hanging (0–1). */
+  /** Off the ground under its Skyliners: legs hanging (0–1). */
   hang: number;
   /** Crane slew while it works, anchored (rad). */
   crane: number;
@@ -418,7 +421,7 @@ const smooth = (a: number, b: number, x: number) => {
 const frac = (x: number) => x - Math.floor(x);
 
 /**
- * One Goliath: a group to place at its ground point, turned to its facing
+ * One Colossus: a group to place at its ground point, turned to its facing
  * (rotation.y = -facing) and scaled by unitScale, holding its joints. Call
  * update() every frame with a pose; feet that land call `onStep` (dust, a
  * stomp) with their world point.
@@ -647,7 +650,7 @@ export class GoliathRig {
   }
 }
 
-/** The Goliath standing at rest, baked (or only some of its parts: a Gantry stage), cached per side. */
+/** The Colossus standing at rest, baked (or only some of its parts: a Gantry stage), cached per side. */
 const statics = new Map<string, THREE.BufferGeometry>();
 export function goliathStatic(f: Faction, parts?: readonly GoliathPart[]): THREE.BufferGeometry {
   const key = `${f}/${parts ? parts.join(",") : "all"}`;
@@ -656,7 +659,7 @@ export function goliathStatic(f: Faction, parts?: readonly GoliathPart[]): THREE
   return g;
 }
 
-/** The half-built Goliath on the Gantry's cradle at stage `i` (0 Foundation … 3 Finishing). */
+/** The half-built Colossus on the Gantry's cradle at stage `i` (0 Foundation … 3 Finishing). */
 export function gantryStage(f: Faction, i: number): THREE.BufferGeometry {
   return goliathStatic(f, GANTRY_STAGES[i]!);
 }

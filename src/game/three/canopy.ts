@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import * as THREE from "three";
 
 /** A tree as scattered: ground position (tiles) and size. */
@@ -25,7 +26,7 @@ const GROW_MS = 260;
  * whose canopy covers a squad on show — those right round it and in front of
  * it, toward the camera — dissolve to stumps of their trunks while it's
  * there (canopyMat) and grow back as it moves on. Only squads the player is
- * shown count: the trees never give away a Sniper Team hidden among them.
+ * shown count: the trees never give away a Longshot Team hidden among them.
  */
 export class Canopy {
   private readonly x: Float32Array;

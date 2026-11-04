@@ -31,7 +31,7 @@ export interface ObjectiveRendererOpts {
   spectator: boolean;
   /** Is the tile position visible to the local player (or fog off)? */
   visibleAt(x: number, y: number): boolean;
-  /** May the local player see this unit (its tile in sight, and not a Sniper Team hidden in the woods)? */
+  /** May the local player see this unit (its tile in sight, and not a Longshot Team hidden in the woods)? */
   seesUnit(u: Unit): boolean;
   /** Volume for a sound at tile point (x, y). */
   earshot(x: number, y: number): number;
@@ -40,7 +40,7 @@ export interface ObjectiveRendererOpts {
   notify(msg: string, tone?: "good" | "bad"): void;
   ping(x: number, y: number): void;
   hint(msg: string, x?: number, y?: number): void;
-  /** Does the player have a loaded Condor selected (island relays then show where a tap drops its troops)? */
+  /** Does the player have a loaded Skyliner selected (island relays then show where a tap drops its troops)? */
   dropReady?(): boolean;
   /** Has the local player scouted this tile? (Uncharted only: an unscouted Uplink stays off the minimap.) */
   charted?(x: number, y: number): boolean;
@@ -270,7 +270,7 @@ export class ObjectiveRenderer {
       this.opts.ping(ev.x, ev.y);
       announce({
         key: "uplink-lost", text: "Uplink lost",
-        sub: v?.l.infantryOnly ? "Fly troops back in by Condor to retake it" : "Get units back on it before they take it",
+        sub: v?.l.infantryOnly ? "Fly troops back in by Skyliner to retake it" : "Get units back on it before they take it",
         tone: "bad", priority: 1, x: ev.x, y: ev.y
       });
     } else if (ev.owner) {
@@ -497,7 +497,7 @@ export class ObjectiveRenderer {
       }
     }
     if (owner && seen && !idle) g.fillStyle(col, 0.05 + 0.03 * breathe).fillCircle(x, y, R);
-    // a loaded Condor selected: gold chevrons close in on every island relay its troops could take
+    // a loaded Skyliner selected: gold chevrons close in on every island relay its troops could take
     if (l.infantryOnly && !(owner === this.opts.player && l.crewed) && this.opts.dropReady?.()) this.dropMarks(x, y, R);
     // the capture bar: a ring around the platform in the colour of whoever's bar it is (a duel's
     // signed progress, a free-for-all's `bar`: uplinkBar), on a dark track notched into quarters
@@ -661,7 +661,7 @@ export class ObjectiveRenderer {
     if (islands) {
       const c = [...this.world.units.values()].find((u) => u.faction === this.opts.player && u.kind === "condor");
       this.opts.hint(
-        "Island 📡 Uplinks: only troops can take them, and they pay while troops hold them. Tap your Condor, then tap an island.",
+        "Island 📡 Uplinks: only troops can take them, and they pay while troops hold them. Tap your Skyliner, then tap an island.",
         c?.x, c?.y
       );
       return;
@@ -743,6 +743,6 @@ export function rewardLabel(reward: CrateReward, amount: number, scrap: number):
     case "charge":
       return amount > 0 ? `+${amount} ⚡${extra}` : `+${Math.round(scrap)}`;
     case "unit":
-      return "FREE LANCER!";
+      return "FREE RAY SKIFF!";
   }
 }

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi, type StrategyName } from "../src/sim/ai/commander";
 import { BUILDINGS, TICK_RATE } from "../src/sim/balance";
@@ -95,7 +96,7 @@ describe("mirror symmetry under the 180° map turn", () => {
     ["frostbite", "ironclad", "blitz"],
     ["proving-grounds", "skyforce", "airwing"]
   ];
-  /** Units (by kind, place, health, order and Goliath mode) and buildings of a side, red's turned back into blue's frame. */
+  /** Units (by kind, place, health, order and Colossus mode) and buildings of a side, red's turned back into blue's frame. */
   const picture = (w: World, f: "blue" | "red") => ({
     units: [...w.units.values()]
       .filter((u) => u.faction === f)
@@ -114,7 +115,7 @@ describe("mirror symmetry under the 180° map turn", () => {
       .sort()
   });
 
-  // The Goliath's planner (ai/goliath.ts) picks sites, outposts, escorts and
+  // The Colossus's planner (ai/goliath.ts) picks sites, outposts, escorts and
   // harvesters by scans in the side's own frame: a mirror match with one on
   // each side stays a mirror image as it walks out, digs in and builds round itself.
   // (Float ties in the sim's own geometry can still split a pair after a while — a unit at
@@ -126,7 +127,7 @@ describe("mirror symmetry under the 180° map turn", () => {
     ["riverlands", "balanced", "nomads"]
   ];
   for (const [map, p, how] of goliathCases)
-    it(`an AI mirror match on ${map} with a Goliath each (${how === "nomads" ? "Nomads" : p}) stays a mirror image for 75 s`, () => {
+    it(`an AI mirror match on ${map} with a Colossus each (${how === "nomads" ? "Nomads" : p}) stays a mirror image for 75 s`, () => {
       const w = createMapWorld(map, { seed: 99, objectives: true, ...(how === "nomads" ? { mutators: ["nomads" as const] } : {}) });
       if (how === "spawn")
         for (const f of ["blue", "red"] as const) {

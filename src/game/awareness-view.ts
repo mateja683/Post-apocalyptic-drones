@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Battle awareness and tempo, wired into the scene: game speed (chip, hold
  * the clock, '.' key), "enemy inbound" warnings, off-screen hotspot arrows
@@ -42,7 +43,7 @@ export interface AwarenessHooks {
   radio: Announcer;
   /** Can the local player see this tile point (fog, or fog switched off)? */
   sees(x: number, y: number): boolean;
-  /** …and this enemy unit itself (a Sniper Team hidden in the woods is not seen)? Default: yes. */
+  /** …and this enemy unit itself (a Longshot Team hidden in the woods is not seen)? Default: yes. */
   seesUnit?(u: Unit): boolean;
   /** A marker flash where the camera lands (tiles). */
   pulse?(x: number, y: number, color: number): void;
@@ -155,7 +156,7 @@ export class Awareness {
         if (t - this.lastShotInView < 0.2) break;
         const a = this.toScreen(ev.x, ev.y);
         const b = this.toScreen(ev.tx, ev.ty);
-        // (a Goliath firing from the fog is still seen firing: it can't hide)
+        // (a Colossus firing from the fog is still seen firing: it can't hide)
         const src = this.h.world.units.get(ev.sourceId);
         const always = !!src && !!UNITS[src.kind].alwaysVisible;
         if ((inside(play, a.x, a.y) && (always || this.h.sees(ev.x, ev.y))) || (inside(play, b.x, b.y) && this.h.sees(ev.tx, ev.ty)))
@@ -319,7 +320,7 @@ export class Awareness {
         const s = this.toScreen(x, y);
         return inside(L.play, s.x, s.y) && s.y > L.markers.y0 - MARKER.size / 2;
       };
-      // (tallyView itself counts a kind that is always visible, the enemy Goliath, fog or not)
+      // (tallyView itself counts a kind that is always visible, the enemy Colossus, fog or not)
       this.tally = tallyView(
         this.h.world, this.h.spectator ? "blue" : this.h.player, inView, (x, y) => this.h.sees(x, y),
         (u) => this.h.seesUnit?.(u) ?? true

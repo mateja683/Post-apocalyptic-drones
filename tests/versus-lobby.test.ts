@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it, vi } from "vitest";
 
 // (the lobby builds the VersusFeed only once a match starts: its game code stays out of these tests)
@@ -138,11 +139,11 @@ describe("the lobby's words", () => {
   });
 
   it("the opener cards say what each gives, from the same data as the single-player picker", () => {
-    expect(openerGives("blitz")).toBe("Fab Plant · 3 Stingers · 2 Harvesters · −100 scrap");
+    expect(openerGives("blitz")).toBe("Motor Works · 3 Roadsters · 2 Prospectors · −100 scrap");
     for (const id of OPENER_IDS) {
       const o = OPENERS[id];
       const line = openerGives(id);
-      expect(line).toContain(`${o.harvesters} Harvesters`);
+      expect(line).toContain(`${o.harvesters} Prospectors`);
       for (const k of new Set(o.units)) expect(line).toContain(`${o.units.filter((u) => u === k).length} ${UNITS[k].name}s`);
       if (o.scrap === 0) expect(line).not.toMatch(/scrap/);
       else expect(line).toMatch(o.scrap > 0 ? `+${o.scrap} scrap` : `−${-o.scrap} scrap`);

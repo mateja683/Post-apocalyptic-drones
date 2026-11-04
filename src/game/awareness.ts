@@ -8,7 +8,7 @@
  *
  * Everything here is fog-respecting: hotspots come only from hits on the
  * player's own things and shots fired by them, inbound warnings and the
- * meter only count enemies the player can currently see (never a Sniper
+ * meter only count enemies the player can currently see (never a Longshot
  * Team hidden in the woods). Spectators get everything. Detection windows and cooldowns are sim seconds, so the game
  * speed needs no special casing. Rendering and DOM live in
  * src/game/awareness-view.ts and src/ui/awareness.ts; this file is
@@ -91,10 +91,10 @@ export const AWARE = {
 } as const;
 
 /**
- * Is this Goliath part of its side's base? An anchored one is (a drop-off,
+ * Is this Colossus part of its side's base? An anchored one is (a drop-off,
  * a barracks, a build ring: GOLIATH.md), and once the side's HQ has fallen
- * any Goliath is: it is the last life, so the match is lost with it. Hits on
- * a base Goliath raise the same alarms as hits on a building.
+ * any Colossus is: it is the last life, so the match is lost with it. Hits on
+ * a base Colossus raise the same alarms as hits on a building.
  */
 export function baseGoliath(w: World, u: Unit): boolean {
   return !!u.goliath && (isAnchored(u) || !hqOf(w, u.faction));
@@ -195,14 +195,14 @@ export interface Hotspot {
   x: number;
   y: number;
   heat: number;
-  /** Short arrow label: "HQ!", "Base", "Harvesters", "Units", "Attack", "Air raid"… */
+  /** Short arrow label: "HQ!", "Base", "Prospectors", "Units", "Attack", "Air raid"… */
   label: string;
   /** Sort key: higher is more urgent. */
   priority: number;
 }
 
 /** Victim classes, most important last: index = class. */
-const CLASS_LABEL = ["Attack", "Units", "Harvesters", "Base", "HQ!"] as const;
+const CLASS_LABEL = ["Attack", "Units", "Prospectors", "Base", "HQ!"] as const;
 /** Arrow priority per class (inbound sits between harvesters and base). */
 const CLASS_PRIORITY = [10, 20, 30, 50, 60] as const;
 const INBOUND_PRIORITY = 40;
@@ -260,7 +260,7 @@ export class HeatMap {
         } else {
           const u = w.units.get(ev.id);
           const harv = u?.kind === "harvester";
-          // (an anchored Goliath is a base: its arrow says so)
+          // (an anchored Colossus is a base: its arrow says so)
           const base = !!u?.goliath && isAnchored(u);
           cls = base ? 3 : harv ? 2 : 1;
           heat = base ? H.hitBuilding : harv ? H.hitHarvester : H.hitUnit;
@@ -397,7 +397,7 @@ export interface InboundWarning {
   text: string;
   /** "Drones inbound" (the shouty banner: short enough for one line on a phone). */
   short: string;
-  /** "Flak, Raptors or a Turret". */
+  /** "Skyguard, Jetstreams or a Pillbox". */
   advice: string;
   /** The first warning of this domain this match (worth a banner). */
   first: boolean;
@@ -408,30 +408,30 @@ export interface InboundWarning {
 
 /** What to call a raid led by `lead`, and what beats it (from the duel matrix, tools/balance.ts). */
 export function raidAdvice(domain: RaidDomain, lead: UnitKind): { what: string; advice: string } {
-  if (domain === "mixed") return { what: "strike force", advice: "Flak and Mastodons, or a Turret" };
+  if (domain === "mixed") return { what: "strike force", advice: "Skyguard and Behemoths, or a Pillbox" };
   if (domain === "air") {
-    if (lead === "hornet") return { what: "bombers", advice: "Flak, Raptors or a SAM" };
-    if (lead === "condor") return { what: "dropships", advice: "Flak, Raptors or a SAM" };
-    return { what: "drones", advice: "Flak, Raptors or a Turret" };
+    if (lead === "hornet") return { what: "bombers", advice: "Skyguard, Jetstreams or a SAM" };
+    if (lead === "condor") return { what: "dropships", advice: "Skyguard, Jetstreams or a SAM" };
+    return { what: "drones", advice: "Skyguard, Jetstreams or a Pillbox" };
   }
   switch (lead) {
     case "goliath":
-      // (the answers GOLIATH.md tunes it against; its Menders are the next thing to shoot)
-      return { what: "Goliath", advice: "Rocket Squads, Wasps, Lancers or Hornets" };
+      // (the answers GOLIATH.md tunes it against; its Tinkers are the next thing to shoot)
+      return { what: "Colossus", advice: "Bazooka Squads, Comets, Ray Skiffs or Thunderheads" };
     case "mastodon":
-      return { what: "Mastodons", advice: "Rocket Squads, Lancers or Wasps" };
+      return { what: "Behemoths", advice: "Bazooka Squads, Ray Skiffs or Comets" };
     case "trooper":
-      return { what: "troops", advice: "Mortars, Turrets or Snipers" };
+      return { what: "troops", advice: "Bombards, Pillboxes or Longshots" };
     case "rocket-squad":
-      return { what: "rocket troops", advice: "Troopers, Mortars or Snipers" };
+      return { what: "rocket troops", advice: "Tin Soldiers, Bombards or Longshots" };
     case "sniper":
-      return { what: "snipers", advice: "rush them with Stingers or Wasps" };
+      return { what: "snipers", advice: "rush them with Roadsters or Comets" };
     case "mortar":
-      return { what: "artillery", advice: "close in with Stingers or Wasps" };
+      return { what: "artillery", advice: "close in with Roadsters or Comets" };
     case "lancer":
-      return { what: "Lancers", advice: "Stingers or Hornets" };
+      return { what: "Ray Skiffs", advice: "Roadsters or Thunderheads" };
     default:
-      return { what: "tanks", advice: "Mastodons, Wasps or a Turret" };
+      return { what: "tanks", advice: "Behemoths, Comets or a Pillbox" };
   }
 }
 
@@ -451,12 +451,12 @@ interface Group {
 }
 
 /**
- * "Enemy drones inbound": watches for visible armed enemy units (and Condors,
+ * "Enemy drones inbound": watches for visible armed enemy units (and Skyliners,
  * loaded or not) coming within AWARE.inbound.radius tiles of the player's buildings or harvesters
- * (or a Goliath that is a base: baseGoliath), and warns once per group (a
+ * (or a Colossus that is a base: baseGoliath), and warns once per group (a
  * group seen in the zone within the last 20 s isn't new), with counter
  * advice by domain. Only what the player can see counts, so it never reveals
- * anything the fog hides (an enemy Goliath is always seen: it can't hide).
+ * anything the fog hides (an enemy Colossus is always seen: it can't hide).
  */
 export class InboundWatch {
   /** Last sim time each enemy unit was seen inside the zone. */
@@ -488,7 +488,7 @@ export class InboundWatch {
     if (t - this.lastScan < I.scanS - 1e-6) return [];
     this.lastScan = t;
     const { world: w, player } = this.h;
-    // what we guard: buildings (by footprint edge), harvesters, and a Goliath that is a base
+    // what we guard: buildings (by footprint edge), harvesters, and a Colossus that is a base
     // (anchored, or our last life once the HQ is gone)
     const guards: { x: number; y: number; r: number }[] = [];
     for (const b of w.buildings.values())
@@ -507,7 +507,7 @@ export class InboundWatch {
       if (u.faction === player) continue;
       const st = UNITS[u.kind];
       // only what can hurt what we guard: buildings and harvesters are ground targets
-      // (a Condor counts: it may bring squads to land on top of us, and what it carries is hidden)
+      // (a Skyliner counts: it may bring squads to land on top of us, and what it carries is hidden)
       if ((st.targets === "none" || st.targets === "air" || st.dps <= 0) && !isTransport(u.kind)) continue;
       if (!unitSeenBy(w, player, u)) continue;
       if (!guards.some((g) => Math.hypot(g.x - u.x, g.y - u.y) - g.r <= I.radius)) continue;
@@ -605,7 +605,7 @@ export class InboundWatch {
 export const TEMPO = {
   /** An enemy calldown threatens our units within its radius plus this (tiles); buildings by centre, one more. */
   reach: 1,
-  /** HQ hits (or, with the HQ gone, Goliath hits) are a new attack after this long without one (sim seconds). */
+  /** HQ hits (or, with the HQ gone, Colossus hits) are a new attack after this long without one (sim seconds). */
   hqQuietS: 20
 } as const;
 
@@ -623,7 +623,7 @@ export function calldownThreatens(w: World, player: Faction, x: number, y: numbe
 
 export interface TempoDrop {
   cause: "calldown" | "inbound" | "hq" | "goliath";
-  /** "enemy Barrage inbound", "enemy drones inbound", "HQ under attack", "Goliath under attack". */
+  /** "enemy Barrage inbound", "enemy drones inbound", "HQ under attack", "Colossus under attack". */
   note: string;
   x: number;
   y: number;
@@ -636,7 +636,7 @@ export interface TempoDrop {
  * hands, the speed drops back to 1×: an enemy calldown aimed at their units or
  * buildings, a (spoken) inbound raid warning, or the HQ coming under a new
  * attack (first hit after `hqQuietS` without one) — and once the HQ has
- * fallen, a Goliath coming under a new attack, since losing the last one
+ * fallen, a Colossus coming under a new attack, since losing the last one
  * loses the match. Spectators never get this.
  */
 export class TempoGuard {
@@ -658,9 +658,9 @@ export class TempoGuard {
       if (ev.type === "hit") {
         if (ev.faction !== player) continue;
         if (!ev.building) {
-          // the last life: a Goliath with no HQ behind it (with the HQ standing, it's one more thing under fire)
+          // the last life: a Colossus with no HQ behind it (with the HQ standing, it's one more thing under fire)
           if (!w.units.get(ev.id)?.goliath || hqOf(w, player)) continue;
-          if (t - this.lastGoliathHit > TEMPO.hqQuietS) hq ??= { cause: "goliath", note: "Goliath under attack", x: ev.x, y: ev.y };
+          if (t - this.lastGoliathHit > TEMPO.hqQuietS) hq ??= { cause: "goliath", note: "Colossus under attack", x: ev.x, y: ev.y };
           this.lastGoliathHit = t;
           continue;
         }
@@ -692,8 +692,8 @@ export interface SideTally {
  * Who is winning the fight in view? Units (and armed defences) inside the
  * view rectangle, scored cost × remaining HP fraction. Enemies count only if
  * the player can see them (`visible`, and `seen` for the unit itself: a
- * Sniper Team hidden in the woods doesn't count) — except a kind the enemy
- * always sees (a Goliath, fog or not); harvesters and other unarmed units
+ * Longshot Team hidden in the woods doesn't count) — except a kind the enemy
+ * always sees (a Colossus, fog or not); harvesters and other unarmed units
  * don't count. Spectators: `player` is blue and `visible` always true.
  */
 export function tallyView(

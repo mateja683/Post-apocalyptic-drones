@@ -1,7 +1,8 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Onboarding hint pacing. A new player has a lot of one-time tips coming
  * their way in the first minutes (the tutorial stages, squads, touch
- * placement, infantry and the Condor, the Goliath and its lift, calldowns,
+ * placement, infantry and the Skyliner, the Colossus and its lift, calldowns,
  * salvage), each gated once per device by its own module. Shown as they
  * trigger, several would land at once — usually on top
  * of the opener roll-out banner. Every one-time hint goes through this queue

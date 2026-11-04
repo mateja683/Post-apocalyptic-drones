@@ -94,7 +94,7 @@ describe("squads out of sight (R8)", () => {
     for (const b of rig.bots) expect(b.b[0]!.scale.x).toBeGreaterThan(1);
   });
 
-  it("robots dropped in the fog by a Condor never seen land at once, not streaking in from the map's corner", () => {
+  it("robots dropped in the fog by a Skyliner never seen land at once, not streaking in from the map's corner", () => {
     const { r, w, fx, sync } = setup();
     const c = spawnUnit(w, "condor", "red", 45, 30);
     sync();
@@ -124,7 +124,7 @@ describe("squads out of sight (R8)", () => {
     expect(fx.get("robotDown") ?? 0).toBe(0);
   });
 
-  it("a Sniper Team hidden in the woods in our sight settles without a spark", () => {
+  it("a Longshot Team hidden in the woods in our sight settles without a spark", () => {
     const { r, w, fx, sync } = setup({ shown: (u) => u.kind !== "sniper" && u.x < 20 });
     const u = spawnUnit(w, "sniper", "red", 10, 10);
     sync(5);
@@ -175,7 +175,7 @@ describe("a squad turning to fire (R10)", () => {
   });
 });
 
-describe("Condor passengers (L3)", () => {
+describe("Skyliner passengers (L3)", () => {
   function loaded(rig: Rig, faction: Faction, x: number) {
     const c = spawnUnit(rig.w, "condor", faction, x, 10);
     const s = spawnUnit(rig.w, "trooper", faction, x, 10);
@@ -184,7 +184,7 @@ describe("Condor passengers (L3)", () => {
     return c;
   }
 
-  it("are seated in our own Condors, but an enemy Condor's bay shows empty", () => {
+  it("are seated in our own Skyliners, but an enemy Skyliner's bay shows empty", () => {
     const rig = setup();
     const ours = loaded(rig, "blue", 8);
     const theirs = loaded(rig, "red", 12);
@@ -202,7 +202,7 @@ describe("Condor passengers (L3)", () => {
 });
 
 describe("GPU resources of views that go (L11)", () => {
-  it("frees each squad rig's skeleton (its bone texture) and a Condor's own material", () => {
+  it("frees each squad rig's skeleton (its bone texture) and a Skyliner's own material", () => {
     const disposed = vi.spyOn(THREE.Skeleton.prototype, "dispose");
     const { r, w, sync } = setup();
     const hidden = spawnUnit(w, "trooper", "red", 40, 10);
@@ -223,7 +223,7 @@ describe("GPU resources of views that go (L11)", () => {
     expect(disposed).toHaveBeenCalledTimes(1);
     sync(300);
     expect(disposed).toHaveBeenCalledTimes(2);
-    // a Condor shot down with a squad aboard: its pool light and its rider's rig
+    // a Skyliner shot down with a squad aboard: its pool light and its rider's rig
     w.units.delete(c.id);
     sync();
     expect(poolGone).toHaveBeenCalled();

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Orders → Commands (AGENT-BATTLES.md "Orders"). An agent writes the sim's
  * own command vocabulary without the faction (and in its own frame), plus a
@@ -40,7 +41,7 @@ import { enemyOf, frameOf, type Frame } from "./frame";
 export const UNIT_KINDS = Object.keys(UNITS) as UnitKind[];
 export const BUILDING_KINDS = Object.keys(BUILDINGS) as BuildingKind[];
 
-/** Units that fight (not harvesters, not the unarmed Condor and Scout). */
+/** Units that fight (not harvesters, not the unarmed Skyliner and Skylark). */
 export const isArmy = (k: UnitKind): boolean => k !== "harvester" && k !== "condor" && k !== "scout";
 
 /** A building the side wants placed when its construction is ready (world top-left, or a spot to pick). */
@@ -71,7 +72,7 @@ const norm = (k: string) => k.toLowerCase().replace(/[-_\s]/g, "");
 const VERBS = ["opener", "attackmove", "move", "attack", "stop", "harvest", "produce", "cancel", "build", "sell", "rally", "calldown", "board", "unload", "anchor", "packup", "pack", "lift"] as const;
 type Verb = (typeof VERBS)[number];
 
-/** The kind named by a word ("stingers", "Flak Crawler", "flak"). */
+/** The kind named by a word ("stingers", "Skyguard", "flak"). */
 export function unitKindOf(s: string): UnitKind | null {
   const n = norm(s);
   for (const k of UNIT_KINDS) if (norm(k) === n || norm(k) + "s" === n || norm(UNITS[k].name) === n || norm(UNITS[k].name) + "s" === n) return k;
@@ -168,7 +169,7 @@ function one(w: World, fr: Frame, side: Faction, verb: Verb, o: Record<string, u
       const domain = target.domain;
       const able = units.filter((u) => canHit(u, domain));
       const skipped = units.filter((u) => !canHit(u, domain));
-      if (able.length === 0 && units.some((u) => u.goliath?.lift)) refuse("carried Goliaths fire automatically: move or attack-move the lift, then unload to land before giving an attack order");
+      if (able.length === 0 && units.some((u) => u.goliath?.lift)) refuse("carried Colossi fire automatically: move or attack-move the lift, then unload to land before giving an attack order");
       if (able.length === 0) refuse(`none of ${describe(units)} can hit a ${domain === "air" ? "flying" : "ground"} target like ${target.label}`);
       const command: Command = { type: "attack", faction, unitIds: able.map((u) => u.id), targetId: targetId! };
       out.commands.push(command);
@@ -258,7 +259,7 @@ function one(w: World, fr: Frame, side: Faction, verb: Verb, o: Record<string, u
         return `cancelled the ${kind} (+${BUILDINGS[kind].cost} scrap)`;
       }
       const kind = unitKindOf(what);
-      if (!kind) refuse(`cancel what? a unit kind (with "at": building or Goliath id) or "building"`);
+      if (!kind) refuse(`cancel what? a unit kind (with "at": building or Colossus id) or "building"`);
       const b = o.at !== undefined ? ownProducer(w, side, o.at) : queuesOf(w, side, kind!).filter((p) => p.queue.some((q) => q.kind === kind)).sort((a, c) => producerPos(w, fr, a) - producerPos(w, fr, c))[0];
       if (!b || !b.queue.some((q) => q.kind === kind)) refuse(`no ${kind} queued${b ? ` at ${producerLabel(w, b.id)}` : ""}`);
       const before = f.scrap;
@@ -324,19 +325,19 @@ function one(w: World, fr: Frame, side: Faction, verb: Verb, o: Record<string, u
       if (squads.length === 0) refuse("only infantry squads (trooper, rocket-squad, sniper) can board");
       const id = idOf(o.condor ?? o.into ?? o.carrier);
       const c = id === null ? undefined : w.units.get(id);
-      if (!c || c.faction !== side || !isTransport(c.kind)) refuse(`board needs "condor": the id of one of your Condors`);
-      if (liftedBy(w, c!)) refuse(`Condor #${c!.id} is lifting a Goliath: unload the Goliath before boarding infantry`);
+      if (!c || c.faction !== side || !isTransport(c.kind)) refuse(`board needs "condor": the id of one of your Skyliners`);
+      if (liftedBy(w, c!)) refuse(`Skyliner #${c!.id} is lifting a Colossus: unload the Colossus before boarding infantry`);
       const seats = freeSeats(c!);
-      if (seats <= 0) refuse(`Condor #${c!.id} is full: unload it first`);
+      if (seats <= 0) refuse(`Skyliner #${c!.id} is full: unload it first`);
       const going = squads.slice(0, seats);
       out.commands.push({ type: "board", faction, unitIds: going.map((u) => u.id), carrierId: c!.id });
       for (const u of going) u.order = { type: "board", carrierId: c!.id, ticks: 0 };
-      return `${describe(going)} board Condor #${c!.id}${going.length < squads.length ? ` (only ${seats} seat${seats > 1 ? "s" : ""} free)` : ""}`;
+      return `${describe(going)} board Skyliner #${c!.id}${going.length < squads.length ? ` (only ${seats} seat${seats > 1 ? "s" : ""} free)` : ""}`;
     }
     case "unload": {
       const units = selectUnits(w, fr, side, o.unload);
       const loaded = units.filter((u) => isLoaded(u) || (u.goliath?.lift ?? liftedBy(w, u)?.goliath?.lift)?.phase === "carrying");
-      if (loaded.length === 0) refuse(`${describe(units)} carrying nobody: unload a loaded Condor or an airborne Goliath (or one of its carriers)`);
+      if (loaded.length === 0) refuse(`${describe(units)} carrying nobody: unload a loaded Skyliner or an airborne Colossus (or one of its carriers)`);
       const p = o.at !== undefined || o.to !== undefined ? point(w, fr, side, o.at ?? o.to, "at") : null;
       const command: Command = p ? { type: "unload", faction, unitIds: loaded.map((u) => u.id), x: p.x, y: p.y } : { type: "unload", faction, unitIds: loaded.map((u) => u.id) };
       out.commands.push(command);
@@ -347,7 +348,7 @@ function one(w: World, fr: Frame, side: Faction, verb: Verb, o: Record<string, u
     case "packup":
     case "pack": {
       const units = selectUnits(w, fr, side, o[verb]).filter((u) => u.goliath);
-      if (units.length === 0) refuse("only Goliaths anchor or pack up");
+      if (units.length === 0) refuse("only Colossi anchor or pack up");
       const type = verb === "anchor" ? "anchor" : "packUp";
       const accepted: Unit[] = [];
       const skipped: string[] = [];
@@ -367,13 +368,13 @@ function one(w: World, fr: Frame, side: Faction, verb: Verb, o: Record<string, u
       const condors = selectUnits(w, fr, side, o.lift).filter((u) => isTransport(u.kind));
       const id = idOf(o.goliath ?? o.target ?? o.at);
       const g = id === null ? undefined : w.units.get(id);
-      if (!g || g.faction !== side || !g.goliath) refuse(`lift needs "goliath": the id of one of your Goliaths`);
+      if (!g || g.faction !== side || !g.goliath) refuse(`lift needs "goliath": the id of one of your Colossi`);
       const why = liftBlocker(condors, g!);
       if (why) refuse(why);
       const command: Command = { type: "lift", faction, unitIds: condors.map((u) => u.id), goliathId: g!.id };
       applyLiftCommand(w, command);
       out.commands.push(command);
-      return `Condors ${g!.goliath!.lift!.carriers.map((id) => `#${id}`).join(", ")} hooking onto Goliath #${g!.id}`;
+      return `Skyliners ${g!.goliath!.lift!.carriers.map((id) => `#${id}`).join(", ")} hooking onto Colossus #${g!.id}`;
     }
   }
 }
@@ -430,7 +431,7 @@ function ownProducer(w: World, side: Faction, v: unknown): Producer {
   if (b?.faction === side) return { id: b.id, queue: b.queue, goliath: null };
   const g = id === null ? undefined : w.units.get(id);
   if (g?.faction === side && g.goliath) return { id: g.id, queue: g.goliath.queue, goliath: g };
-  return refuse(`${JSON.stringify(v)} is not one of your buildings or Goliaths`);
+  return refuse(`${JSON.stringify(v)} is not one of your buildings or Colossi`);
 }
 
 /** An id from 23, "23" or "#23". */
@@ -529,7 +530,7 @@ export function selectUnits(w: World, fr: Frame, side: Faction, spec: unknown): 
 /** Why `id` in a unit list isn't one of the side's units, and what was probably meant. */
 function notAUnit(w: World, side: Faction, id: number, items: unknown[]): string {
   const aboard = [...w.units.values()].find((c) => c.faction === side && c.passengers?.some((p) => p.id === id));
-  if (aboard) return `#${id} is aboard Condor #${aboard.id}: unload it first`;
+  if (aboard) return `#${id} is aboard Skyliner #${aboard.id}: unload it first`;
   if (w.buildings.get(id)?.faction === side) return `#${id} is one of your buildings, not a unit`;
   const u = w.units.get(id);
   if (u && unitSeenBy(w, side, u)) return `#${id} is an enemy ${u.kind}: give your own units, and the enemy as the "target" of an attack`;

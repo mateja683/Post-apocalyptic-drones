@@ -973,7 +973,7 @@ function mapLine(mapId: string, mutators: readonly MutatorId[]): string {
 /**
  * What an opener gives, as the single-player picker's pills say it
  * (src/ui/openers.ts), from the same data (OPENERS, and the building and unit
- * names): "Fab Plant · 3 Stingers · 2 Harvesters · −100 scrap".
+ * names): "Motor Works · 3 Roadsters · 2 Prospectors · −100 scrap".
  */
 export function openerGives(id: OpenerId): string {
   const o = OPENERS[id];
@@ -981,7 +981,7 @@ export function openerGives(id: OpenerId): string {
   const counts = new Map<UnitKind, number>();
   for (const k of o.units) counts.set(k, (counts.get(k) ?? 0) + 1);
   for (const [k, n] of counts) parts.push(`${n} ${UNITS[k].name}s`);
-  parts.push(`${o.harvesters} Harvesters`);
+  parts.push(`${o.harvesters} Prospectors`);
   if (o.scrap > 0) parts.push(`+${o.scrap} scrap`);
   if (o.scrap < 0) parts.push(`−${-o.scrap} scrap`);
   return parts.join(" · ");

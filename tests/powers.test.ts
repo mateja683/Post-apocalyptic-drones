@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { dodgeCalldowns } from "../src/sim/ai/powers";
@@ -52,7 +53,7 @@ describe("command meter", () => {
     w.powers.meter.blue = w.powers.meter.red = 0;
     run(w, 10 * TICK_RATE);
     expect(w.powers.meter.blue).toBeCloseTo(POWERS.passive * 10, 5);
-    // red loses a Mastodon to blue
+    // red loses a Behemoth to blue
     const t = dummy(w, "mastodon", "red", 20, 20);
     t.hp = 0;
     const before = { ...w.powers.meter };
@@ -211,7 +212,7 @@ describe("EMP", () => {
 });
 
 describe("drop pod", () => {
-  it("lands 2 Stingers + a Flak after its descent; with a Tech Lab, 2 Lancers + Flak", () => {
+  it("lands 2 Roadsters + a Skyguard after its descent; with an Atomic Lab, 2 Ray Skiffs + Skyguard", () => {
     for (const tech of [false, true]) {
       const w = arena();
       if (tech) spawnBuilding(w, "tech-lab", "blue", 7, 2);

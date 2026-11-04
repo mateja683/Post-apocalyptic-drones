@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Combat and economy "juice": the engine-free rules behind hit flashes,
  * damage-trail health bars, team combat rings, death cues, camera shake and
@@ -192,7 +193,7 @@ export function shakeFor(ev: Pick<DeathEvent, "unitKind" | "buildingKind">): { m
     if (ev.buildingKind === "hq") return { ms: 600, intensity: 0.009 };
     return { ms: 160 + size * 90, intensity: 0.0015 + size * 0.0018 };
   }
-  // (a Goliath's death is the jolt of its reactor going: its topple slams down harder, render/goliath.ts)
+  // (a Colossus's death is the jolt of its reactor going: its topple slams down harder, render/goliath.ts)
   if (ev.unitKind === "goliath") return { ms: 320, intensity: 0.005 };
   if (ev.unitKind === "mastodon" || ev.unitKind === "hornet") return { ms: 140, intensity: 0.003 };
   const size = ev.unitKind ? UNITS[ev.unitKind].radius * 2 : 0.8;

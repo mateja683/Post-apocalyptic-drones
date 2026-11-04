@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The feed of a sound duel (SOUND-DUEL.md "MatchFeed and GameScene"): the
  * MatchFeed GameScene plays a duel through. It builds the world both phones
@@ -20,15 +21,15 @@
  * a match the record doesn't have yet (below).
  *
  * Lift groups first. The codec splits a long unit list into pieces the
- * lockstep seals into turns of their own, and a Goliath whose lift is still
- * hooking on obeys a move only when its Condors are named in the same command
- * (src/sim/lift.ts HeldLiftOrders): a select-all whose Goliath fell in an
- * earlier piece than its Condors would leave the Goliath behind. So the feed
+ * lockstep seals into turns of their own, and a Colossus whose lift is still
+ * hooking on obeys a move only when its Skyliners are named in the same command
+ * (src/sim/lift.ts HeldLiftOrders): a select-all whose Colossus fell in an
+ * earlier piece than its Skyliners would leave the Colossus behind. So the feed
  * hands the lockstep each such lift as a command of its own first (the
- * Goliath and its Condors that the order names), then the rest of the order:
+ * Colossus and its Skyliners that the order names), then the rest of the order:
  * a small command is never split, and the lift goes as one. A lift lands D
  * ticks (or a queue's wait) after its tap, so a select-all right after it
- * would find no lift in the world yet, then split, and its Goliath piece
+ * would find no lift in the world yet, then split, and its Colossus piece
  * would land on a lift hooking on by then: the feed also counts the lifts it
  * sent and hasn't stepped yet (LiftInFlight). The Controller's own taps never
  * send such a lift's members anywhere while it hooks on or is on its way (it
@@ -206,7 +207,7 @@ function browserEnv(): FeedEnv {
 /** What the feed reads of the audio rig (src/link/rig.ts Rig; tests pass a stand-in). */
 export type DuelRig = Pick<Rig, "state" | "failures" | "lastError" | "micMode" | "onLost" | "reconnect" | "captureOkMs">;
 
-/** A `lift` this phone sent that hasn't been stepped yet: the Goliath, and the Condors it named. */
+/** A `lift` this phone sent that hasn't been stepped yet: the Colossus, and the Skyliners it named. */
 export interface LiftInFlight {
   goliathId: number;
   condors: readonly number[];
@@ -238,9 +239,9 @@ const isLiftOrder = (c: Command): c is Extract<Command, { type: "move" | "attack
 
 /**
  * Lift groups first (see the header): each order a lift takes that names a
- * Goliath still hooking on together with any of its Condors becomes one
- * command naming exactly that Goliath and those Condors, then the order for
- * the rest of its units (none left: nothing). A Goliath counts as hooking on
+ * Colossus still hooking on together with any of its Skyliners becomes one
+ * command naming exactly that Colossus and those Skyliners, then the order for
+ * the rest of its units (none left: nothing). A Colossus counts as hooking on
  * while its lift is in the world, and while a lift for it is on its way:
  * `inFlight` (sent, not stepped yet) or earlier in `cmds`. Lifts and other
  * commands pass unchanged.
@@ -259,13 +260,13 @@ export function liftGroupsFirst(w: World, cmds: readonly Command[], inFlight: re
     for (const id of c.unitIds) {
       const g = w.units.get(id);
       if (!g?.goliath || g.faction !== c.faction || grouped.has(id)) continue;
-      // its Condors: the lift's while it hooks on, and those any lift on its way names
+      // its Skyliners: the lift's while it hooks on, and those any lift on its way names
       const lift = g.goliath.lift;
       const condors = new Set(lift?.phase === "hooking" ? lift.carriers : []);
       for (const l of sent) if (l.goliathId === id) for (const cid of l.condors) condors.add(cid);
       const ids = [id];
       for (const cid of c.unitIds) if (condors.has(cid) && !grouped.has(cid) && !ids.includes(cid)) ids.push(cid);
-      if (ids.length === 1) continue; // (its Condors not named: it waits, as a single order would leave it)
+      if (ids.length === 1) continue; // (its Skyliners not named: it waits, as a single order would leave it)
       for (const i of ids) grouped.add(i);
       groups.push(ids);
     }
@@ -471,7 +472,7 @@ export class VersusFeed implements MatchFeed {
     let through: number | null = null;
     while (this.drainedAll.length > 0 && this.drainedAll[0]! + this.result.delay <= t) through = this.drainedAll.shift()!;
     if (through !== null) this.scene?.ctrl.settled(through);
-    // (the lifts that landed are in the world now; one the codec dropped, naming too many Condors, never lands)
+    // (the lifts that landed are in the world now; one the codec dropped, naming too many Skyliners, never lands)
     for (const c of mine)
       if (c.type === "lift") {
         const i = this.lifts.findIndex((l) => l.goliathId === c.goliathId);

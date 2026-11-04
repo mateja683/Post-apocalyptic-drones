@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { COMBAT, TICK_RATE, UNITS } from "../src/sim/balance";
 import { findTarget } from "../src/sim/combat";
@@ -136,8 +137,8 @@ describe("attacking buildings", () => {
   });
 });
 
-describe("Menders are shot first", () => {
-  it("auto-targeting picks an enemy Mender over a nearer armed unit", () => {
+describe("Tinkers are shot first", () => {
+  it("auto-targeting picks an enemy Tinker over a nearer armed unit", () => {
     const w = createWorld(24, 24);
     const flak = spawnUnit(w, "flak-crawler", "blue", 5.5, 5.5);
     const wasp = spawnUnit(w, "wasp", "red", 7.5, 5.5);
@@ -148,19 +149,19 @@ describe("Menders are shot first", () => {
     expect(findTarget(w, "blue", "air", flak.x, flak.y, 10)?.id).toBe(wasp.id);
   });
 
-  it("drops the target it was shooting for a Mender that comes into range", () => {
+  it("drops the target it was shooting for a Tinker that comes into range", () => {
     const w = createWorld(24, 24);
     const flak = spawnUnit(w, "flak-crawler", "blue", 5.5, 5.5);
     const wasp = spawnUnit(w, "wasp", "red", 6.5, 5.5);
     w.powers.stunned.set(wasp.id, 1e9); // (sits still)
     runTicks(w, 2);
     expect(flak.autoTargetId).toBe(wasp.id);
-    // a Mender flies in to patch the wasp up, from the far side of it
+    // a Tinker flies in to patch the wasp up, from the far side of it
     const mender = spawnUnit(w, "mender", "red", 5.5 + UNITS["flak-crawler"].range - 0.2, 5.5);
     w.powers.stunned.set(mender.id, 1e9);
     runTicks(w, 2);
     expect(flak.autoTargetId).toBe(mender.id);
-    // and back to the wasp once the Mender is down
+    // and back to the wasp once the Tinker is down
     w.units.delete(mender.id);
     runTicks(w, 2);
     expect(flak.autoTargetId).toBe(wasp.id);

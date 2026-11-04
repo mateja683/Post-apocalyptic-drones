@@ -12,7 +12,7 @@ import { SIDE_PAINT } from "../side-style";
  * low-poly model in the game's painted style: weathered gunmetal, royal-blue
  * (or crimson) team panels, amber lights. Units point north (-Z) with their
  * origin on the ground at the hull centre; buildings sit centred on their
- * footprint. Turrets, heads, dishes and rotors are separate parts so they
+ * footprint. Pillboxes, heads, dishes and rotors are separate parts so they
  * can track targets and spin.
  *
  * Readability rules (phone first): every unit shows a solid patch of team
@@ -72,10 +72,10 @@ export interface ModelDef {
   /** Muzzle point in turret space (or hull space without a turret). */
   muzzle: Vec3;
   rotors: Rotor[];
-  /** Harvester's scrap load (shown when full). */
+  /** Prospector's scrap load (shown when full). */
   cargo?: THREE.BufferGeometry;
   /**
-   * Condor's rear ramp: hinged at `hinge`, closed pointing up; it opens by
+   * Skyliner's rear ramp: hinged at `hinge`, closed pointing up; it opens by
    * turning +x (down and back) to `open` rad. `tip` is its lip in ramp space
    * (where squads step off and climb aboard).
    */
@@ -95,7 +95,7 @@ export interface ModelDef {
 
 /** Ground hulls: per-part grade plus contact occlusion near the ground. */
 const hullB = () => new ModelBuilder({ grade: 0.3, ao: [0.12, 0.4] });
-/** Turrets, heads and aircraft: per-part grade only (their origin isn't the ground). */
+/** Pillboxes, heads and aircraft: per-part grade only (their origin isn't the ground). */
 const partB = () => new ModelBuilder({ grade: 0.26 });
 /** Buildings and objectives: a gentler grade, occlusion over a taller band. */
 const siteB = () => new ModelBuilder({ grade: 0.22, ao: [0.3, 0.38] });
@@ -158,6 +158,23 @@ function rotorGeo(r: number, axis: "y" | "z" = "y"): THREE.BufferGeometry {
 }
 
 /** An outline drawn on the right (x ≥ 0), or mirrored to the left for `s` -1 (wound the same way). */
+/** (reskin) Polished trim: the brightest metal, for bumpers, needles and speed stripes. */
+export const CHROME = 0xd9d2c2;
+
+/**
+ * (reskin) A swept tail fin standing on the deck at x, its root from zFront to zBack (+Z is aft),
+ * h tall, leaning back: the atomic-age car and rocket signature.
+ */
+function tailFin(b: ModelBuilder, x: number, y: number, zFront: number, zBack: number, h: number, hex: number, thick = 0.012): void {
+  const len = zBack - zFront;
+  b.prism([[0, zFront], [0, zBack], [h, zBack + h * 0.35], [h, zFront + len * 0.7]], thick, [x + thick / 2, y, 0], hex, { rot: [0, 0, Math.PI / 2] });
+}
+
+/** (reskin) Three chrome speed stripes down a flank at x, centred on z, `len` long. */
+function speedStripes(b: ModelBuilder, x: number, y: number, z: number, len: number): void {
+  for (let i = 0; i < 3; i++) b.box(0.008, 0.008, len - i * len * 0.18, [x, y - i * 0.018, z + i * len * 0.09], CHROME);
+}
+
 function sided(pts: [number, number][], s: number): [number, number][] {
   return s > 0 ? pts : pts.map(([x, z]): [number, number] => [-x, z]).reverse();
 }
@@ -198,7 +215,7 @@ function shell(b: ModelBuilder, at: Vec3, r = 0.016): void {
 }
 
 /**
- * The Flak Crawler's six legs (its ModelDef.parts, each pivoting at its hip),
+ * The Skyguard's six legs (its ModelDef.parts, each pivoting at its hip),
  * as the walk needs them (render/entities.ts): the side (+1 right), which
  * tripod it steps with (front and back on one side, the middle on the other)
  * and its angle out from the side (front legs negative, toward -Z).
@@ -227,6 +244,10 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.pair(0.13, 0.014, 0.04, [0.055, 0.276, -0.215], t.main, { rot: [0, -0.5, 0] });
     b.block(0.26, 0.045, 0.16, [0, 0.29, 0.27], GM_D, { bevel: 0.015 });
     b.pair(0.03, 0.03, 0.06, [0.08, 0.32, 0.33], BARREL);
+    // (reskin) a Roadster: tail fins over the rear corners, a chrome bumper and a stripe down the nose
+    for (const s of [1, -1]) tailFin(b, s * 0.17, 0.26, 0.12, 0.4, 0.2, t.main, 0.02);
+    b.box(0.36, 0.022, 0.022, [0, 0.16, -0.43], CHROME);
+    b.box(0.014, 0.006, 0.2, [0, 0.283, -0.25], CHROME);
     light(b, [0.12, 0.22, -0.41]);
     light(b, [-0.12, 0.22, -0.41]);
     const hull = b.build();
@@ -238,6 +259,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     barrel(tu, [0, 0.065, -0.12], 0.026, 0.34, 0.02, BARREL);
     tu.tube(0.036, 0.06, 6, [0, 0.07, -0.45], GM_D);
     tu.cyl(0.04, 0.045, 0.025, 6, [0.045, 0.152, 0.05], GM_D);
+    tu.sphere(0.045, [-0.03, 0.14, 0.06], CHROME, { w: 8, h: 4, phi: Math.PI / 2 });
     light(tu, [-0.085, 0.13, -0.07], 0.025);
     return { hull, turret: tu.build(), mount: [0, 0.27, 0.04], muzzle: [0, 0.07, -0.48], rotors: [], height: 0.45 };
   },
@@ -253,6 +275,10 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.block(0.16, 0.08, 0.1, [0, 0.22, -0.32], GM_D, { bevel: 0.015 });
     light(b, [0.045, 0.24, -0.37], 0.025);
     light(b, [-0.045, 0.24, -0.37], 0.025);
+    // (reskin) a ball-tipped radio mast at the tail and a chrome brow over the eyes
+    b.cyl(0.008, 0.01, 0.22, 5, [0, 0.42, 0.24], GM_D);
+    b.sphere(0.025, [0, 0.54, 0.24], AMBER, { glow: 0.9, w: 6, h: 4 });
+    b.box(0.17, 0.014, 0.03, [0, 0.265, -0.36], CHROME);
     const hull = b.build();
     // each leg about its hip: a thigh up and out to a team-coloured knee, a shin down to the foot
     const parts: NonNullable<ModelDef["parts"]> = {};
@@ -289,6 +315,9 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.box(0.24, 0.03, 0.012, [0, 0.29, -0.352], AMBER, { glow: 0.55 });
     b.block(0.3, 0.08, 0.12, [0, 0.24, 0.32], GM, { bevel: 0.015 });
     for (const x of [-0.09, -0.03, 0.03, 0.09]) shell(b, [x, 0.28, 0.32], 0.014);
+    // (reskin) fins over the shell locker, a chrome bumper on the armour box
+    for (const s of [1, -1]) tailFin(b, s * 0.16, 0.28, 0.2, 0.4, 0.16, t.main, 0.018);
+    b.box(0.38, 0.02, 0.02, [0, 0.2, -0.37], CHROME);
     light(b, [0.12, 0.25, -0.36], 0.025);
     light(b, [-0.12, 0.25, -0.36], 0.025);
     const hull = b.build();
@@ -316,6 +345,12 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.pairBlock(0.15, 0.025, 0.2, [0.14, 0.39, -0.34], t.main, { bevel: 0.012 });
     b.block(0.4, 0.05, 0.2, [0, 0.4, 0.38], GM_D, { bevel: 0.015 });
     for (const x of [-0.12, 0, 0.12]) b.box(0.07, 0.02, 0.16, [x, 0.43, 0.38], BARREL);
+    // (reskin) streamlined: chrome speed stripes down the skirts, a grille on the glacis, twin fins aft
+    for (const s of [1, -1]) {
+      speedStripes(b, s * 0.5, 0.3, 0.05, 0.7);
+      tailFin(b, s * 0.2, 0.42, 0.28, 0.52, 0.28, t.main, 0.024);
+    }
+    for (const x of [-0.16, -0.08, 0, 0.08, 0.16]) b.box(0.016, 0.06, 0.012, [x, 0.28, -0.6], CHROME, { rot: [0.5, 0, 0] });
     light(b, [0.2, 0.26, -0.57]);
     light(b, [-0.2, 0.26, -0.57]);
     const hull = b.build();
@@ -349,6 +384,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
       b.box(0.11, 0.04, 0.012, [s * 0.12, 0.19, 0.434], EXHAUST, { glow: 1 });
       for (const z of [-0.2, 0, 0.2]) b.box(0.012, 0.025, 0.08, [s * 0.282, 0.19, z], 0x15171a);
     }
+    for (const s of [1, -1]) tailFin(b, s * 0.22, 0.26, 0.18, 0.44, 0.18, t.main, 0.018);
     light(b, [0.15, 0.2, -0.47]);
     light(b, [-0.15, 0.2, -0.47]);
     const hull = b.build();
@@ -358,7 +394,8 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     // the lance: emitter block, barrel, three focusing coils, a glowing lens
     tu.block(0.1, 0.07, 0.1, [0, 0.05, -0.13], GM_D, { bevel: 0.015 });
     tu.tube(0.026, 0.46, 6, [0, 0.05, -0.33], BARREL);
-    for (const z of [-0.238, -0.33, -0.422]) tu.torus(0.042, 0.013, [0, 0.05, z], GM_L, { seg: 8 });
+    // (reskin) a ray gun: rings stepping down toward the lens, in chrome
+    for (const [z, r] of [[-0.238, 0.058], [-0.33, 0.048], [-0.422, 0.038]] as [number, number][]) tu.torus(r, 0.014, [0, 0.05, z], CHROME, { seg: 12 });
     tu.tube(0.038, 0.04, 8, [0, 0.05, -0.57], GM_D);
     tu.sphere(0.03, [0, 0.05, -0.595], AMBER, { glow: 1, w: 6, h: 4 });
     // heat sinks at the back
@@ -375,6 +412,9 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.block(0.36, 0.03, 0.2, [0, 0.425, -0.29], t.main, { bevel: 0.012 });
     b.box(0.32, 0.07, 0.02, [0, 0.34, -0.415], AMBER, { glow: 0.55 });
     b.cyl(0.022, 0.022, 0.04, 6, [0.12, 0.46, -0.24], AMBER, { glow: 1 });
+    // (reskin) a bubble canopy on the cab and a chrome grille under it
+    b.sphere(0.09, [-0.06, 0.44, -0.3], GLASS, { glow: 0.35, w: 10, h: 5, phi: Math.PI / 2, scale: [1, 0.8, 1.1] });
+    for (const x of [-0.12, -0.06, 0, 0.06, 0.12]) b.box(0.014, 0.05, 0.012, [x, 0.26, -0.415], CHROME);
     // the scoop, hazard-striped
     b.box(0.46, 0.08, 0.12, [0, 0.13, -0.5], HAZ_D, { rot: [-0.35, 0, 0] });
     for (const x of [-0.18, -0.06, 0.06, 0.18]) b.box(0.055, 0.084, 0.124, [x, 0.13, -0.5], HAZ, { rot: [-0.35, 0, 0] });
@@ -413,6 +453,10 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
       at.push([x, 0.04, z]);
     }
     b.block(0.08, 0.03, 0.09, [0, 0.055, 0.02], t.main, { bevel: 0.012 });
+    // (reskin) a flying-saucer rim round the body and a ball-tipped aerial
+    b.torus(0.105, 0.012, [0, 0, 0], CHROME, { rot: [Math.PI / 2, 0, 0], seg: 16, scale: [1, 1.25, 1] });
+    b.cyl(0.005, 0.006, 0.09, 4, [0, 0.11, 0.05], GM_D);
+    b.sphere(0.014, [0, 0.16, 0.05], AMBER, { glow: 1, w: 5, h: 3 });
     const rg = rotorGeo(0.075);
     return { hull: b.build(), mount: [0, 0, 0], muzzle: [0, 0, -0.15], rotors: at.map((p) => ({ geo: rg, at: p, axis: "y", speed: 40 })), height: 0.15 };
   },
@@ -420,7 +464,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
   wasp: (t) => {
     const b = partB();
     b.tube(0.06, 0.46, 6, [0, 0, 0.02], GM, { scale: [1, 1, 0.8] });
-    b.cone(0.06, 0.14, 6, [0, 0, -0.27], GM_L, { rot: [-Math.PI / 2, 0, 0] });
+    b.cone(0.06, 0.14, 6, [0, 0, -0.27], CHROME, { rot: [-Math.PI / 2, 0, 0] });
     b.sphere(0.035, [0, 0.04, -0.14], AMBER, { glow: 0.6, w: 6, h: 4, scale: [1, 0.6, 1.6] });
     b.block(0.045, 0.03, 0.22, [0, 0.048, 0.07], GM_L, { bevel: 0.01 });
     for (const s of [1, -1]) {
@@ -433,7 +477,8 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     }
     b.torus(0.085, 0.02, [0, 0.03, 0.27], t.main, { seg: 12 });
     b.cyl(0.06, 0.06, 0.01, 8, [0, 0.03, 0.28], AMBER, { glow: 1, rot: [Math.PI / 2, 0, 0] });
-    b.box(0.015, 0.1, 0.1, [0, 0.08, 0.2], t.main);
+    // (reskin) a rocket's swept tail fin instead of a flat tab
+    tailFin(b, 0, 0.03, 0.06, 0.26, 0.17, t.main, 0.016);
     return {
       hull: b.build(), mount: [0, 0, 0], muzzle: [0, -0.04, -0.22],
       rotors: [{ geo: rotorGeo(0.075, "z"), at: [0, 0.03, 0.265], axis: "z", speed: 50 }], height: 0.15
@@ -464,6 +509,9 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
       light(b, [s * 0.515, -0.02, 0], 0.022);
     }
     b.block(0.48, 0.02, 0.09, [0, 0.03, 0.37], t.main, { bevel: 0.008 });
+    // (reskin) a chrome pitot needle and chrome cowl rings on the boom intakes
+    b.cone(0.012, 0.12, 5, [0, 0.01, -0.55], CHROME, { rot: [-Math.PI / 2, 0, 0] });
+    for (const s of [1, -1]) b.torus(0.036, 0.008, [s * 0.22, 0, -0.33], CHROME, { seg: 10 });
     return { hull: b.build(), mount: [0, 0, 0], muzzle: [0, -0.03, -0.5], rotors: [], height: 0.15 };
   },
 
@@ -485,7 +533,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
       return [z, 0.03, top, top - 0.03];
     });
     b.fuselage(spine, [0, 0, 0], t.main, { chamfer: 0.008, edge: 1.3 });
-    b.sphere(0.05, [0, Y, -L + 0.02], GM_D, { w: 8, h: 5 });
+    b.sphere(0.07, [0, Y, -L + 0.03], CHROME, { w: 10, h: 6 });
     light(b, [0, Y, -L - 0.03], 0.024);
     // cruciform tail fins: up, down and out to both sides
     const fin: [number, number][] = [[0.1, 0.4], [0.3, 0.56], [0.3, 0.68], [0.02, 0.64]];
@@ -528,6 +576,12 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     b.box(0.048, 0.022, 0.15, [0, 0.146, 0], GREEN, { glow: 1 });
     b.torus(0.25, 0.024, [0, 0, 0], t.main, { rot: [Math.PI / 2, 0, 0], seg: 20 });
     b.cyl(0.05, 0.03, 0.04, 8, [0, -0.06, 0], GREEN, { glow: 0.8 });
+    // (reskin) bug-eye aerials on the dome and a chrome band round it
+    b.torus(0.112, 0.01, [0, 0.035, 0], CHROME, { rot: [Math.PI / 2, 0, 0], seg: 14 });
+    for (const sx of [1, -1]) {
+      b.cyl(0.005, 0.006, 0.1, 4, [sx * 0.05, 0.17, -0.04], GM_D, { rot: [0.35, 0, -sx * 0.4] });
+      b.sphere(0.016, [sx * 0.072, 0.215, -0.058], AMBER, { glow: 1, w: 5, h: 3 });
+    }
     const at: Vec3[] = [];
     for (let i = 0; i < 3; i++) {
       const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
@@ -540,7 +594,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
     return { hull: b.build(), mount: [0, 0, 0], muzzle: [0, -0.06, 0], rotors: at.map((p) => ({ geo: rg, at: p, axis: "y", speed: 36 })), height: 0.15 };
   },
 
-  // the map draws the Goliath as a posed rig (goliath.ts); this is it standing at rest, every part baked into one
+  // the map draws the Colossus as a posed rig (goliath.ts); this is it standing at rest, every part baked into one
   goliath: (t) => ({
     hull: goliathStatic(teamFaction(t)),
     mount: [0, 0, 0], muzzle: [0, 2.1, -0.5], rotors: [], height: GOLIATH_RIG.height
@@ -647,7 +701,7 @@ const UNIT_MODELS: Record<UnitKind, UnitBuilder> = {
 };
 
 /**
- * The Condor's troop bay, in model space: deck and bench-top heights, the
+ * The Skyliner's troop bay, in model space: deck and bench-top heights, the
  * gunwales' top, the benches' x, the bay's inner width, the front and rear of
  * its open roof (z), and the ramp's hinge under the tail and its width.
  */
@@ -739,7 +793,17 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     b.block(0.08, 0.5, 0.08, [-0.72, 1.0, 0.36], GM_D, { bevel: 0.015 });
     b.block(0.08, 0.08, 0.9, [-0.72, 1.24, 0.0], GM_D, { bevel: 0.015 });
     b.box(0.06, 0.12, 0.06, [-0.72, 1.15, -0.3], HAZ);
-    return { hull: b.build(), mount: [0, 0, 0], muzzle: [0, 0.5, 0], rotors: [], height: 1.4 };
+    // (reskin) two stepped deco pylons flanking the gate: setbacks, a lit slot, a chrome finial
+    for (const s of [1, -1]) {
+      const x = s * 0.66;
+      b.block(0.24, 1.2, 0.16, [x, 0.65, 0.57], GM_L, { bevel: 0.02 });
+      b.block(0.18, 0.16, 0.13, [x, 1.33, 0.57], t.main, { bevel: 0.015 });
+      b.block(0.12, 0.12, 0.1, [x, 1.47, 0.57], GM_L, { bevel: 0.012 });
+      b.box(0.04, 0.9, 0.012, [x, 0.7, 0.655], AMBER, { glow: 0.7 });
+      for (const dx of [-0.085, 0.085]) b.box(0.025, 0.8, 0.012, [x + dx, 0.72, 0.652], t.main);
+      b.cone(0.035, 0.26, 6, [x, 1.66, 0.57], CHROME);
+    }
+    return { hull: b.build(), mount: [0, 0, 0], muzzle: [0, 0.5, 0], rotors: [], height: 1.7 };
   },
 
   airpad: (t) => {
@@ -761,6 +825,9 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     b.block(0.5, 0.04, 0.5, [0.76, 1.04, -0.76], t.main, { bevel: 0.02 });
     b.cyl(0.012, 0.012, 0.3, 4, [0.86, 1.2, -0.86], GM_D);
     light(b, [0.86, 1.36, -0.86], 0.03);
+    // (reskin) streamline bands round the tower and a chrome needle on the roof
+    for (let i = 0; i < 3; i++) b.box(0.375, 0.012, 0.375, [0.76, 0.3 + i * 0.07, -0.76], CHROME);
+    b.cone(0.03, 0.26, 6, [0.7, 1.19, -0.7], CHROME);
     // fuel tanks, team-banded
     for (const z of [-0.5, -0.82]) {
       b.cyl(0.13, 0.13, 0.32, 10, [-0.8, 0.3, z], GM_L, { rot: [Math.PI / 2, 0, 0] });
@@ -778,8 +845,12 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     b.sphere(0.48, [0, 0.66, 0], 0xff8a24, { glow: 1, w: 14, h: 6, phi: Math.PI / 2 });
     b.torus(0.5, 0.03, [0, 0.72, 0], GM_D, { rot: [Math.PI / 2, 0, 0], seg: 20 });
     b.torus(0.38, 0.025, [0, 0.95, 0], GM_D, { rot: [Math.PI / 2, 0, 0], seg: 18 });
-    b.torus(0.48, 0.025, [0, 0.66, 0], GM_D, { seg: 20 });
-    b.torus(0.48, 0.025, [0, 0.66, 0], GM_D, { rot: [0, Math.PI / 2, 0], seg: 20 });
+    // (reskin) an atom: three tilted chrome orbits, an amber electron riding each
+    for (let i = 0; i < 3; i++) {
+      const yaw = (i / 3) * Math.PI;
+      b.torus(0.56, 0.022, [0, 0.86, 0], CHROME, { rot: [Math.PI / 2 - 1.05, yaw, 0], seg: 24 });
+    }
+    for (const [x, y, z] of [[0.56, 0.86, 0], [-0.24, 1.3, -0.2], [-0.2, 0.55, 0.42]] as Vec3[]) b.sphere(0.045, [x, y, z], AMBER, { glow: 1, w: 6, h: 4 });
     for (const [x, z] of [[0.68, 0.68], [-0.68, 0.68], [0.68, -0.68], [-0.68, -0.68]] as [number, number][]) {
       b.cyl(0.035, 0.06, 0.95, 6, [x, 0.55, z], GM_L);
       b.cyl(0.05, 0.05, 0.08, 6, [x, 0.8, z], t.main);
@@ -822,6 +893,7 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     b.drum(0.46, 0.4, 0.22, 8, [0, 0.11, 0], GM_D, { rot: [0, Math.PI / 8, 0], bevel: 0.03 });
     b.cyl(0.415, 0.415, 0.06, 8, [0, 0.19, 0], t.main, { rot: [0, Math.PI / 8, 0] });
     b.drum(0.38, 0.3, 0.04, 8, [0, 0.235, 0], GM, { rot: [0, Math.PI / 8, 0], bevel: 0.015 });
+    b.torus(0.44, 0.012, [0, 0.14, 0], CHROME, { rot: [Math.PI / 2, 0, 0], seg: 16 });
     const hull = b.build();
     const h = partB();
     h.block(0.36, 0.17, 0.36, [0, 0.085, 0.03], GM, { taper: 0.2, bevel: 0.03 });
@@ -832,6 +904,9 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     }
     h.pairBlock(0.035, 0.09, 0.22, [0.19, 0.085, 0.04], t.main, { bevel: 0.01 });
     light(h, [0, 0.17, -0.1], 0.035);
+    // (reskin) a riveted dome cupola on the gun house
+    h.sphere(0.09, [0, 0.18, 0.08], GM_L, { w: 10, h: 5, phi: Math.PI / 2 });
+    h.torus(0.09, 0.008, [0, 0.18, 0.08], CHROME, { rot: [Math.PI / 2, 0, 0], seg: 12 });
     return { hull, turret: h.build(), mount: [0, 0.255, 0], muzzle: [0, 0.095, -0.54], rotors: [], height: 0.6 };
   },
 
@@ -951,7 +1026,7 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
   },
 
   gantry: (t) => {
-    // where a Goliath is built: a 3×3 assembly pad, open front and back (it walks out toward the back of
+    // where a Colossus is built: a 3×3 assembly pad, open front and back (it walks out toward the back of
     // its base), a cradle in the middle between two lattice scaffold towers whose welding arms reach in
     // over it, a luffing crane on the east tower, floor lights down the cradle, armour plates racked on the apron
     const f: Faction = teamFaction(t);
@@ -1038,7 +1113,7 @@ const BUILDING_MODELS: Record<BuildingKind, (t: Team) => ModelDef> = {
     const blink = partB();
     for (const sx of [-1, 1]) for (const z of [-0.88, 0.88]) blink.box(0.075, 0.065, 0.075, [sx * 1.4, 3.2, z], 0xffb347, { glow: 1 });
     blink.sphere(0.04, [1.3, 3.83, -0.72], 0xff5a3a, { glow: 1, w: 6, h: 4 });
-    // the Goliath taking shape on the cradle, stage by stage: at its size on the map, facing the way it walks out
+    // the Colossus taking shape on the cradle, stage by stage: at its size on the map, facing the way it walks out
     const s = unitScale("goliath");
     const m = new THREE.Matrix4().compose(
       new THREE.Vector3(),
@@ -1230,7 +1305,7 @@ function rubbleGeo(size: number, seed: number): THREE.BufferGeometry {
 }
 
 /**
- * Deterministic scrap pile, what a fallen Goliath scatters (and a Gantry
+ * Deterministic scrap pile, what a fallen Colossus scatters (and a Gantry
  * destroyed mid-build): a low mound of torn metal heaped with the gold and
  * rust scrap lumps the harvesters haul, a few bent armour plates standing up
  * out of it (one in the dead side's colour), a girder, a length of pipe, a
@@ -1276,7 +1351,7 @@ export interface ModelInstance {
   turret: THREE.Object3D | null;
   rotors: { obj: THREE.Object3D; axis: "y" | "z"; speed: number }[];
   cargo: THREE.Mesh | null;
-  /** The Condor's ramp (pivoting at its hinge), else null. */
+  /** The Skyliner's ramp (pivoting at its hinge), else null. */
   ramp: THREE.Object3D | null;
   /** The model's further moving parts by name (ModelDef.parts), each a pivot holding its mesh. */
   parts: Record<string, THREE.Object3D>;
@@ -1338,7 +1413,7 @@ export function unitScale(kind: UnitKind): number {
     const d = unitDef(kind, "blue");
     const box = d.hull.boundingBox!.clone();
     if (d.turret) box.union(d.turret.boundingBox!.clone().translate(new THREE.Vector3(...d.mount)));
-    // (moving parts count too: the Flak Crawler's legs are most of its footprint)
+    // (moving parts count too: the Skyguard's legs are most of its footprint)
     for (const p of Object.values(d.parts ?? {})) if (!p.parent) box.union(p.geo.boundingBox!.clone().translate(new THREE.Vector3(...p.at)));
     const size = Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
     s = (UNIT_SIZE[kind] / size) * UNIT_BUMP;
@@ -1366,7 +1441,7 @@ export function rubbleGeometry(size: number, variant: number): THREE.BufferGeome
 /** Scrap pile looks per side (a handful, picked by wreck id). */
 export const PILE_VARIANTS = 4;
 
-/** A scrap pile (see scrapPileGeo) as a model: what render/wrecks.ts draws for a Goliath's scattered salvage. */
+/** A scrap pile (see scrapPileGeo) as a model: what render/wrecks.ts draws for a Colossus's scattered salvage. */
 export function pileDef(f: Faction, variant: number): ModelDef {
   const v = ((variant % PILE_VARIANTS) + PILE_VARIANTS) % PILE_VARIANTS;
   return def(`pile/${f}/${v}`, () => ({ hull: scrapPileGeo(v + 1, TEAMS[f]), mount: [0, 0, 0], muzzle: [0, 0.2, 0], rotors: [], height: 0.3 }));

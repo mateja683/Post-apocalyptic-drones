@@ -180,7 +180,7 @@ describe("radio queue", () => {
     expect(speakable("SUPPLY DROP INBOUND")).toBe("Supply drop inbound");
     expect(speakable("⚡ ENEMY HQ DESTROYED!")).toBe("Enemy HQ destroyed!");
     expect(speakable("First blood")).toBe("First blood");
-    expect(speakable("Wave 5 — Mastodons")).toBe("Wave 5 Mastodons");
+    expect(speakable("Wave 5 — Behemoths")).toBe("Wave 5 Behemoths");
     expect(lineSeconds("Warning: our HQ is under attack")).toBeGreaterThan(1.5);
     expect(lineSeconds("Squad lost")).toBeLessThan(1.2);
   });
@@ -264,7 +264,7 @@ describe("battle callouts", () => {
     r.at(1, death({ faction: "blue", unitKind: "mastodon", value: 475 }));
     r.at(30, death({ faction: "blue", unitKind: "harvester", value: 150 }));
     r.at(60, death({ faction: "blue", unitKind: "stinger", value: 150 }));
-    expect(r.radio.map((l) => l.text)).toEqual(["Mastodon lost", "Harvester lost"]);
+    expect(r.radio.map((l) => l.text)).toEqual(["Behemoth lost", "Prospector lost"]);
   });
 
   it("calls first blood once, for the player's first kill", () => {
@@ -273,7 +273,7 @@ describe("battle callouts", () => {
     expect(r.banners).toHaveLength(0);
     r.at(2, death({ faction: "red", unitKind: "wasp" }));
     expect(r.banners).toHaveLength(1);
-    expect(r.banners[0]).toMatchObject({ key: "first-blood", text: "First blood", tone: "epic", sub: "Enemy Wasp destroyed" });
+    expect(r.banners[0]).toMatchObject({ key: "first-blood", text: "First blood", tone: "epic", sub: "Enemy Comet destroyed" });
     r.at(30, death({ faction: "red" }));
     r.at(60, death({ faction: "red" }));
     expect(r.banners.filter((b) => b.key === "first-blood")).toHaveLength(1);
@@ -321,12 +321,12 @@ describe("battle callouts", () => {
     const r = rig();
     r.at(1, death({ faction: "red" }));
     r.at(20, death({ faction: "red", unitKind: "mastodon", value: 475 }));
-    expect(r.banners.at(-1)).toMatchObject({ key: "kill-mastodon", text: "Mastodon down", say: "Enemy Mastodon destroyed", tone: "good" });
+    expect(r.banners.at(-1)).toMatchObject({ key: "kill-mastodon", text: "Behemoth down", say: "Enemy Behemoth destroyed", tone: "good" });
     const s = rig();
     s.at(1, death({ faction: "red" }));
     s.at(20, death({ faction: "red" }), death({ faction: "red", unitKind: "hornet", value: 375 }));
     s.at(21);
-    expect(s.banners.at(-1)).toMatchObject({ key: "streak-2", sub: "Hornet destroyed" });
+    expect(s.banners.at(-1)).toMatchObject({ key: "streak-2", sub: "Thunderhead destroyed" });
   });
 
   it("announces structures destroyed and lost", () => {
@@ -334,8 +334,8 @@ describe("battle callouts", () => {
     r.at(1, death({ faction: "red", unitKind: null, buildingKind: "airpad", value: 350 }));
     r.at(2, death({ faction: "blue", unitKind: null, buildingKind: "turret", value: 225 }));
     expect(r.radio.map((l) => [l.key, l.text])).toEqual([
-      ["structure-killed", "Enemy Airpad destroyed"],
-      ["structure-lost", "Structure lost: Turret"]
+      ["structure-killed", "Enemy Aerodrome destroyed"],
+      ["structure-lost", "Structure lost: Pillbox"]
     ]);
   });
 
@@ -392,7 +392,7 @@ describe("battle callouts", () => {
     r.at(5, { type: "rankUp", id: vet.id });
     vet.rank = 2;
     r.at(6, { type: "rankUp", id: vet.id });
-    expect(r.radio.at(-1)).toMatchObject({ key: "promoted", text: "Mastodon promoted", priority: 3 });
+    expect(r.radio.at(-1)).toMatchObject({ key: "promoted", text: "Behemoth promoted", priority: 3 });
   });
 
   it("closes with victory or defeat, then falls silent", () => {
@@ -421,7 +421,7 @@ describe("battle callouts", () => {
     r.at(21);
     expect(r.banners.at(-1)).toMatchObject({ key: "streak-2", sub: `${SIDE_NAME.red}`, say: `Double kill for ${SIDE_NAME.red}` });
     r.at(30, death({ faction: "red", unitKind: null, buildingKind: "fab-plant" }));
-    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} Fab Plant destroyed`);
+    expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} Motor Works destroyed`);
     // no player-only lines for a spectator
     r.w.factions.blue.pending = { kind: "fab-plant", remaining: 0, ready: true };
     r.at(40, death({ faction: "blue" }), death({ faction: "blue" }), death({ faction: "blue" }));
@@ -431,7 +431,7 @@ describe("battle callouts", () => {
     expect(r.radio.at(-1)!.text).toBe(`${SIDE_NAME.red} wins the battle`);
   });
 
-  it("Condor drops: ours is flavour, the enemy's a warning where we see it; shot down says what happened", () => {
+  it("Skyliner drops: ours is flavour, the enemy's a warning where we see it; shot down says what happened", () => {
     let visible = false;
     const r = rig({ onScreen: () => visible });
     const drop = (faction: Faction, carrierId: number, unitIds: number[], bailout = false, x = 20, y = 20): FxEvent => ({
@@ -453,10 +453,10 @@ describe("battle callouts", () => {
     tickFog(r.w);
     r.at(21, drop("red", 60, [61], false, 40, 40));
     expect(r.radio.at(-1)).toMatchObject({ key: "enemy-drop", text: "Enemy troops landing!", priority: 1, tone: "bad" });
-    // our Condor shot down over land: its squads bail out
+    // our Skyliner shot down over land: its squads bail out
     r.at(30, embark("blue", 70, 71));
     r.at(40, death({ faction: "blue", id: 70, unitKind: "condor", value: 200 }), drop("blue", 70, [71], true));
-    expect(r.radio.at(-1)).toMatchObject({ key: "condor-down", text: "Condor down! Troops bailing out", priority: 1 });
+    expect(r.radio.at(-1)).toMatchObject({ key: "condor-down", text: "Skyliner down! Troops bailing out", priority: 1 });
     // …over water: lost with it — one line, not "Squad lost" on top
     r.at(60, embark("blue", 80, 81), embark("blue", 80, 82));
     r.at(80,
@@ -464,9 +464,9 @@ describe("battle callouts", () => {
       death({ faction: "blue", id: 81, unitKind: "trooper", value: 100 }),
       death({ faction: "blue", id: 82, unitKind: "trooper", value: 100 })
     );
-    expect(r.radio.at(-1)).toMatchObject({ key: "condor-down", text: "Condor down with 2 squads aboard" });
+    expect(r.radio.at(-1)).toMatchObject({ key: "condor-down", text: "Skyliner down with 2 squads aboard" });
     expect(r.keys().filter((k) => k === "squad-lost")).toEqual([]);
-    // an empty Condor going down is just a unit lost
+    // an empty Skyliner going down is just a unit lost
     const before = r.radio.length;
     r.at(120, death({ faction: "blue", id: 90, unitKind: "condor", value: 200 }));
     expect(r.radio.length).toBe(before);

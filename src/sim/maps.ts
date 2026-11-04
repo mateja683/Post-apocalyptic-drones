@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS } from "./balance";
 import { setupObjectives, type UplinkDef } from "./objectives";
 import { applyOpener, spawnStartUnits, type OpenerId } from "./openers";
@@ -47,23 +48,23 @@ export interface MapDef {
   /** Supply-drop sites (blue-side, tiles); every drop lands a crate at one and at its mirror. */
   dropSites: Pt[];
   /**
-   * Units both sides start with on top of the classic harvester and Trooper
+   * Units both sides start with on top of the classic harvester and Tin Soldier
    * Squad (skirmish only). They join the rules' startUnits, so the AI plans
-   * around them and Airborne doesn't hand out a second Condor; a Condor the
+   * around them and Airborne doesn't hand out a second Skyliner; a Skyliner the
    * map gives is free (Unit.free).
    */
   startUnits?: UnitKind[];
-  /** The starting Trooper Squad begins aboard the starting Condor. */
+  /** The starting Tin Soldiers begins aboard the starting Skyliner. */
   squadAboard?: boolean;
-  /** Islands only a Condor reaches: no buildings or Drop Pods off a side's home land (Rules.islands). */
+  /** Islands only a Skyliner reaches: no buildings or Drop Pods off a side's home land (Rules.islands). */
   islands?: boolean;
-  /** A side with no Condor gets a free one, with a squad if it's short (lifeline.ts). */
+  /** A side with no Skyliner gets a free one, with a squad if it's short (lifeline.ts). */
   lifeline?: boolean;
   /** HQ trickle on this map, scrap/s (default ECONOMY.hqTrickle). */
   hqTrickle?: number;
   /** Mutators that would break this map: left out of its matches, greyed out on the menu. */
   bannedMutators?: MutatorId[];
-  /** Why they're banned, for the menu ("island Uplinks need Condors and infantry"). */
+  /** Why they're banned, for the menu ("island Uplinks need Skyliners and infantry"). */
   banReason?: string;
   /** Offered for Last Stand? (default yes) */
   lastStand?: boolean;
@@ -86,7 +87,7 @@ export interface RandomMapInfo {
 
 /** Why a mutator can't be played on this map (null: it can). */
 export function mapBansMutator(def: MapDef, id: MutatorId): string | null {
-  return def.bannedMutators?.includes(id) ? `Not on ${def.name}: ${def.banReason ?? "island Uplinks need Condors and infantry"}` : null;
+  return def.bannedMutators?.includes(id) ? `Not on ${def.name}: ${def.banReason ?? "island Uplinks need Skyliners and infantry"}` : null;
 }
 
 // ---------------------------------------------------------------- noise ---
@@ -414,7 +415,7 @@ export const MAPS: MapDef[] = [
     name: "Archipelago",
     biome: "tropical",
     size: 108,
-    blurb: "Island Uplinks only troops can take: fly them in by Condor. Two bridges.",
+    blurb: "Island Uplinks only troops can take: fly them in by Skyliner. Two bridges.",
     hq: [14, 88],
     seed: 71,
     // island relays: infantry only, paid while crewed; the richer ones sit
@@ -587,7 +588,7 @@ export interface MatchOptions {
 
 /**
  * Build a ready-to-play world for a map: terrain, HQs, a starting harvester
- * and a starting Trooper Squad per side.
+ * and a starting Tin Soldiers per side.
  */
 export function createMapWorld(id: string, opts: MatchOptions = {}): World {
   const def = mapById(id);
@@ -617,7 +618,7 @@ export function createMapWorld(id: string, opts: MatchOptions = {}): World {
   // starting harvester just east of each HQ (mirrored: west of red's)
   spawnUnit(w, "harvester", "blue", hx + hs + 1.5, hy + 1.5);
   spawnUnit(w, "harvester", "red", rx - 1.5, ry + 1.5);
-  // every side also starts with a Trooper Squad, on the HQ's other flank
+  // every side also starts with a Tin Soldiers, on the HQ's other flank
   // (west of blue's, east of red's: the mirror image, snapped onto ground a
   // squad can stand on in the side's own frame)
   const squads = (["blue", "red"] as const).map((f) => {
@@ -634,14 +635,14 @@ export function createMapWorld(id: string, opts: MatchOptions = {}): World {
     const tile = (x: number, y: number): [number, number] => [x + (hs >> 1), y + (hs >> 1)];
     w.rules!.homeTiles = { blue: tile(hx, hy), red: tile(rx, ry) };
   }
-  if (skirmish && rulesOf(w).nomads) nomadStart(w); // (the HQs become anchored Goliaths)
-  // Goliath Armada: nothing but four Goliaths in the air, each under two Condors (no squad, no opener)
+  if (skirmish && rulesOf(w).nomads) nomadStart(w); // (the HQs become anchored Colossi)
+  // Colossus Armada: nothing but four Colossi in the air, each under two Skyliners (no squad, no opener)
   const armada = skirmish && !!rulesOf(w).armada;
   if (armada) armadaStart(w);
   const starters = armada ? [] : squads;
   for (const u of starters) applySpawnRank(w, u); // (Veterans: it rolls out ranked like every combat unit)
-  // Airborne: a Condor and the other two squads, parked round the starting one
-  // (the island map's Condor too)
+  // Airborne: a Skyliner and the other two squads, parked round the starting one
+  // (the island map's Skyliner too)
   const extra = rulesOf(w).startUnits;
   if (extra.length)
     for (const u of starters) {
@@ -669,7 +670,7 @@ export function createMapWorld(id: string, opts: MatchOptions = {}): World {
 /**
  * A four-player map's start (createMapWorld): an HQ in each corner, blue's at
  * `def.hq` and every other side's blue's turned (sides.ts), each with the
- * classic harvester and Trooper Squad placed as blue's are, turned; then the
+ * classic harvester and Tin Soldiers placed as blue's are, turned; then the
  * mutators, openers and objectives as in a duel. Every per-side step runs in
  * canonical side order (blue, red, green, purple), the order ids are handed out in.
  * Skirmish only: Last Stand and the ops are 2-player.
@@ -688,7 +689,7 @@ function setupFourCorners(w: World, def: MapDef, opts: MatchOptions): World {
     const p = turned(f, hx + hs + 1.5, hy + 1.5);
     spawnUnit(w, "harvester", f, p.x, p.y);
   }
-  // the Trooper Squad on the HQ's other flank (snapped onto ground a squad can stand on, in the side's own frame)
+  // the Tin Soldiers on the HQ's other flank (snapped onto ground a squad can stand on, in the side's own frame)
   const squads = FACTIONS.map((f) => {
     const at = turned(f, hx - 1.5, hy + 1.5);
     const p = dropPoint(w, f, at.x, at.y) ?? at;
@@ -712,12 +713,12 @@ function setupFourCorners(w: World, def: MapDef, opts: MatchOptions): World {
   return w;
 }
 
-/** The map's own match rules (skirmish): its start units, HQ trickle and free Condors. */
+/** The map's own match rules (skirmish): its start units, HQ trickle and free Skyliners. */
 function applyMapRules(w: World, def: MapDef): void {
   if (!def.startUnits?.length && def.hqTrickle === undefined && !def.lifeline && !def.islands) return;
   const r = w.rules ? { ...w.rules } : makeRules([]);
   w.rules = r;
-  // (Goliath Armada: the Goliaths' Condors are all a side starts with)
+  // (Colossus Armada: the Colossi' Skyliners are all a side starts with)
   const extra = r.armada ? [] : (def.startUnits ?? []).filter((k) => !bannedBy(w, k));
   r.startUnits = [...r.startUnits, ...extra.filter((k) => !r.startUnits.includes(k))];
   if (def.hqTrickle !== undefined) r.hqTrickle = def.hqTrickle;

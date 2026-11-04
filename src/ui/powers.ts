@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { POWERS, TICK_RATE, UNITS } from "../sim/balance";
 import { POWER_KINDS, POWER_NAMES, podCrew, targetBlocker } from "../sim/powers";
 import { rulesOf } from "../sim/rules";
@@ -57,7 +58,7 @@ const COLOR: Record<PowerKind, string> = {
 const ABOUT: Record<PowerKind, string> = {
   barrage: `Barrage: 3 shells land in the circle ${POWERS.barrage.telegraph} s after you call it. Hits ground units and buildings. ${POWERS.barrage.cost} charge, ${POWERS.barrage.cooldown} s cooldown.`,
   emp: `EMP: enemy units and buildings in the circle freeze for ${POWERS.emp.stun} s (no moving, shooting or production). ${POWERS.emp.cost} charge, ${POWERS.emp.cooldown} s cooldown.`,
-  droppod: `Drop Pod: 2 Stingers + a Flak Crawler land where you can see (2 Lancers + Flak with a Tech Lab). ${POWERS.droppod.cost} charge, ${POWERS.droppod.cooldown} s cooldown.`,
+  droppod: `Drop Pod: 2 Roadsters + a Skyguard land where you can see (2 Ray Skiffs + Skyguard with an Atomic Lab). ${POWERS.droppod.cost} charge, ${POWERS.droppod.cooldown} s cooldown.`,
   hammer: `Sky Hammer: an orbital strike after a ${POWERS.hammer.telegraph} s warning. Wrecks units; buildings lose ${POWERS.hammer.buildingDamage} HP. Online at ${POWERS.hammer.unlock / 60}:00, then every ${POWERS.hammer.cooldown / 60} min.`
 };
 
@@ -69,7 +70,7 @@ const ICON: Record<PowerKind, string> = {
   hammer: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.3 0h3.4l-.6 13.5h-2.2z" opacity=".85"/><path fill="currentColor" d="M12 12.2l1.7 3.4 3.8-1.2-2.2 3.3 3.3 2.1-4-.1-.6 3.9-2-3.4-2 3.4-.6-3.9-4 .1 3.3-2.1-2.2-3.3 3.8 1.2z"/></svg>`
 };
 
-/** "2 Wasps + a Raptor" */
+/** "2 Comets + a Jetstream" */
 function crewLabel(crew: UnitKind[]): string {
   const n = new Map<UnitKind, number>();
   for (const k of crew) n.set(k, (n.get(k) ?? 0) + 1);
@@ -113,7 +114,7 @@ export function createPowerPanel(api: PowerPanelApi): PowerPanel {
     /* storage blocked: skip the tip */
   }
 
-  /** Long-press text; the Drop Pod names its real crew (match rules swap banned kinds, e.g. Air War: Wasps). */
+  /** Long-press text; the Drop Pod names its real crew (match rules swap banned kinds, e.g. Air War: Comets). */
   const about = (p: PowerKind): string => {
     if (p !== "droppod") return ABOUT[p];
     const crew = podCrew(w, PLAYER);

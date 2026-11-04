@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Who is in the match, and each side's own frame of the map.
  *
@@ -16,7 +17,7 @@
  * about those matches changes.
  *
  * In a four-player match it is every side for itself: anything not yours is
- * hostile. A side is out once its HQ and every Goliath are gone (its forces
+ * hostile. A side is out once its HQ and every Colossus are gone (its forces
  * self-destruct, combat.ts eliminate); the last side standing wins.
  */
 import type { Faction, World } from "./types";

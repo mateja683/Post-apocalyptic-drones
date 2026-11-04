@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { AIRLIFT, airliftActive, islandRelays } from "../src/sim/ai/airlift";
 import { STRATEGIES, createAiState, tickAi, type AiState, type Difficulty, type StrategyName } from "../src/sim/ai/commander";
@@ -14,7 +15,7 @@ import { playMatch } from "../tools/pacing-match";
 
 /**
  * The commander on the island map (Archipelago: every Uplink on an island
- * only robot infantry can take, flown in by Condor). ai/airlift.ts flies the
+ * only robot infantry can take, flown in by Skyliner). ai/airlift.ts flies the
  * squads out and keeps the relays crewed; the rest of the commander never
  * sends a unit where it can't go.
  */
@@ -65,7 +66,7 @@ describe("AI airlift (island relays)", () => {
       const held = relays(w).filter((l) => l.owner === "red");
       expect(held.length).toBeGreaterThanOrEqual(1);
       expect(held.some((l) => l.crewed)).toBe(true);
-      // by Condor: an unload order onto the relay's own island
+      // by Skyliner: an unload order onto the relay's own island
       const drops = cmds.filter((c): c is Extract<Command, { type: "unload" }> => c.type === "unload" && c.x !== undefined);
       expect(drops.some((c) => relays(w).some((l) => footRegion(w, { x: c.x!, y: c.y! }) === footRegion(w, l)))).toBe(true);
     });
@@ -113,7 +114,7 @@ describe("AI airlift (island relays)", () => {
     const open = all.find((l) => l.x === 73 && l.y === 99.5)!; // blue's home isle, left neutral
     for (const l of all) if (l !== open) hold(w, "red", l);
     const spares = [hold(w, "red", spareIsle), hold(w, "red", spareIsle)];
-    // its Condor is empty, and no squad waits at home
+    // its Skyliner is empty, and no squad waits at home
     const condor = ours(w, "red").find((u) => u.kind === "condor")!;
     condor.passengers = [];
     for (const u of ours(w, "red")) if (isInfantry(u.kind) && !relays(w).some((l) => onIsland(w, u, l))) w.units.delete(u.id);
@@ -130,7 +131,7 @@ describe("AI airlift (island relays)", () => {
     expect(spareIsle.crewed).toBe(true);
   });
 
-  it("intercepts an enemy Condor near its relays with Raptors (the threat response ignores unarmed dropships)", () => {
+  it("intercepts an enemy Skyliner near its relays with Jetstreams (the threat response ignores unarmed dropships)", () => {
     const w = world();
     const l = relays(w).find((r) => r.x === 101.5 && r.y === 73)!;
     hold(w, "red", l);
@@ -148,7 +149,7 @@ describe("AI airlift (island relays)", () => {
     expect(attacked).toBe(true);
   });
 
-  it("strikes an enemy island garrison with its Wasps", () => {
+  it("strikes an enemy island garrison with its Comets", () => {
     const w = world();
     const l = relays(w).find((r) => r.x === 18 && r.y === 18.5)!;
     const enemy = hold(w, "blue", l);
@@ -194,7 +195,7 @@ describe("AI airlift (island relays)", () => {
     expect(ours(w, "red").filter((u) => u.kind === "harvester").length).toBe(before);
   });
 
-  it("a wounded veteran falls back to a Mender it can walk to, never one over the sea; one on an island holds", () => {
+  it("a wounded veteran falls back to a Tinker it can walk to, never one over the sea; one on an island holds", () => {
     const w = world();
     const hq = buildingCenter(hqOf(w, "red")!);
     // a red veteran deep in blue's land (over a bridge from home)
@@ -202,7 +203,7 @@ describe("AI airlift (island relays)", () => {
     vet.rank = 2;
     vet.hp = UNITS.trooper.hp * 0.2;
     expect(regionAt(w, 46, 68, "foot")).toBe(regionAt(w, Math.floor(hq.x), Math.floor(hq.y) + 3, "foot"));
-    // a Mender nearer home, but hovering over the lagoon
+    // a Tinker nearer home, but hovering over the lagoon
     const mender = spawnUnit(w, "mender", "red", 64.5, 56.5);
     expect(regionAt(w, 64, 56, "foot")).toBe(0);
     const islander = hold(w, "red", relays(w).find((l) => l.x === 101.5 && l.y === 73)!);
@@ -218,7 +219,7 @@ describe("AI airlift (island relays)", () => {
     expect(used.has(islander.id)).toBe(true);
   });
 
-  it("AI vs AI: no unit is ever sent where it can't go (no tank, Wasp crew or Condor-less squad at an island relay)", () => {
+  it("AI vs AI: no unit is ever sent where it can't go (no tank, Comet crew or Skyliner-less squad at an island relay)", () => {
     const w = world();
     const ai = { blue: createAiState("ironclad", "normal", 7), red: createAiState("airswarm", "normal", 8) };
     const bad: string[] = [];
@@ -248,8 +249,8 @@ describe("AI airlift (island relays)", () => {
   }, 60000);
 
   it("AI vs AI on Archipelago: both sides take islands inside 2 minutes, relays change hands, and the match is decided", () => {
-    // (no Goliaths: this is about the airlift and the relays. With them, about 1 match in 5 of this
-    // pairing is still level at 25:00, a Goliath dug in behind its defences: AI-GOLIATH-NOTES.md)
+    // (no Colossi: this is about the airlift and the relays. With them, about 1 match in 5 of this
+    // pairing is still level at 25:00, a Colossus dug in behind its defences: AI-GOLIATH-NOTES.md)
     const m = playMatch("archipelago", "balanced", "ironclad", 7013, 13, { noGoliath: true });
     expect(m.firstIsland.blue).not.toBeNull();
     expect(m.firstIsland.red).not.toBeNull();

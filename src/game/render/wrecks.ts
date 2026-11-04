@@ -28,7 +28,7 @@ const SALVAGE_CSS: Record<Faction, string> = { ...SIDE_PALE_CSS };
  * saw is remembered (like a building) until you see that it's gone or it
  * would have burnt out anyway.
  *
- * A Goliath leaves no hull: its salvage lies in scrap piles (Wreck.pile)
+ * A Colossus leaves no hull: its salvage lies in scrap piles (Wreck.pile)
  * flung out around it as it slams down (render/goliath.ts topples it), and
  * a Gantry destroyed mid-build strews piles of its half-built mech. Both
  * are always seen, so their piles are seen landing even in the fog.
@@ -118,7 +118,7 @@ export class WreckRenderer {
   private views = new Map<number, WreckView>();
   /** Poses of units that died this frame, consumed when their wreck appears. */
   private deaths = new Map<number, { pose: UnitPose | null; ev: Extract<FxEvent, { type: "death" }> }>();
-  /** Goliaths and Gantries that fell this frame (their scrap piles fly out of them), and when (ms after). */
+  /** Colossi and Gantries that fell this frame (their scrap piles fly out of them), and when (ms after). */
   private scatters: { x: number; y: number; delay: number }[] = [];
   private collected = new Set<number>();
   private haul: { t: number; v: number }[] = [];
@@ -300,7 +300,7 @@ export class WreckRenderer {
 
   /**
    * A scrap pile: its own heap of metal and scrap lumps (not a burnt hull),
-   * turned and sized a little differently each. Fresh from a Goliath that
+   * turned and sized a little differently each. Fresh from a Colossus that
    * fell or a Gantry that blew up this frame, it is flung out of it in an
    * arc and lands in a puff of dust.
    */
@@ -326,14 +326,14 @@ export class WreckRenderer {
     let from: { x: number; y: number; delay: number } | null = null;
     for (const s of this.scatters) if (Math.hypot(s.x - r.x, s.y - r.y) < 5) from = s;
     if (from) {
-      // (a Goliath and a Gantry are always seen: so is their scrap flying)
+      // (a Colossus and a Gantry are always seen: so is their scrap flying)
       v.seen = true;
       this.toss(v, from.x, from.y, from.delay + rnd(r.id, 5) * 160);
     }
     return v;
   }
 
-  /** Flung out of a falling Goliath (or a Gantry going up) at (x, y), after `delay` ms: an arc, then a thump of dust. */
+  /** Flung out of a falling Colossus (or a Gantry going up) at (x, y), after `delay` ms: an arc, then a thump of dust. */
   private toss(v: WreckView, x: number, y: number, delay: number): void {
     v.landing = true;
     const root = v.m.root;

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, TICK_RATE, UNITS } from "../balance";
 import { nearestScrapTile } from "../economy";
 import { knownBuildings } from "../fog";
@@ -11,14 +12,14 @@ import { AA_COVER, aaSources, aaStrengthAt, aaWeight, seenEnemies, type Sighting
 import { cos, sin } from "../fmath";
 
 /**
- * The commander's Condor drops (INFANTRY.md "AI"): Rush and Balanced keep one
+ * The commander's Skyliner drops (INFANTRY.md "AI"): Rush and Balanced keep one
  * dropship, load two infantry squads into it at home (whoever is free boards
  * at once, the next is called aboard as it comes free), fly it at the enemy's
  * harvester line on a route clear of the anti-air they can see or remember,
  * set the squads down a little short of the harvesters and let them fight.
  * With every harvester line covered, an assault under way gets the squads
  * flown up behind the wave instead (frontDrop).
- * The empty Condor flies home and goes again once two more squads are free;
+ * The empty Skyliner flies home and goes again once two more squads are free;
  * a lost one is rebuilt (a few times a match). A drop that runs into guards,
  * anti-air or fire on the way in picks another way in or turns back, and
  * the next one steers clear of what it ran into. Ordinary board / unload /
@@ -28,7 +29,7 @@ import { cos, sin } from "../fmath";
 export const CONDOR_AI = {
   /** No drop boards before this (s): the opening settles first… */
   from: 150,
-  /** …except under Airborne, whose Condor and squads wait at home from the start: the first drop may board this early (s). */
+  /** …except under Airborne, whose Skyliner and squads wait at home from the start: the first drop may board this early (s). */
   airborneFrom: 60,
   /** Seconds from one drop landing (or being called off) to the next boarding. */
   every: 45,
@@ -38,11 +39,11 @@ export const CONDOR_AI = {
    * goes with whoever is aboard, or is called off.
    */
   boardTimeout: 40,
-  /** A loaded Condor that finds no clear route in this long (s) sets its squads down at home. */
+  /** A loaded Skyliner that finds no clear route in this long (s) sets its squads down at home. */
   waitTimeout: 40,
   /** Seconds dropped squads raid on their own before they rejoin the army. */
   raid: 50,
-  /** Condors built per match, at most (a lost one is rebuilt until then)… */
+  /** Skyliners built per match, at most (a lost one is rebuilt until then)… */
   maxBuilt: 3,
   /** …but no sooner than this (s) after the last one went down. */
   rebuild: 90,
@@ -50,13 +51,13 @@ export const CONDOR_AI = {
   standoff: 2.5,
   /** Squads at least this healthy (share of max HP) are sent. */
   minHp: 0.7,
-  /** Squads farther than this (tiles) from the Condor, or from home, aren't called to board. */
+  /** Squads farther than this (tiles) from the Skyliner, or from home, aren't called to board. */
   reach: 16,
-  /** A Condor that loses this share of its max HP on the way in turns back. */
+  /** A Skyliner that loses this share of its max HP on the way in turns back. */
   abortLoss: 0.3,
   /** Guards and anti-air a called-off drop ran into are remembered this long (s), where they were seen: the next drop steers clear. */
   recall: 90,
-  /** …those within this many tiles of the Condor or its landing zone, when the drop is called off. */
+  /** …those within this many tiles of the Skyliner or its landing zone, when the drop is called off. */
   recallRadius: 8,
   /** Dropped squads go for a harvester (or Depot) they know of within this many tiles; else they hold the field. */
   chase: 8,
@@ -99,7 +100,7 @@ interface Memo {
   launchHp: number;
   turnedBack: boolean;
   built: number;
-  /** Id of the newest Condor the plan has flown (Condors come in id order). */
+  /** Id of the newest Skyliner the plan has flown (Skyliners come in id order). */
   lastAdopted: number;
   lostTick: number;
   /** Enemies a called-off drop ran into: where they were seen, remembered until `until` (fog hides them again on the way home). */
@@ -121,15 +122,15 @@ function memo(s: AiState): Memo {
 }
 
 /**
- * Does this commander fly Condor drops at all? Rush and Balanced do, and
- * under Infantry War or Airborne every personality does (the Condor is the
+ * Does this commander fly Skyliner drops at all? Rush and Balanced do, and
+ * under Infantry War or Airborne every personality does (the Skyliner is the
  * only raider, or there is one parked at home from the start); never on
- * Easy, in Last Stand, under rules that ban infantry or the Condor, or for a
+ * Easy, in Last Stand, under rules that ban infantry or the Skyliner, or for a
  * commander told never to raid (an op's dug-in defender).
  */
 export function dropsCondors(w: World, faction: Faction, s: AiState): boolean {
   if (s.difficulty === "easy" || w.survival || !Number.isFinite(s.strategy.harassGroup)) return false;
-  // island relays: every Condor flies the airlift (ai/airlift.ts), not raids
+  // island relays: every Skyliner flies the airlift (ai/airlift.ts), not raids
   if (w.objectives.uplinks.some((l) => l.infantryOnly)) return false;
   const everyone = infantryArmy(w, faction) || rulesOf(w).startUnits.includes("condor");
   if (s.strategy.name !== "rush" && s.strategy.name !== "balanced" && !everyone) return false;
@@ -137,8 +138,8 @@ export function dropsCondors(w: World, faction: Faction, s: AiState): boolean {
 }
 
 /**
- * A commander handed a Condor by the match rules (Airborne) that flies drops:
- * every personality then keeps an Assembly Bay and a share of its army in
+ * A commander handed a Skyliner by the match rules (Airborne) that flies drops:
+ * every personality then keeps a Robot Foundry and a share of its army in
  * squads, so the dropship has someone to carry (commander.ts).
  */
 export function flysGivenCondor(w: World, faction: Faction, s: AiState): boolean {
@@ -149,20 +150,20 @@ export function flysGivenCondor(w: World, faction: Faction, s: AiState): boolean
 export const AIRBORNE_INFANTRY = 0.25;
 
 /**
- * Should the airpad build a Condor now? One at a time, once infantry is in
+ * Should the airpad build a Skyliner now? One at a time, once infantry is in
  * play, from shortly before the first drop is due; a lost one is rebuilt
- * after a pause, up to CONDOR_AI.maxBuilt a match. `have` counts Condors
+ * after a pause, up to CONDOR_AI.maxBuilt a match. `have` counts Skyliners
  * alive and queued.
  */
 export function wantCondor(w: World, faction: Faction, s: AiState, have: number, squads: number): boolean {
   if (have > 0 || !dropsCondors(w, faction, s)) return false;
   const m = memo(s);
-  noteLoss(w, m); // (production runs before the tactics: a Condor lost since the last pass counts already)
+  noteLoss(w, m); // (production runs before the tactics: a Skyliner lost since the last pass counts already)
   if (m.built >= CONDOR_AI.maxBuilt || w.tick - m.lostTick < CONDOR_AI.rebuild * TICK_RATE) return false;
   return w.tick >= (CONDOR_AI.from - 20) * TICK_RATE && squads >= 2;
 }
 
-/** Our Condor gone since we last looked (shot down: its squads bailed out, or went down with it)? Start the rebuild clock. */
+/** Our Skyliner gone since we last looked (shot down: its squads bailed out, or went down with it)? Start the rebuild clock. */
 function noteLoss(w: World, m: Memo): void {
   if (m.condorId !== null && !w.units.has(m.condorId)) {
     m.lostTick = w.tick;
@@ -185,13 +186,13 @@ export interface CondorContext {
   /** Units already given orders this pass (updated in place). */
   used: Set<number>;
   hqC: { x: number; y: number };
-  /** A real attack on the base is under way: no drops, and a loaded Condor sets its squads down at home. */
+  /** A real attack on the base is under way: no drops, and a loaded Skyliner sets its squads down at home. */
   threatened: boolean;
-  /** Condors on (or held for) a Goliath's lift (ai/goliath.ts liftCondors): never ours to fly. */
+  /** Skyliners on (or held for) a Colossus's lift (ai/goliath.ts liftCondors): never ours to fly. */
   skip?: ReadonlySet<number>;
 }
 
-/** The Condor the drop plan flies (it is never taken for a Goliath's lift), or null. */
+/** The Skyliner the drop plan flies (it is never taken for a Colossus's lift), or null. */
 export function dropCondorId(s: AiState): number | null {
   return memos.get(s)?.condorId ?? null;
 }
@@ -202,7 +203,7 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
   if (!dropsCondors(w, faction, s)) return cmds;
   const m = memo(s);
   const tps = TICK_RATE;
-  // where the Condor waits: just behind the HQ, away from the enemy, over ground squads can walk up to
+  // where the Skyliner waits: just behind the HQ, away from the enemy, over ground squads can walk up to
   const enemyGuess = { x: w.width - ctx.hqC.x, y: w.height - ctx.hqC.y };
   const back = Math.max(1, dist(ctx.hqC.x, ctx.hqC.y, enemyGuess.x, enemyGuess.y));
   const behind = {
@@ -213,9 +214,9 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
 
   planRaiders(w, faction, m, ctx, cmds);
 
-  // --- our Condor (built at the airpad): track it, notice when it's lost --
+  // --- our Skyliner (built at the airpad): track it, notice when it's lost --
   noteLoss(w, m);
-  // (a Condor on a Goliath's lift is the lift's: an order to it would redirect or set down the Goliath)
+  // (a Skyliner on a Colossus's lift is the lift's: an order to it would redirect or set down the Colossus)
   const lifting = (u: Unit) => u.order.type === "lift" || !!ctx.skip?.has(u.id);
   let c = m.condorId !== null ? w.units.get(m.condorId) : undefined;
   if (c && lifting(c)) {
@@ -234,7 +235,7 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
       return cmds;
     }
     m.condorId = c.id;
-    if (c.id > m.lastAdopted) m.built++; // (one back from a Goliath's lift isn't a new one)
+    if (c.id > m.lastAdopted) m.built++; // (one back from a Colossus's lift isn't a new one)
     m.lastAdopted = Math.max(m.lastAdopted, c.id);
     setPhase(m, "ready", w.tick);
     m.squads = [];
@@ -353,7 +354,7 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
       }
       if (condor.order.type !== "idle") break;
       if (ctx.threatened || m.turnedBack || w.tick - m.since > CONDOR_AI.waitTimeout * tps) {
-        unloadHome(); // (squads a Condor turned back with walk from here)
+        unloadHome(); // (squads a Skyliner turned back with walk from here)
         m.turnedBack = false;
         break;
       }
@@ -383,7 +384,7 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
     }
     case "drop": {
       if (!isLoaded(condor)) {
-        // down: the squads go for the harvesters (or after the wave they were flown up to), the Condor heads home
+        // down: the squads go for the harvesters (or after the wave they were flown up to), the Skyliner heads home
         const landed = m.squads.filter((id) => w.units.has(id));
         m.squads = [];
         m.lastDrop = w.tick;
@@ -431,8 +432,8 @@ export function planCondor(w: World, faction: Faction, s: AiState, ctx: CondorCo
 /**
  * Up to `n` squads free to fly: idle or just walking somewhere (to a guard
  * post, a staging point: not in a fight), healthy, not spoken for, within
- * CONDOR_AI.reach of the Condor and of home, nearest the Condor first.
- * (Not Sniper Teams: they're no use against a harvester.)
+ * CONDOR_AI.reach of the Skyliner and of home, nearest the Skyliner first.
+ * (Not Longshot Teams: they're no use against a harvester.)
  */
 function recruits(condor: Unit, ctx: CondorContext, n: number): Unit[] {
   return ctx.army
@@ -508,7 +509,7 @@ function known(w: World, faction: Faction, m: Memo): Sighting[] {
 
 /**
  * A drop called off: remember the guards and anti-air in sight within
- * CONDOR_AI.recallRadius of the Condor or its landing zone, where they are
+ * CONDOR_AI.recallRadius of the Skyliner or its landing zone, where they are
  * now, for CONDOR_AI.recall s, so the next drop doesn't fly back into them.
  */
 function noteThreats(w: World, faction: Faction, m: Memo, c: Unit): void {
@@ -559,7 +560,7 @@ export const inMap = (w: World, p: { x: number; y: number }) => ({
 });
 
 /**
- * How Condor `c` gets to `drop` clear of anti-air (`clear`, from airspace):
+ * How Skyliner `c` gets to `drop` clear of anti-air (`clear`, from airspace):
  * null for straight in, a flank waypoint off to one side of the straight
  * line, or undefined when there's no clear way.
  */
@@ -583,7 +584,7 @@ export function route(
 }
 
 /**
- * Where squads worth `value` aboard Condor `c` should drop and how to get
+ * Where squads worth `value` aboard Skyliner `c` should drop and how to get
  * there: a point CONDOR_AI.standoff short of an enemy harvester line (a
  * visible harvester, a known Depot, else the mirror image of our own field)
  * that no guard we know of (`enemies`: seen or remembered) holds, no more

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { TICK_RATE } from "../sim/balance";
 import { MEDAL_IDS, computeMedals, type MatchRecap, type MedalId } from "../sim/awards";
 import { wavesSurvived } from "../sim/modes/survival";
@@ -107,7 +108,7 @@ export interface MatchResult {
   mapId: string;
   difficulty: string;
   won: boolean;
-  /** Robot Love: nobody won (two Goliaths fell in love). Never set with `won`; counts as neither a win nor a loss. */
+  /** Robot Love: nobody won (two Colossi fell in love). Never set with `won`; counts as neither a win nor a loss. */
   drawn?: boolean;
   secs: number;
   buildingsLost: number;

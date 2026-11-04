@@ -167,7 +167,7 @@ export class GameScene {
    */
   private readonly chronicleAt = new Map<number, ChronicleSnapshot>();
   private finale: Finale | null = null;
-  /** Where the match was decided (the deciding HQ or last Goliath's death), sized for what died. */
+  /** Where the match was decided (the deciding HQ or last Colossus's death), sized for what died. */
   private finaleAt: { x: number; y: number; size: number; cause: FinaleCause } | null = null;
   /** Ops: briefing banner, countdowns and star notices (null outside ops). */
   private ops: OpsPresenter | null = null;
@@ -321,7 +321,7 @@ export class GameScene {
       applyOpenersCanonical(this.world, openers);
       this.recorder?.setOpeners(openers);
     } else if (this.blueAi && this.ai) {
-      // (match rules may ban a pick, e.g. no Fab Plants under Air War: take an allowed one)
+      // (match rules may ban a pick, e.g. no Motor Works under Air War: take an allowed one)
       openers.blue = allowedOpener(this.world, "blue", pickAiOpener(this.blueAi.strategy.name, this.world.seed, "blue")) ?? undefined;
       openers.red = allowedOpener(this.world, "red", pickAiOpener(this.ai.strategy.name, this.world.seed, "red")) ?? undefined;
       if (openers.blue) applyOpener(this.world, "blue", openers.blue);
@@ -340,7 +340,7 @@ export class GameScene {
       (x, y) => this.tileVisible(x, y),
       (b) => this.buildingShown(b),
       (f) => f === this.fogSide || !this.ctrl.showFog,
-      // (a Sniper Team hidden in the woods isn't drawn, though its tile is in sight)
+      // (a Longshot Team hidden in the woods isn't drawn, though its tile is in sight)
       (u) => this.unitVisible(u)
     );
     this.juice = new CombatJuice(v, {
@@ -355,7 +355,7 @@ export class GameScene {
       factionOf: (id) => (this.world.units.get(id) ?? this.world.buildings.get(id))?.faction ?? null,
       // (the siren's rule: a strike that would catch our units or buildings)
       threatened: (x, y, r) => calldownThreatens(this.world, PLAYER, x, y, r),
-      // (an anchored Goliath, or the last of the base once the HQ is gone, is the base)
+      // (an anchored Colossus, or the last of the base once the HQ is gone, is the base)
       baseUnit: (id) => {
         const u = this.world.units.get(id);
         return !!u && baseGoliath(this.world, u);
@@ -426,7 +426,7 @@ export class GameScene {
       notify: (msg, tone, x, y) => this.hud?.notice(msg, tone, x, y)
     });
 
-    // (the HQ, or under Nomads the anchored Goliath: framing.ts homeBox)
+    // (the HQ, or under Nomads the anchored Colossus: framing.ts homeBox)
     const focus = gameMode.spectator ? null : homeBox(this.world, PLAYER);
     const c = gameMode.op?.focus ?? (focus ? { x: (focus.x0 + focus.x1) / 2, y: (focus.y0 + focus.y1) / 2 } : { x: this.world.width / 2, y: this.world.height / 2 });
     rig.zoom = this.clampedZoom(DEFAULT_ZOOM);
@@ -546,9 +546,9 @@ export class GameScene {
         context: `${uncharted ? "Uncharted" : mapById(gameMode.mapId).name} · vs ${rivals} (${DIFFICULTY[gameMode.difficulty].label})`,
         onPick: (id) => this.startWithOpener(id),
         blocked: (id) => openerBlocked(this.world, PLAYER, id),
-        // islands are taken by troops and defended from the air: the Airpad matters most there
+        // islands are taken by troops and defended from the air: the Aerodrome matters most there
         // (not on an Uncharted map: that would tell what it is)
-        recommended: (id) => (!uncharted && mapById(gameMode.mapId).islands && id === "airwing" ? "Good here: an Airpad for more Condors" : null)
+        recommended: (id) => (!uncharted && mapById(gameMode.mapId).islands && id === "airwing" ? "Good here: an Aerodrome for more Skyliners" : null)
       });
       this.teardown.push(() => picker.destroy());
     }
@@ -885,7 +885,7 @@ export class GameScene {
     }
     this.hud.update(delta);
     if (this.ctrl.tip) {
-      // a note on the order just given ("Condor full: unload it first")
+      // a note on the order just given ("Skyliner full: unload it first")
       this.hud.notify(this.ctrl.tip);
       this.ctrl.tip = null;
     }
@@ -914,7 +914,7 @@ export class GameScene {
         // (Robot Love: a draw resolves on its own sweet sting; its chime has already rung for music-off)
         const draw = this.world.winner === "draw";
         const outcome = draw ? "draw" : finaleOutcome({ won, newRecord: !!run?.isNew, spectator: gameMode.spectator, survival: !!this.survival });
-        // (a duel's draw is Robot Love's only when two Goliaths fell in love: both resigning has no love sting, SOUND-DUEL.md "Resign")
+        // (a duel's draw is Robot Love's only when two Colossi fell in love: both resigning has no love sting, SOUND-DUEL.md "Resign")
         const played = this.interactive ? music.finale(outcome, { love: !!this.world.love }) : music.finale(outcome);
         if (!played && !gameMode.spectator && outcome !== "draw") sfx.play(outcome);
       });
@@ -984,10 +984,10 @@ export class GameScene {
   }
 
   /**
-   * The kill that decided it (an HQ, or a side's last Goliath): slow
+   * The kill that decided it (an HQ, or a side's last Colossus): slow
    * motion, a camera glide onto the wreck, rolling blasts, a white flash
    * with the result line, then the after-action report. Robot Love: the
-   * camera glides onto the two Goliaths as they meet, hearts, and a draw.
+   * camera glides onto the two Colossi as they meet, hearts, and a draw.
    */
   private playFinale(stinger: () => void): void {
     const winner = this.world.winner!;
@@ -1142,7 +1142,7 @@ export class GameScene {
   }
 
   /**
-   * The finale looks at the death that decided the match: the loser's HQ, or its last Goliath (in one
+   * The finale looks at the death that decided the match: the loser's HQ, or its last Colossus (in one
    * tick unit deaths come before building deaths, and an HQ that falls with them is what decides it).
    */
   private noteDecider(ev: FxEvent): void {
@@ -1174,7 +1174,7 @@ export class GameScene {
       }
       case "shot": {
         const src = w.units.get(ev.sourceId) ?? w.buildings.get(ev.sourceId);
-        // (a Goliath is always seen: its guns flash even in the fog)
+        // (a Colossus is always seen: its guns flash even in the fog)
         const always = !!src && "goliath" in src && !!src.goliath;
         if (!always && !this.seesPoint(ev.x, ev.y) && !this.seesPoint(ev.tx, ev.ty)) return;
         const faction = src?.faction ?? PLAYER;
@@ -1186,7 +1186,7 @@ export class GameScene {
         break;
       }
       case "explosion": {
-        // a Goliath's death: no hull fireball, its reactor goes and it topples (render/goliath.ts), seen through any fog
+        // a Colossus's death: no hull fireball, its reactor goes and it topples (render/goliath.ts), seen through any fog
         const goliath = ev.kind === "unit" ? this.goliathDeathAt(ev.x, ev.y) : null;
         if (goliath) {
           const p = this.entities.pos(goliath);
@@ -1199,7 +1199,7 @@ export class GameScene {
       }
       case "heal": {
         if (!this.seesPoint(ev.x, ev.y)) return;
-        // (no beam into the fog, or onto a Sniper Team hidden in the woods: it would mark the spot)
+        // (no beam into the fog, or onto a Longshot Team hidden in the woods: it would mark the spot)
         const target = w.units.get(ev.targetId);
         if (target ? !this.unitVisible(target) : !this.seesPoint(ev.tx, ev.ty)) return;
         const from = this.entities.pos(ev.sourceId);
@@ -1235,14 +1235,14 @@ export class GameScene {
             const goliath = !ev.building && !!w.units.get(ev.id)?.goliath;
             // (a drop to 1× for this attack already put "Speed 1× — HQ under attack" in the ticker)
             if (!(hq && this.aware.slowedFor("hq")) && !(goliath && this.aware.slowedFor("goliath")))
-              this.hud.alert(hq ? "HQ under attack!" : goliath ? "Goliath under attack!" : ev.building ? "Base under attack!" : "Units under attack!", ev.x, ev.y);
+              this.hud.alert(hq ? "HQ under attack!" : goliath ? "Colossus under attack!" : ev.building ? "Base under attack!" : "Units under attack!", ev.x, ev.y);
           }
         }
         this.hud.ping(ev.x, ev.y);
         break;
       case "rankUp": {
         const u = w.units.get(ev.id);
-        // (a Veterans crate promotes a hidden Sniper Team too: no gold ring on its spot)
+        // (a Veterans crate promotes a hidden Longshot Team too: no gold ring on its spot)
         if (!u || !this.unitVisible(u)) return;
         const p = this.entities.pos(u.id);
         this.fx.pulse(u.x, u.y, 0xffd66e, 1, UNITS[u.kind].domain === "air" && p ? p.h - 0.1 : undefined);
@@ -1261,7 +1261,7 @@ export class GameScene {
 
   /**
    * May the local player see this unit? Ours always; an enemy when its tile
-   * is in sight and it isn't a Sniper Team hidden in the woods (unitSeenBy).
+   * is in sight and it isn't a Longshot Team hidden in the woods (unitSeenBy).
    */
   private unitVisible(u: Unit): boolean {
     if (u.faction === this.fogSide || !this.ctrl.showFog) return true;
@@ -1300,7 +1300,7 @@ export class GameScene {
     return false;
   }
 
-  /** The Goliath that died at (x, y) this tick, if the unit blast there is a Goliath's (its death event says so). */
+  /** The Colossus that died at (x, y) this tick, if the unit blast there is a Colossus's (its death event says so). */
   private goliathDeathAt(x: number, y: number): number | null {
     for (const e of this.world.fx) if (e.type === "death" && e.unitKind === "goliath" && e.x === x && e.y === y) return e.id;
     return null;
@@ -1348,7 +1348,7 @@ export class GameScene {
         key = -1 - o.targetId;
         col = 0xff5a4a;
       } else if (o.type === "board") {
-        // a squad walking to its Condor: a blue line to the craft
+        // a squad walking to its Skyliner: a blue line to the craft
         const t = this.entities.pos(o.carrierId);
         if (!t) continue;
         tx = t.gx;
@@ -1356,7 +1356,7 @@ export class GameScene {
         key = -1e7 - o.carrierId;
         col = 0x7ec1ff;
       } else if (o.type === "unload") {
-        // a Condor flying a drop: a gold waypoint where the squads land
+        // a Skyliner flying a drop: a gold waypoint where the squads land
         tx = o.x;
         ty = o.y;
         key = -2e7 - (Math.floor(o.x) * 4096 + Math.floor(o.y));
@@ -1398,7 +1398,7 @@ export class GameScene {
       const rally = this.ctrl.ahead().rally(sb.id) ?? sb.rally;
       if (rally) g.lineStyle(1.5, 0xffe066, 0.8).lineBetween(c.x, c.y, rally.x, rally.y).strokeCircle(rally.x, rally.y, 0.16);
     }
-    // Goliaths' build rings, threat rings and anchoring arcs (read through the fog: they're always seen)
+    // Colossi' build rings, threat rings and anchoring arcs (read through the fog: they're always seen)
     this.entities.goliathMarks(this.view.over, this.ctrl.selectedUnits);
     this.survival?.drawOverlay(performance.now());
     this.place.draw();
@@ -1421,9 +1421,9 @@ export class GameScene {
       const s = rig.project(p.x, p.y, p.top + 0.12);
       if (s.behind) continue;
       if (u.goliath) {
-        // a Goliath's bar is wider and taller, notched where each weapon goes offline
+        // a Colossus's bar is wider and taller, notched where each weapon goes offline
         const gw = Math.min(120, Math.max(60, (UNITS[u.kind].radius * 2.4) / rig.worldPerPx(p.x, p.y)));
-        // (amber while that weapon is down: offline, or rebooting after the Menders brought it back)
+        // (amber while that weapon is down: offline, or rebooting after the Tinkers brought it back)
         GOLIATH_MARK_WEAPONS.forEach((k, i) => (goliathDown[i] = !u.goliath!.weapons[k].online));
         this.juice.healthBar(ctx, u.id, s.x - gw / 2, s.y - 11, gw, u.hp / max, u.faction === PLAYER, 5, GOLIATH_MARKS, goliathDown);
         continue;
@@ -1433,7 +1433,7 @@ export class GameScene {
       // the load rides 2 px under the health bar, in the same frame style
       if (harvesterLoad) this.juice.meter(ctx, s.x - bw / 2, s.y - 4, bw, 3, u.cargo / ECONOMY.harvesterCapacity, "#ffd66e");
     }
-    // infantry training under our own anchored Goliaths
+    // infantry training under our own anchored Colossi
     for (const u of w.units.values()) {
       const head = u.goliath?.queue[0];
       if (!head || u.faction !== PLAYER || !this.entities.isShown(u.id)) continue;
@@ -1456,7 +1456,7 @@ export class GameScene {
         const s = rig.project(p.x, p.y, p.top + 0.1);
         if (!s.behind) this.juice.healthBar(ctx, b.id, s.x - bw / 2, s.y - 11, bw, ratio, b.faction === PLAYER, 5);
       }
-      // production progress under our factories (and under an enemy Gantry: its Goliath is public)
+      // production progress under our factories (and under an enemy Gantry: its Colossus is public)
       const head = b.queue[0];
       if (head && (b.faction === PLAYER || BUILDINGS[b.kind].alwaysVisible)) {
         const total = UNITS[head.kind].buildTime * TICK_RATE;
@@ -1545,7 +1545,7 @@ export class GameScene {
     let best: TapHit = { kind: "ground" };
     let bestD = Infinity;
     for (const u of w.units.values()) {
-      // (a concealed Sniper Team can't be tapped, even before the renderer hides it)
+      // (a concealed Longshot Team can't be tapped, even before the renderer hides it)
       if (u.faction !== PLAYER && (!this.canSee(u.id) || !this.unitVisible(u))) continue;
       const p = this.entities.pos(u.id);
       if (!p) continue;
@@ -1626,8 +1626,8 @@ export class GameScene {
         if (!released) return;
         // a long-press released without dragging (the degenerate box): an armed
         // calldown fires there (press and hold to aim), as a tap would; else, with
-        // loaded Condors selected, they fly there and drop their squads (and a
-        // lift selected flies its Goliath there and sets it down)
+        // loaded Skyliners selected, they fly there and drop their squads (and a
+        // lift selected flies its Colossus there and sets it down)
         if (isHoldRelease(b.x0, b.y0, sx, sy)) {
           const p = this.worldAt(sx, sy);
           if (this.powerUi?.tapWorld(p.x, p.y)) return;
@@ -1674,8 +1674,8 @@ export class GameScene {
         }
         const p = this.worldAt(sx, sy);
         let hit = this.pick(sx, sy);
-        // right-click on our own Condor with squads selected (or a squad with Condors selected) loads it,
-        // and on our own Goliath with two empty Condors selected lifts it
+        // right-click on our own Skyliner with squads selected (or a squad with Skyliners selected) loads it,
+        // and on our own Colossus with two empty Skyliners selected lifts it
         if (hit.kind === "ownUnit" && this.ctrl.boardTap(hit.id)) return;
         // right-click never re-selects; own entities count as ground
         if (hit.kind === "ownUnit" || hit.kind === "ownBuilding") hit = { kind: "ground" };
@@ -1792,7 +1792,7 @@ export class GameScene {
         this.hud.togglePause();
       } else if (e.key === "q") this.ctrl.selectArmy();
       else if (e.key === "u") this.ctrl.unloadSelected();
-      else if (e.key === "g") this.ctrl.toggleAnchor(); // selected Goliaths anchor, or pack up
+      else if (e.key === "g") this.ctrl.toggleAnchor(); // selected Colossi anchor, or pack up
       else if (e.key === "Delete") this.ctrl.sellSelected();
       else if (e.key === "." && !this.interactive) this.aware.cycleSpeed(); // (a duel runs at one speed)
       else if (e.key === "j") this.aware.jump();
@@ -1847,10 +1847,10 @@ export class GameScene {
   }
 }
 
-/** Where a Goliath's weapons go offline, notched on its health bar (mortars, laser, cannons). */
+/** Where a Colossus's weapons go offline, notched on its health bar (mortars, laser, cannons). */
 const GOLIATH_MARK_WEAPONS = ["mortars", "laser", "cannons"] as const;
 const GOLIATH_MARKS = GOLIATH_MARK_WEAPONS.map((k) => GOLIATH.weapons[k].lostBelow);
-/** Which of those weapons are down (refilled per Goliath as its bar is drawn). */
+/** Which of those weapons are down (refilled per Colossus as its bar is drawn). */
 const goliathDown = [false, false, false];
 
 /** The centre of the device pixel under CSS coordinate `v`. */

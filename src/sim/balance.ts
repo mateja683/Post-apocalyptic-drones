@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import {
   Terrain,
   type ArmorClass,
@@ -65,9 +66,9 @@ export interface UnitStats extends ArmedStats {
    * step and DPS scales with the robots still standing (infantry.ts).
    */
   squad?: number;
-  /** Transport (Condor): infantry squads it can carry. */
+  /** Transport (Skyliner): infantry squads it can carry. */
   capacity?: number;
-  /** Always visible to the enemy, through fog and on the minimap (the Goliath: it can't hide). */
+  /** Always visible to the enemy, through fog and on the minimap (the Colossus: it can't hide). */
   alwaysVisible?: boolean;
 }
 
@@ -88,120 +89,120 @@ export interface BuildingStats extends ArmedStats {
   unique?: boolean;
   /** Always visible to the enemy, through fog and on the minimap, with what it is building. */
   alwaysVisible?: boolean;
-  /** Harvesters may unload scrap here. */
+  /** Prospectors may unload scrap here. */
   dropOff?: boolean;
 }
 
 /**
- * Combat units carry 1.5× their original HP (Hornets 1.3×, so Flak still
- * answers them; Harvesters and Scouts unchanged): half an army now takes
+ * Combat units carry 1.5× their original HP (Thunderheads 1.3×, so Skyguard still
+ * answers them; Prospectors and Skylarks unchanged): half an army now takes
  * ~7–9 s to die instead of 5–7, long enough to react on a phone.
  */
 export const UNITS: Record<UnitKind, UnitStats> = {
   harvester: {
-    name: "Harvester", role: "Mines scrap and crystal. Keep it safe.",
+    name: "Prospector", role: "Mines scrap and crystal. Keep it safe.",
     cost: 150, hp: 250, speed: 1.6, sight: 4, domain: "ground", armor: "medium",
     targets: "none", dps: 0, range: 0,
     buildTime: 10, builtAt: "hq", radius: 0.45
   },
   scout: {
-    name: "Scout", role: "Fast flying eyes. Unarmed.",
+    name: "Skylark", role: "Fast flying eyes. Unarmed.",
     cost: 75, hp: 60, speed: 4.8, sight: 9, domain: "air", armor: "light",
     targets: "none", dps: 0, range: 0,
     buildTime: 4, builtAt: "airpad", radius: 0.3
   },
   stinger: {
-    name: "Stinger", role: "Fast light tank. Beats Flak and Mortars. Can't hit air.",
+    name: "Roadster", role: "Fast light tank. Beats Skyguards and Bombards. Can't hit air.",
     cost: 150, hp: 255, speed: 2.3, sight: 5, domain: "ground", armor: "medium",
     targets: "ground", dps: 22, range: 3.2, shotInterval: 0.6, dmgType: "kinetic", fx: "cannon",
     buildTime: 7, builtAt: "fab-plant", turret: true, radius: 0.38
   },
   "flak-crawler": {
-    name: "Flak Crawler", role: "Anti-air. Shreds drones. Helpless vs ground.",
+    name: "Skyguard", role: "Anti-air. Shreds drones. Helpless vs ground.",
     cost: 190, hp: 285, speed: 1.9, sight: 6, domain: "ground", armor: "medium",
     targets: "air", dps: 31, range: 5, shotInterval: 0.3, dmgType: "flak", fx: "flak",
     buildTime: 8, builtAt: "fab-plant", turret: true, radius: 0.4
   },
   mortar: {
-    name: "Mortar", role: "Long-range splash artillery. Razes bases. Fragile up close.",
+    name: "Bombard", role: "Long-range splash artillery. Razes bases. Fragile up close.",
     cost: 275, hp: 195, speed: 1.5, sight: 6, domain: "ground", armor: "light",
     targets: "ground", dps: 18, range: 8, minRange: 2.5, shotInterval: 3,
     splash: 1.1, projectileSpeed: 5.5, dmgType: "explosive", fx: "shell",
     buildTime: 10, builtAt: "fab-plant", requires: "tech-lab", turret: true, radius: 0.42
   },
   mastodon: {
-    name: "Mastodon", role: "Super-heavy tank. Crushes light armies. Can't hit air.",
+    name: "Behemoth", role: "Super-heavy tank. Crushes light armies. Can't hit air.",
     cost: 475, hp: 1050, speed: 1.2, sight: 6, domain: "ground", armor: "heavy",
     targets: "ground", dps: 46, range: 4, shotInterval: 1.2, dmgType: "cannon", fx: "heavy-cannon",
     buildTime: 15, builtAt: "fab-plant", requires: "tech-lab", turret: true, radius: 0.55
   },
   lancer: {
-    name: "Lancer", role: "Hover laser tank. Burns through armour, hits air too. Crosses water.",
+    name: "Ray Skiff", role: "Hover laser tank. Burns through armour, hits air too. Crosses water.",
     cost: 275, hp: 405, speed: 2.5, sight: 6, domain: "ground", armor: "medium",
     hover: true,
     targets: "both", dps: 28, range: 4.5, shotInterval: 0.8, dmgType: "laser", fx: "laser", airMult: 0.65,
     buildTime: 11, builtAt: "fab-plant", requires: "tech-lab", turret: true, radius: 0.42
   },
   wasp: {
-    name: "Wasp", role: "Strike drone. Rockets ground targets. Dies to Flak.",
+    name: "Comet", role: "Strike drone. Rockets ground targets. Dies to Skyguards.",
     cost: 200, hp: 205, speed: 3.6, sight: 6, domain: "air", armor: "light",
     targets: "ground", dps: 28, range: 3, shotInterval: 1, dmgType: "missile", fx: "rockets",
     buildTime: 8, builtAt: "airpad", radius: 0.35
   },
   raptor: {
-    name: "Raptor", role: "Interceptor. Hunts air units. Can't hit ground.",
+    name: "Jetstream", role: "Interceptor. Hunts air units. Can't hit ground.",
     cost: 250, hp: 265, speed: 4.1, sight: 7, domain: "air", armor: "medium",
     targets: "air", dps: 32, range: 4, shotInterval: 0.8, dmgType: "missile", fx: "missile",
     buildTime: 9, builtAt: "airpad", radius: 0.38
   },
   hornet: {
-    name: "Hornet", role: "Heavy bomber. Carpet-bombs ground and bases. Needs escort.",
+    name: "Thunderhead", role: "Heavy bomber. Carpet-bombs ground and bases. Needs escort.",
     cost: 375, hp: 505, speed: 2.1, sight: 6, domain: "air", armor: "heavy",
     targets: "ground", dps: 36, range: 1.6, shotInterval: 2, splash: 1.1,
     projectileSpeed: 5, dmgType: "explosive", fx: "bomb",
     buildTime: 14, builtAt: "airpad", requires: "tech-lab", radius: 0.5
   },
   mender: {
-    name: "Mender", role: "Repair drone. Heals nearby units and buildings.",
+    name: "Tinker", role: "Repair drone. Heals nearby units and buildings.",
     cost: 150, hp: 180, speed: 3.2, sight: 6, domain: "air", armor: "light",
     targets: "none", dps: 0, range: 3, heal: 10,
     buildTime: 7, builtAt: "airpad", radius: 0.32
   },
   // ---- robot infantry (INFANTRY.md): one sim unit each, drawn as `squad` robots ----
-  // (tuned down from the spec's 225 HP / 18 DPS: cost for cost those beat Stingers by
-  // 0.48 in tools/balance.ts duels; Stingers are meant to handle infantry)
+  // (tuned down from the spec's 225 HP / 18 DPS: cost for cost those beat Roadsters by
+  // 0.48 in tools/balance.ts duels; Roadsters are meant to handle infantry)
   trooper: {
-    name: "Trooper Squad", role: "Cheap rifle bots. Hit ground and air. Take cover in woods.",
+    name: "Tin Soldiers", role: "Cheap rifle bots. Hit ground and air. Take cover in woods.",
     cost: 100, hp: 190, speed: 1.8, sight: 5, domain: "ground", armor: "infantry",
     targets: "both", dps: 15, range: 3, shotInterval: 0.4, dmgType: "kinetic", fx: "rifle", airMult: 0.5,
     buildTime: 6, builtAt: "assembly-bay", radius: 0.4, squad: 5
   },
-  // (the spec's 180 HP and 0.8× vs air lost to Hornets by 0.59 cost for cost — their bombs
+  // (the spec's 180 HP and 0.8× vs air lost to Thunderheads by 0.59 cost for cost — their bombs
   // splash whole clumps of squads; 210 HP and 1.5× vs air kill them, as the role says)
   "rocket-squad": {
-    name: "Rocket Squad", role: "Anti-armour rockets. Kill Mastodons and Hornets. Weak vs infantry.",
+    name: "Bazooka Squad", role: "Anti-armour rockets. Kill Behemoths and Thunderheads. Weak vs infantry.",
     cost: 175, hp: 210, speed: 1.6, sight: 6, domain: "ground", armor: "infantry",
     targets: "both", dps: 26, range: 4, shotInterval: 1.5, dmgType: "cannon", fx: "rockets", airMult: 1.5,
     buildTime: 9, builtAt: "assembly-bay", radius: 0.4, squad: 3
   },
   sniper: {
-    name: "Sniper Team", role: "Long-range marksmen. Delete infantry. Useless vs vehicles.",
+    name: "Longshot Team", role: "Long-range marksmen. Delete infantry. Useless vs vehicles.",
     cost: 200, hp: 120, speed: 1.7, sight: 8, domain: "ground", armor: "infantry",
-    // 50 per shot; precision ×3 vs infantry = 150 (about three Trooper robots)
+    // 50 per shot; precision ×3 vs infantry = 150 (about three Tin Soldier robots)
     targets: "ground", dps: 20, range: 7, shotInterval: 2.5, dmgType: "precision", fx: "snipe",
     buildTime: 10, builtAt: "assembly-bay", requires: "tech-lab", radius: 0.35, squad: 2
   },
   condor: {
-    name: "Condor", role: "Dropship. Carries two infantry squads over anything. Unarmed.",
+    name: "Skyliner", role: "Dropship. Carries two infantry squads over anything. Unarmed.",
     cost: 200, hp: 400, speed: 3.6, sight: 6, domain: "air", armor: "medium",
     targets: "none", dps: 0, range: 0,
     buildTime: 9, builtAt: "airpad", radius: 0.5, capacity: 2
   },
-  // The Goliath fights with GOLIATH.weapons (goliath.ts), not these: they
+  // The Colossus fights with GOLIATH.weapons (goliath.ts), not these: they
   // summarise them for estimates and tooltips (every weapon's DPS together,
   // the mortars' reach). Cost is the first one's: each costs GOLIATH.costStep more.
   goliath: {
-    name: "Goliath", role: "Giant walking mech and mobile base. Anchor it to build, train and unload anywhere.",
+    name: "Colossus", role: "Giant walking mech and mobile base. Anchor it to build, train and unload anywhere.",
     cost: 1600, hp: 3000, speed: 1.0, sight: 10, domain: "ground", armor: "heavy",
     targets: "both", dps: 125, range: 8,
     buildTime: 60, builtAt: "gantry", radius: 1.0, alwaysVisible: true
@@ -210,23 +211,23 @@ export const UNITS: Record<UnitKind, UnitStats> = {
 
 export const BUILDINGS: Record<BuildingKind, BuildingStats> = {
   hq: {
-    name: "HQ", role: "Command centre. Builds Harvesters, takes scrap. Lose it and every Goliath, lose the game.",
+    name: "HQ", role: "Command centre. Builds Prospectors, takes scrap. Lose it and every Colossus, lose the game.",
     cost: 0, hp: 3200, sight: 7, size: 3, buildTime: 0, dropOff: true,
     // point defence: swats early drone raids, leaves ground assaults to real defences
     targets: "air", dps: 9, range: 4.5, shotInterval: 0.5, dmgType: "kinetic", fx: "mg"
   },
   "fab-plant": {
-    name: "Fab Plant", role: "Builds ground vehicles.",
+    name: "Motor Works", role: "Builds ground vehicles.",
     cost: 300, hp: 1000, sight: 4, size: 2, buildTime: 10,
     targets: "none", dps: 0, range: 0
   },
   airpad: {
-    name: "Airpad", role: "Builds flying drones.",
+    name: "Aerodrome", role: "Builds flying drones.",
     cost: 350, hp: 850, sight: 4, size: 2, buildTime: 12,
     targets: "none", dps: 0, range: 0
   },
   "tech-lab": {
-    name: "Tech Lab", role: "Unlocks Mortar, Mastodon, Lancer, Hornet and Sniper.",
+    name: "Atomic Lab", role: "Unlocks Bombard, Behemoth, Ray Skiff, Thunderhead and Longshot.",
     cost: 450, hp: 800, sight: 4, size: 2, buildTime: 20, requires: ["fab-plant", "airpad", "assembly-bay"],
     targets: "none", dps: 0, range: 0
   },
@@ -236,12 +237,12 @@ export const BUILDINGS: Record<BuildingKind, BuildingStats> = {
     targets: "none", dps: 0, range: 0
   },
   turret: {
-    name: "Turret", role: "Autocannon defence. Hits ground and air.",
+    name: "Pillbox", role: "Autocannon defence. Hits ground and air.",
     cost: 225, hp: 650, sight: 6, size: 1, buildTime: 8,
     targets: "both", dps: 26, range: 4.5, shotInterval: 0.5, dmgType: "kinetic", fx: "cannon"
   },
   "sam-site": {
-    name: "SAM Site", role: "Long-range anti-air missiles.",
+    name: "Sky Battery", role: "Long-range anti-air missiles.",
     cost: 275, hp: 560, sight: 7, size: 1, buildTime: 9,
     targets: "air", dps: 32, range: 6.5, shotInterval: 1.2, dmgType: "missile", fx: "missile"
   },
@@ -251,12 +252,12 @@ export const BUILDINGS: Record<BuildingKind, BuildingStats> = {
     targets: "none", dps: 0, range: 0
   },
   "assembly-bay": {
-    name: "Assembly Bay", role: "Builds robot infantry.",
+    name: "Robot Foundry", role: "Builds robot infantry.",
     cost: 250, hp: 700, sight: 4, size: 2, buildTime: 15,
     targets: "none", dps: 0, range: 0
   },
   gantry: {
-    name: "Gantry", role: "Builds the Goliath. One per side, and the enemy can always see it.",
+    name: "Gantry", role: "Builds the Colossus. One per side, and the enemy can always see it.",
     cost: 600, hp: 1200, sight: 5, size: 3, buildTime: 25,
     requiresAll: ["fab-plant", "airpad", "tech-lab", "assembly-bay"], unique: true, alwaysVisible: true,
     targets: "none", dps: 0, range: 0
@@ -271,7 +272,7 @@ export const DAMAGE_VS: Record<DamageType, Record<ArmorClass, number>> = {
   missile: { light: 1.15, medium: 1.0, heavy: 0.9, structure: 0.6, infantry: 0.7 },
   explosive: { light: 1.2, medium: 0.9, heavy: 0.85, structure: 1.35, infantry: 1.3 },
   laser: { light: 1.0, medium: 1.0, heavy: 1.55, structure: 0.8, infantry: 0.7 },
-  // Sniper rail-rifles: deadly to robot infantry, next to useless against armour
+  // Longshot rail-rifles: deadly to robot infantry, next to useless against armour
   precision: { light: 0.6, medium: 0.4, heavy: 0.25, structure: 0.15, infantry: 3.0 }
 };
 
@@ -307,9 +308,9 @@ export const TERRAIN: Record<Terrain, TerrainInfo> = {
 };
 
 /**
- * The island map's free replacement Condor (lifeline.ts): a side with no
- * Condor (none flying, none being built) gets one `delay` s later, flown in
- * from the map edge nearest its HQ. It brings a free Trooper Squad only while
+ * The island map's free replacement Skyliner (lifeline.ts): a side with no
+ * Skyliner (none flying, none being built) gets one `delay` s later, flown in
+ * from the map edge nearest its HQ. It brings a free Tin Soldiers only while
  * the side has fewer than `squadUnder` squads, so it rescues a side that has
  * lost its infantry and can't be farmed for troops.
  */
@@ -354,8 +355,8 @@ export const COMBAT = {
   /** Idle allies this close to a victim join in its defence. */
   assistRadius: 5,
   /**
-   * Auto-targeting reckons an enemy Mender this many tiles closer than it is,
-   * and a unit that can hit one drops its current auto-target for a Mender
+   * Auto-targeting reckons an enemy Tinker this many tiles closer than it is,
+   * and a unit that can hit one drops its current auto-target for a Tinker
    * in weapon range: kill the healer first, or the fight never ends.
    */
   healerPriority: 2.5,
@@ -368,35 +369,35 @@ export const COMBAT = {
 };
 
 /**
- * Robot infantry and the Condor dropship (INFANTRY.md; infantry.ts,
+ * Robot infantry and the Skyliner dropship (INFANTRY.md; infantry.ts,
  * transport.ts). Squads are single sim units drawn as several robots.
  */
 export const INFANTRY = {
   /** Damage multiplier for a squad standing in Woods (vehicles get TERRAIN cover 0.7). */
   woodsCover: 0.5,
-  /** A Sniper Team in Woods is only seen by enemies this close (tiles)… */
+  /** A Longshot Team in Woods is only seen by enemies this close (tiles)… */
   concealRadius: 3,
   /** …until this many seconds after it fires. */
   concealAfterShot: 2,
-  /** HP/s a moving Mastodon deals to an enemy squad it rolls over. */
+  /** HP/s a moving Behemoth deals to an enemy squad it rolls over. */
   crushDps: 30,
-  /** A Mastodon crushes squads whose centre is within its radius + this (tiles). */
+  /** A Behemoth crushes squads whose centre is within its radius + this (tiles). */
   crushReach: 0.15,
   /** Uplink capture weight of a squad (vehicles count 1, aircraft 0.5). */
   captureWeight: 2,
-  /** Seconds a squad takes to climb aboard once it is within `boardRange` of the Condor. */
+  /** Seconds a squad takes to climb aboard once it is within `boardRange` of the Skyliner. */
   boardTime: 1,
-  /** Horizontal distance (tiles) between squad and Condor that counts as adjacent. */
+  /** Horizontal distance (tiles) between squad and Skyliner that counts as adjacent. */
   boardRange: 1.2,
-  /** Seconds a Condor hovers over the drop point before the squads are down. */
+  /** Seconds a Skyliner hovers over the drop point before the squads are down. */
   unloadHover: 1.5,
   /** How far (tiles) a drop may snap to find a tile infantry can stand on (past that: the nearest anywhere). */
   dropSearch: 6,
   /** Squads set down (dropped or bailed out) keep their centre this far (tiles) from ground they can't stand on and the map's edge: their robots stand around it. */
   dropClear: 0.4,
-  /** After a drop the Condor backs off this far (tiles) the way it came, off its squads' heads. */
+  /** After a drop the Skyliner backs off this far (tiles) the way it came, off its squads' heads. */
   dropBackOff: 1.5,
-  /** A Condor shot down over walkable ground: passengers bail out with at most this share of their max HP. */
+  /** A Skyliner shot down over walkable ground: passengers bail out with at most this share of their max HP. */
   bailoutHp: 0.5
 };
 
@@ -466,7 +467,7 @@ export const POWERS = {
     /** Light impact on enemy ground units right under the pod. */
     damage: 60,
     units: ["stinger", "stinger", "flak-crawler"] as UnitKind[],
-    /** With a Tech Lab standing. */
+    /** With an Atomic Lab standing. */
     techUnits: ["lancer", "lancer", "flak-crawler"] as UnitKind[]
   },
   hammer: {
@@ -532,7 +533,7 @@ export const OBJECTIVES = {
   }
 };
 
-/** One Goliath weapon system: a weapon, and the share of max HP below which damage takes it offline. */
+/** One Colossus weapon system: a weapon, and the share of max HP below which damage takes it offline. */
 export interface GoliathWeaponStats extends ArmedStats {
   name: string;
   /** Offline below this share of max HP (0: never — the machine guns). */
@@ -540,20 +541,20 @@ export interface GoliathWeaponStats extends ArmedStats {
 }
 
 /**
- * The Goliath (GOLIATH.md; goliath.ts, lift.ts) and its Gantry. Every number
+ * The Colossus (GOLIATH.md; goliath.ts, lift.ts) and its Gantry. Every number
  * here is a starting point for tuning with tools/balance.ts, not a promise.
  */
 export const GOLIATH = {
-  /** Each Goliath costs this much more (share of list price) for every one the side already has (alive, or on the Gantry). */
+  /** Each Colossus costs this much more (share of list price) for every one the side already has (alive, or on the Gantry). */
   costStep: 0.25,
-  /** Goliaths a Gantry queues at once (one on the cradle). */
+  /** Colossi a Gantry queues at once (one on the cradle). */
   queueMax: 1,
-  /** Build share past which the enemy hears "Enemy Goliath nearly complete". */
+  /** Build share past which the enemy hears "Enemy Colossus nearly complete". */
   nearlyDone: 0.85,
   /** Seconds to dig in (anchor), and to pack up again: leaving under fire is the risky moment. */
   anchorTime: 4,
   packTime: 6,
-  /** Footprint edge (tiles) of the ground it needs to anchor on: buildable, nothing in the way. Harvesters dock at its edge. */
+  /** Footprint edge (tiles) of the ground it needs to anchor on: buildable, nothing in the way. Prospectors dock at its edge. */
   footprint: 2,
   /** Anchored: buildings may go up this far (tiles) from its centre to their footprint, as outposts. */
   buildRing: 3,
@@ -562,16 +563,16 @@ export const GOLIATH = {
   /** …once HP is back this share of max above the line where it went offline (no flicker at the line). */
   restoreMargin: 0.05,
   /**
-   * Weapon strength ≈ 2 Mortars, 1 Lancer, 1 Mastodon and 1 Trooper Squad
+   * Weapon strength ≈ 2 Bombards, 1 Ray Skiff, 1 Behemoth and 1 Tin Soldiers
    * (≈ 1,400 scrap of firepower), lost in this order as its health falls.
    */
   weapons: {
-    // two shoulder tubes taking turns: a Mortar shell every 1.5 s. (A tighter
-    // burst than the Mortar's 1.1: at 1.1 a cost-equal group of Rocket Squads
+    // two shoulder tubes taking turns: a Bombard shell every 1.5 s. (A tighter
+    // burst than the Bombard's 1.1: at 1.1 a cost-equal group of Bazooka Squads
     // only edged it, −0.14 in tools/balance.ts goliath duels; at 0.9, −0.39,
-    // a real answer like Lancers, Wasps and Hornets, and it still beats Troopers.)
+    // a real answer like Ray Skiffs, Comets and Thunderheads, and it still beats Tin Soldiers.)
     mortars: {
-      name: "Mortars", lostBelow: 0.75,
+      name: "Bombards", lostBelow: 0.75,
       targets: "ground", dps: 36, range: 8, minRange: 2.5, shotInterval: 1.5,
       splash: 0.9, projectileSpeed: 5.5, dmgType: "explosive", fx: "shell"
     },
@@ -579,7 +580,7 @@ export const GOLIATH = {
       name: "Eye laser", lostBelow: 0.5,
       targets: "both", dps: 28, range: 4.5, shotInterval: 0.8, dmgType: "laser", fx: "laser", airMult: 0.65
     },
-    // two arm cannons taking turns: a Mastodon's damage, half a shell at a time
+    // two arm cannons taking turns: a Behemoth's damage, half a shell at a time
     cannons: {
       name: "Arm cannons", lostBelow: 0.25,
       targets: "ground", dps: 46, range: 4, shotInterval: 0.6, dmgType: "cannon", fx: "heavy-cannon"
@@ -589,27 +590,27 @@ export const GOLIATH = {
       targets: "both", dps: 15, range: 3, shotInterval: 0.4, dmgType: "kinetic", fx: "mg", airMult: 0.5
     }
   } as Record<"mortars" | "laser" | "cannons" | "mg", GoliathWeaponStats>,
-  /** Two-Condor lift (lift.ts). */
+  /** Two-Skyliner lift (lift.ts). */
   lift: {
-    /** Lift speed as a share of the Condor's. */
+    /** Lift speed as a share of the Skyliner's. */
     speedMult: 0.5,
-    /** Dropped over land (a Condor shot down): this share of max HP in damage. Over water, sea, lava or rock: destroyed. */
+    /** Dropped over land (a Skyliner shot down): this share of max HP in damage. Over water, sea, lava or rock: destroyed. */
     dropDamage: 0.25,
-    /** Each Condor hooks on this far (tiles) to either side of the Goliath's centre. */
+    /** Each Skyliner hooks on this far (tiles) to either side of the Colossus's centre. */
     span: 1.1,
-    /** A Condor within this distance (tiles) of its hook point has hooked on. */
+    /** A Skyliner within this distance (tiles) of its hook point has hooked on. */
     hookRange: 0.3,
-    /** A set-down point that isn't ground a Goliath can stand on snaps to the nearest that is, this far (tiles) at most. */
+    /** A set-down point that isn't ground a Colossus can stand on snaps to the nearest that is, this far (tiles) at most. */
     setDownSearch: 6
   },
-  /** A destroyed Goliath scatters this share of its list price over `piles` scrap piles across ~2×`spread` tiles. */
+  /** A destroyed Colossus scatters this share of its list price over `piles` scrap piles across ~2×`spread` tiles. */
   salvage: { share: 0.3, piles: [6, 8] as [number, number], spread: 2.5 },
   /** A Gantry destroyed mid-build scatters this share of the scrap paid × the build's progress, in up to `piles` piles. */
   gantrySalvage: { share: 0.3, piles: 4, spread: 2.5 },
   /** Seconds a scrap pile lies before it burns out (longer than a wreck: holding the ground pays). */
   pileTtl: 90,
-  /** Robot Love mutator: enemy Goliaths this close (tiles, centre to centre) fall in love, and the match is a draw. */
+  /** Robot Love mutator: enemy Colossi this close (tiles, centre to centre) fall in love, and the match is a draw. */
   love: { range: 5 },
-  /** Goliath Armada mutator: the four starting Goliaths hang this far (tiles) either way of the HQ's centre, on each axis (lift.ts armadaStart). */
+  /** Colossus Armada mutator: the four starting Colossi hang this far (tiles) either way of the HQ's centre, on each axis (lift.ts armadaStart). */
   armada: { gap: 2.2 }
 };

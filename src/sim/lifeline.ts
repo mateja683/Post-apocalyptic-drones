@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, LIFELINE, TICK_RATE } from "./balance";
 import { isInfantry } from "./infantry";
 import { applySpawnRank, bannedBy, rulesOf } from "./rules";
@@ -9,18 +10,18 @@ import { atan2 } from "./fmath";
 import { perSide, sidesOf } from "./sides";
 
 /**
- * The free replacement Condor (the island map: MapDef.lifeline). Its island
+ * The free replacement Skyliner (the island map: MapDef.lifeline). Its island
  * Uplinks can only be taken by infantry flown in, so a side must never be
- * left with no way to fly: when a side has no Condor — none in the air, none
- * on an Airpad's queue — a free one is due LIFELINE.delay s later. It flies
+ * left with no way to fly: when a side has no Skyliner — none in the air, none
+ * on an Aerodrome's queue — a free one is due LIFELINE.delay s later. It flies
  * in from the map edge nearest the HQ and sets down beside it, carrying a
- * free Trooper Squad if the side is short of infantry (LIFELINE.squadUnder).
- * A side with no HQ but a Goliath (Nomads, or fighting on after the HQ fell)
- * is still in the match: its Condor comes to the Goliath (an anchored one
+ * free Tin Soldiers if the side is short of infantry (LIFELINE.squadUnder).
+ * A side with no HQ but a Colossus (Nomads, or fighting on after the HQ fell)
+ * is still in the match: its Skyliner comes to the Colossus (an anchored one
  * first) instead.
  *
  * Free units (Unit.free) leave no wreck and charge no ⚡ meter when lost, so
- * throwing a Condor away gains nothing: a bought one comes back as a free one
+ * throwing a Skyliner away gains nothing: a bought one comes back as a free one
  * only after the delay, and the squad only when the side really needs it.
  */
 
@@ -28,14 +29,14 @@ export function setupLifeline(w: World): void {
   w.lifeline = perSide(() => ({ due: null, given: 0 }));
 }
 
-/** Does this side have a Condor flying, or one being built? */
+/** Does this side have a Skyliner flying, or one being built? */
 export function hasCondor(w: World, f: Faction): boolean {
   for (const u of w.units.values()) if (u.faction === f && u.kind === "condor") return true;
   for (const b of w.buildings.values()) if (b.faction === f && b.queue.some((q) => q.kind === "condor")) return true;
   return false;
 }
 
-/** Robot infantry squads this side has, on the field or aboard a Condor. */
+/** Robot infantry squads this side has, on the field or aboard a Skyliner. */
 export function squadCount(w: World, f: Faction): number {
   let n = 0;
   for (const u of w.units.values()) {
@@ -46,11 +47,11 @@ export function squadCount(w: World, f: Faction): number {
   return n;
 }
 
-/** Where a side's replacement Condor appears and where it sets down (world coords). */
+/** Where a side's replacement Skyliner appears and where it sets down (world coords). */
 export function lifelineRoute(w: World, f: Faction): { from: { x: number; y: number }; to: { x: number; y: number } } | null {
   const hq = hqOf(w, f);
   const s = BUILDINGS.hq.size;
-  // (no HQ: its base is its Goliath, the dug-in one first, the oldest of a kind)
+  // (no HQ: its base is its Colossus, the dug-in one first, the oldest of a kind)
   const gs = hq ? [] : goliathsOf(w, f);
   const g = gs.find(isAnchored) ?? gs[0];
   const home = hq ? { x: hq.tx + s / 2, y: hq.ty + s / 2 } : g ? { x: g.x, y: g.y } : null;
@@ -72,7 +73,7 @@ export function lifelineRoute(w: World, f: Faction): { from: { x: number; y: num
   return { from: fr.toWorld(near.p), to: fr.toWorld(to) };
 }
 
-/** Per tick, after deaths are settled: start, run and pay out each side's free-Condor clock. */
+/** Per tick, after deaths are settled: start, run and pay out each side's free-Skyliner clock. */
 export function tickLifeline(w: World): void {
   const lines = w.lifeline;
   if (!lines || w.winner || !rulesOf(w).lifeline) return;

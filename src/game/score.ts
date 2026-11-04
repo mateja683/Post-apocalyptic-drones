@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The adaptive soundtrack's composition rules: biome flavours (mode, chord
  * progression, timbres), voice leading, bass / drum / arp / melody patterns,
@@ -633,8 +634,8 @@ export type StingerKind = "victory" | "defeat" | "draw" | "epic" | "bad" | "good
 /**
  * Which stinger an announcement earns (music.ts plays it at the next beat),
  * or null. Only lines at priority 2 or better get one: first blood its own,
- * 'epic' a rising call (an enemy Goliath or HQ destroyed), 'bad' a warning
- * stab (an enemy Goliath on the field, our HQ fallen), and 'good' only when
+ * 'epic' a rising call (an enemy Colossus or HQ destroyed), 'bad' a warning
+ * stab (an enemy Colossus on the field, our HQ fallen), and 'good' only when
  * it is important. Kind-agnostic on purpose: a feature's banner tone and
  * priority are its music cue.
  */
@@ -772,7 +773,7 @@ export interface MoodHooks {
   threatened?(x: number, y: number, r: number): boolean;
   /**
    * Is this unit of ours part of the base (awareness.ts baseGoliath: an
-   * anchored Goliath, or any Goliath once the HQ is gone)? Hits on it raise
+   * anchored Colossus, or any Colossus once the HQ is gone)? Hits on it raise
    * the base alarm like hits on a building. (Default: no.)
    */
   baseUnit?(id: number): boolean;
@@ -826,7 +827,7 @@ export class BattleMood {
         case "hit":
           if (h.spectator ? e.building && h.sees(e.x, e.y) && h.earshot(e.x, e.y) > 0.3 : e.faction === h.player) {
             if (!h.spectator) this.contactAt = t;
-            // (a Goliath that is our base, or our last life, sounds the alarm like a building)
+            // (a Colossus that is our base, or our last life, sounds the alarm like a building)
             if (e.building || (!h.spectator && h.baseUnit?.(e.id))) this.buildingHit(t);
           }
           break;

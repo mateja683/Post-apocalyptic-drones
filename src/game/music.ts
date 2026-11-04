@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * The adaptive procedural soundtrack. A lookahead scheduler on the
  * AudioContext clock (not setTimeout timing) asks the Composer (score.ts)
@@ -5,7 +6,7 @@
  * there, a calm melody while you build, a bass pulse once units are in
  * contact, drums when a fight is on screen and an arpeggio when it gets
  * intense (with a tritone alarm while your base is hit). Each biome has
- * its own mode, progression and timbres. Stingers mark victory, defeat and
+ * its own mode, progression and timbres. Roadsters mark victory, defeat and
  * announced big moments; the score is ducked by big sounds (audio.ts),
  * muffled while paused, and stops when the tab is hidden. A quiet biome
  * ambience bed (ambience.ts) rides under it.

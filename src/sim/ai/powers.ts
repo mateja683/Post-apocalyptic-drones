@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, POWERS, TICK_RATE, UNITS } from "../balance";
 import { isVisible, knownBuildings } from "../fog";
 import { canWalk } from "../goliath";
@@ -71,8 +72,8 @@ export function dodgeCalldowns(w: World, faction: Faction, s: AiState): Command[
     const reach = c.radius + 0.7;
     for (const u of w.units.values()) {
       if (u.faction !== faction) continue;
-      // (not a Goliath that can't walk off — a move packs a dug-in one up — nor a lift: a move to
-      // one of its Condors would fly the Goliath off course)
+      // (not a Colossus that can't walk off — a move packs a dug-in one up — nor a lift: a move to
+      // one of its Skyliners would fly the Colossus off course)
       if (!canWalk(u) || u.order.type === "lift") continue;
       const d = hypot(u.x - c.x, u.y - c.y);
       if (d > reach) continue;
@@ -201,7 +202,7 @@ function podSite(w: World, faction: Faction, x: number, y: number): { x: number;
 
 const value = (us: Unit[]) => us.reduce((v, u) => v + UNITS[u.kind].cost, 0);
 const PRODUCTION: BuildingKind[] = ["fab-plant", "airpad", "assembly-bay", "tech-lab", "gantry"];
-/** A Sky Hammer's worth of a building it catches: production 1.5, a Gantry with a Goliath on the cradle (all that progress lost) 3. */
+/** A Sky Hammer's worth of a building it catches: production 1.5, a Gantry with a Colossus on the cradle (all that progress lost) 3. */
 const hammerWorth = (w: World, kb: { id: number; kind: BuildingKind }): number =>
   kb.kind === "gantry" && w.buildings.get(kb.id)?.queue[0]?.kind === "goliath"
     ? 3
@@ -221,7 +222,7 @@ export function planCalldowns(w: World, faction: Faction, s: AiState, ctx: Calld
     return true;
   };
   const ready = (p: PowerKind) => powerStatus(w, faction, p).ready;
-  const visibleEnemies = seenEnemies(w, faction); // (a Sniper Team hidden in the woods isn't aimed at)
+  const visibleEnemies = seenEnemies(w, faction); // (a Longshot Team hidden in the woods isn't aimed at)
   const armed = visibleEnemies.filter((u) => UNITS[u.kind].dps > 0 || UNITS[u.kind].heal);
 
   // --- Sky Hammer: a rich clump, else production, else the HQ -------------
@@ -259,12 +260,12 @@ export function planCalldowns(w: World, faction: Faction, s: AiState, ctx: Calld
 
   // --- Barrage: the best visible ground clump (Easy never shells) ---------
   if (s.difficulty !== "easy" && ready("barrage")) {
-    const ground = visibleEnemies.filter((u) => domainOf(u) === "ground"); // (a Goliath on a lift is in the air)
+    const ground = visibleEnemies.filter((u) => domainOf(u) === "ground"); // (a Colossus on a lift is in the air)
     const clump = bestClump(ground, BARRAGE_SPREAD, (u) => UNITS[u.kind].cost * (isStunned(w, u.id) ? 1.5 : 1));
     if (clump && clump.value >= BARRAGE_MIN && fire("barrage", clump.x, clump.y)) return cmds;
   }
 
-  // --- an enemy Goliath being mended: an EMP blocks its repair and freezes its Menders
+  // --- an enemy Colossus being mended: an EMP blocks its repair and freezes its Tinkers
   // (only from surplus charge, and with our units there to make the most of it)
   if (ready("emp") && w.powers.meter[faction] >= OFFENCE_RESERVE) {
     for (const e of visibleEnemies) {

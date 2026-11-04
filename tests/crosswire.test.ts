@@ -142,7 +142,7 @@ describe("chronicle and report", () => {
       rec(35, "blue")
     ];
     const m = moments({ samples: [], deaths, refs }, "blue");
-    expect(m.find((x) => x.kind === "first-blood")!.text).toBe("Your Barrage took out their Stinger");
+    expect(m.find((x) => x.kind === "first-blood")!.text).toBe("Your Barrage took out their Roadster");
     expect(m.find((x) => x.kind === "battle")!.text).toBe("Mid-map: you lost 2, they lost 5 (4 to your Barrage)");
     const spec = moments({ samples: [], deaths, refs }, null);
     expect(spec.find((x) => x.kind === "battle")!.text).toContain(`(4 to ${SIDE_NAME.blue}'s Barrage)`);
@@ -200,7 +200,7 @@ describe("callouts and calldowns", () => {
       run(w, 60, [call("blue", "barrage", 20.3, 20.3)], (fx) => r.c.events(fx, w.tick / TICK_RATE));
       return r.banners;
     };
-    expect(strike(false)[0]).toMatchObject({ key: "first-blood", sub: "Enemy Stinger destroyed by a Barrage" });
+    expect(strike(false)[0]).toMatchObject({ key: "first-blood", sub: "Enemy Roadster destroyed by a Barrage" });
     expect(strike(true).find((b) => b.key === "streak-3")).toMatchObject({ text: "Triple kill", sub: "Barrage", say: "Barrage: triple kill" });
   });
 
@@ -289,13 +289,13 @@ describe("hotspots and hero toasts", () => {
     hp.handleFx(impact({ faction: "red", power: "hammer", radius: 2.5 }));
     hp.handleFx(death(vet));
     hp.flush();
-    expect(notes[0]).toMatch(/^✝ \w+ \(Stinger, 7 kills\) destroyed by the enemy Sky Hammer$/);
+    expect(notes[0]).toMatch(/^✝ \w+ \(Roadster, 7 kills\) destroyed by the enemy Sky Hammer$/);
     // an enemy ace downed by our Barrage
     w.tick++;
     hp.handleFx(impact({ faction: "blue" }));
     hp.handleFx(death({ id: 502, rank: 3, kills: 4, killerId: hqOf(w, "blue")!.id }));
     hp.flush();
-    expect(notes[1]).toMatch(/^🎯 Enemy ace \w+ \(Stinger, 4 kills\) down to your Barrage$/);
+    expect(notes[1]).toMatch(/^🎯 Enemy ace \w+ \(Roadster, 4 kills\) down to your Barrage$/);
   });
 });
 

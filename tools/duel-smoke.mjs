@@ -583,7 +583,7 @@ const orders = (p) =>
     .catch((e) => String(e));
 const fabsBefore = await fabs(phones.host);
 for (const p of [phones.host, phones.guest]) {
-  await btn(p, "Fab").dispatchEvent("click");
+  await btn(p, "Motor").dispatchEvent("click");
   // (on its way: in the Controller's queue until the next step drains it, then in flight, or already the build slot's)
   const o = await orders(p);
   check(o.queue?.includes("startBuilding") || o.inFlight?.includes("startBuilding") || o.pending === "fab-plant", `the ${p.name}'s Fab tap made no order: ${JSON.stringify(o)}`);

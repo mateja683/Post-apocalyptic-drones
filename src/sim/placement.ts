@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Building placement helpers for the player's touch flow (and anything else
  * that wants to explain or suggest a spot). The rule itself stays
@@ -80,7 +81,7 @@ export function placementBlocker(
 
 /**
  * Is a footprint centred at (cx, cy) within build range of `faction`'s base?
- * Outposts (built in a Goliath's ring) never count as base; the rings
+ * Outposts (built in a Colossus's ring) never count as base; the rings
  * themselves are inGoliathRing.
  */
 export function inBuildRange(w: World, faction: Faction, cx: number, cy: number): boolean {
@@ -121,7 +122,7 @@ export function suggestPlacement(
   const seen = new Set<number>();
   let best: { tx: number; ty: number } | null = null;
   let bestScore = Infinity;
-  // search around the base's buildings (not outposts: they don't count) and anchored Goliaths' rings
+  // search around the base's buildings (not outposts: they don't count) and anchored Colossi' rings
   const centres: { c: { x: number; y: number }; r: number }[] = [];
   for (const b of w.buildings.values())
     if (b.faction === faction && !b.outpost) centres.push({ c: buildingCenter(b), r: Math.ceil(ECONOMY.buildRadius + size) });

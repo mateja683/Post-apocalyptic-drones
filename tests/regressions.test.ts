@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { BUILDINGS, TICK_RATE, UNITS } from "../src/sim/balance";
@@ -27,7 +28,7 @@ import {
 describe("AI assault waves (sim-1)", () => {
   it("a remembered building removed out of sight doesn't freeze a staged wave", () => {
     const w = createSkirmishWorld();
-    // a low assault bar so eight Stingers are a launchable wave
+    // a low assault bar so eight Roadsters are a launchable wave
     const s = createAiState("rush", "normal", 1, { assaultValue: 800 });
     const hq = hqOf(w, "red")!;
     const hqC = buildingCenter(hq);
@@ -38,7 +39,7 @@ describe("AI assault waves (sim-1)", () => {
     const wave = Array.from({ length: 8 }, (_, i) =>
       spawnUnit(w, "stinger", "red", stage.x + (i % 3) - 1, stage.y + Math.floor(i / 3) - 1)
     );
-    // red once scouted a blue Fab Plant; it is sold (or shelled) while nothing red can see it
+    // red once scouted a blue Motor Works; it is sold (or shelled) while nothing red can see it
     const fab = spawnBuilding(w, "fab-plant", "blue", 14, 12);
     w.fog.red.known.set(fab.id, { id: fab.id, kind: fab.kind, faction: fab.faction, tx: fab.tx, ty: fab.ty });
     removeBuilding(w, fab);
@@ -166,7 +167,7 @@ describe("AI veterans and the dodge reflex (merge-veteran-retreat-overrides-dodg
     spawnBuilding(w, "hq", "blue", 2, 2);
     const hq = buildingCenter(spawnBuilding(w, "hq", "red", 35, 35));
     w.powers.meter.blue = 100;
-    // a rank-2 Mastodon at 30% HP, 9 tiles out from its HQ; a Barrage lands just on the home side of it
+    // a rank-2 Behemoth at 30% HP, 9 tiles out from its HQ; a Barrage lands just on the home side of it
     const t = spawnUnit(w, "mastodon", "red", hq.x - 6.4, hq.y - 6.4);
     t.rank = 2;
     t.hp = UNITS.mastodon.hp * 0.3;

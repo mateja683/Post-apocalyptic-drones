@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { COMBAT, ECONOMY, UNITS } from "./balance";
 import type { Strategy } from "./ai/commander";
 import type { BuildingKind, Faction, Unit, UnitKind, World } from "./types";
@@ -43,7 +44,7 @@ export interface Rules {
   fogOff: boolean;
   /** Veterancy rank that produced combat units start at. */
   startRank: number;
-  /** Units each side starts with beside its HQ, on top of the classic harvester and Trooper Squad. */
+  /** Units each side starts with beside its HQ, on top of the classic harvester and Tin Soldiers. */
   startUnits: UnitKind[];
   /** The mutators these rules came from, in canonical order (display, career). */
   mutators: MutatorId[];
@@ -60,32 +61,32 @@ export interface Rules {
   noCalldowns?: boolean;
   /** The map's HQ trickle, scrap/s (default ECONOMY.hqTrickle). */
   hqTrickle?: number;
-  /** The map hands a side with no Condor a free one (lifeline.ts). */
+  /** The map hands a side with no Skyliner a free one (lifeline.ts). */
   lifeline?: boolean;
   /**
-   * The map has islands only a Condor can reach: buildings, production and
+   * The map has islands only a Skyliner can reach: buildings, production and
    * Drop Pods stay on land joined to the side's HQ (world.ts onHomeLand).
    */
   islands?: boolean;
   /**
-   * Nomads: each side starts with an anchored Goliath where its HQ would
-   * stand, and no HQ. Anchored Goliaths also build Harvesters (goliath.ts
+   * Nomads: each side starts with an anchored Colossus where its HQ would
+   * stand, and no HQ. Anchored Colossi also build Prospectors (goliath.ts
    * trainableAt); every building is an outpost of one.
    */
   nomads?: boolean;
-  /** Robot Love: two enemy Goliaths within GOLIATH.love.range fall in love and the match is a draw (goliath.ts tickLove). */
+  /** Robot Love: two enemy Colossi within GOLIATH.love.range fall in love and the match is a draw (goliath.ts tickLove). */
   robotLove?: boolean;
   /**
-   * Goliath Armada: each side starts with GOLIATH.armada.count Goliaths in
-   * the air, each carried by two Condors, and nothing else: no HQ, no
-   * Harvester, no squad, no opener (goliath.ts armadaStart). As under Nomads,
-   * anchored Goliaths also build Harvesters and every building is an outpost.
+   * Colossus Armada: each side starts with GOLIATH.armada.count Colossi in
+   * the air, each carried by two Skyliners, and nothing else: no HQ, no
+   * Prospector, no squad, no opener (goliath.ts armadaStart). As under Nomads,
+   * anchored Colossi also build Prospectors and every building is an outpost.
    */
   armada?: boolean;
   /**
    * Island maps: the tile at the centre of each side's starting HQ, so home
    * land is still known once the HQ has fallen (or, under Nomads, was never
-   * built) and the side plays on round a Goliath (world.ts onHomeLand).
+   * built) and the side plays on round a Colossus (world.ts onHomeLand).
    */
   homeTiles?: Partial<Record<Faction, [number, number]>>;
 }
@@ -116,22 +117,22 @@ export interface MutatorDef {
   conflicts?: MutatorId[];
 }
 
-/** Ground combat units: the tanks, the robot infantry squads and the Goliath. */
+/** Ground combat units: the tanks, the robot infantry squads and the Colossus. */
 export const GROUND_COMBAT: UnitKind[] = ["stinger", "flak-crawler", "mortar", "mastodon", "lancer", "trooper", "rocket-squad", "sniper", "goliath"];
 
 /**
  * What "no ground combat" bans (Air War, Sky Pirates): GROUND_COMBAT, and the
- * Condor — the starting Trooper Squad is kept to guard home, and a dropship
+ * Skyliner — the starting Tin Soldiers is kept to guard home, and a dropship
  * would fly it into the fight.
  */
 export const NO_GROUND_COMBAT: UnitKind[] = [...GROUND_COMBAT, "condor"];
 
-/** Robot infantry: the squads an Assembly Bay builds. */
+/** Robot infantry: the squads a Robot Foundry builds. */
 export const INFANTRY_SQUADS: UnitKind[] = ["trooper", "rocket-squad", "sniper"];
 
 /**
- * What Infantry War bans: every combat vehicle and combat aircraft. Harvesters,
- * Scouts, Menders and the Condor stay (none of them fights).
+ * What Infantry War bans: every combat vehicle and combat aircraft. Prospectors,
+ * Skylarks, Tinkers and the Skyliner stay (none of them fights).
  */
 export const NO_VEHICLES: UnitKind[] = [
   ...GROUND_COMBAT.filter((k) => !INFANTRY_SQUADS.includes(k)),
@@ -173,13 +174,13 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     id: "airwar",
     name: "Air War",
     icon: "✈️",
-    // SAM sites go too: measured, aircraft-only armies never crack a SAM line (every
+    // Sky Batteries go too: measured, aircraft-only armies never crack a SAM line (every
     // AI-vs-AI Air War drew at 25:00); turrets and the HQ gun still shoot back.
-    // Infantry and their Assembly Bay are ground combat too (the starting squad stays home,
-    // so no Condor either: NO_GROUND_COMBAT)
-    desc: "No ground combat units, Condors, Fab Plants, Assembly Bays or SAM sites: dogfights decide it",
+    // Infantry and their Robot Foundry are ground combat too (the starting squad stays home,
+    // so no Skyliner either: NO_GROUND_COMBAT)
+    desc: "No ground combat units, Skyliners, Motor Works, Robot Foundries or Sky Batteries: dogfights decide it",
     bansUnits: NO_GROUND_COMBAT,
-    // (and no Goliath, which Nomads, Robot Love and Goliath Armada are about)
+    // (and no Colossus, which Nomads, Robot Love and Colossus Armada are about)
     conflicts: ["infantrywar", "airborne", "nomads", "robotlove", "armada"],
     bansBuildings: ["fab-plant", "assembly-bay", "sam-site"],
     apply: (r) => {
@@ -191,9 +192,9 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     id: "infantrywar",
     name: "Infantry War",
     icon: "🤖",
-    // the Airpad stays for Condors, Scouts and Menders; Turrets and SAM sites stay too
-    // (Rocket Squads crack them, and SAMs are the answer to Condor drops)
-    desc: "Robot infantry only: no combat vehicles, combat aircraft or Fab Plants",
+    // the Aerodrome stays for Skyliners, Skylarks and Tinkers; Pillboxes and Sky Batteries stay too
+    // (Bazooka Squads crack them, and Sky Batteries are the answer to Skyliner drops)
+    desc: "Robot infantry only: no combat vehicles, combat aircraft or Motor Works",
     bansUnits: NO_VEHICLES,
     bansBuildings: ["fab-plant"],
     conflicts: ["airwar", "nomads", "robotlove", "armada"],
@@ -206,9 +207,9 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     id: "airborne",
     name: "Airborne",
     icon: "🪂",
-    // the classic start already has the Trooper Squad: this adds the other two and a ride
-    desc: "Both sides start with a Condor dropship and one of each infantry squad",
-    // (Goliath Armada starts with nothing but its Goliaths and their Condors)
+    // the classic start already has the Tin Soldiers: this adds the other two and a ride
+    desc: "Both sides start with a Skyliner dropship and one of each infantry squad",
+    // (Colossus Armada starts with nothing but its Colossi and their Skyliners)
     conflicts: ["airwar", "armada"],
     apply: (r) => {
       for (const k of ["condor", "rocket-squad", "sniper"] as const) if (!r.startUnits.includes(k)) r.startUnits.push(k);
@@ -232,8 +233,8 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     id: "nomads",
     name: "Nomads",
     icon: "🦿",
-    // the base walks: anchored, it takes scrap, builds Harvesters and squads, and buildings go up round it
-    desc: "Each side starts with a Goliath instead of a base",
+    // the base walks: anchored, it takes scrap, builds Prospectors and squads, and buildings go up round it
+    desc: "Each side starts with a Colossus instead of a base",
     conflicts: ["airwar", "infantrywar", "armada"],
     apply: (r) => (r.nomads = true)
   },
@@ -241,17 +242,17 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     id: "robotlove",
     name: "Robot Love",
     icon: "💘",
-    desc: "Two enemy Goliaths that meet fall in love, and the battle ends in a draw",
+    desc: "Two enemy Colossi that meet fall in love, and the battle ends in a draw",
     conflicts: ["airwar", "infantrywar"],
     apply: (r) => (r.robotLove = true)
   },
   armada: {
     id: "armada",
-    name: "Goliath Armada",
+    name: "Colossus Armada",
     icon: "🚁",
-    // no base at all: anchored, the Goliaths build Harvesters and squads, and buildings go up round them
-    desc: "Each side starts with four Goliaths in the air, two Condors carrying each, and nothing else",
-    // (Air War and Infantry War ban the Goliath; Nomads and Airborne start a side some other way)
+    // no base at all: anchored, the Colossi build Prospectors and squads, and buildings go up round them
+    desc: "Each side starts with four Colossi in the air, two Skyliners carrying each, and nothing else",
+    // (Air War and Infantry War ban the Colossus; Nomads and Airborne start a side some other way)
     conflicts: ["airwar", "infantrywar", "airborne", "nomads"],
     apply: (r) => (r.armada = true)
   }
@@ -301,7 +302,7 @@ export function applyMutators(w: World, ids: readonly MutatorId[]): void {
 
 export const rulesOf = (w: World): Readonly<Rules> => w.rules ?? DEFAULT_RULES;
 
-/** Nomads and Goliath Armada: no HQ is ever built, and a side's Goliaths are its base. */
+/** Nomads and Colossus Armada: no HQ is ever built, and a side's Colossi are its base. */
 export const goliathBase = (w: World): boolean => !!(rulesOf(w).nomads || rulesOf(w).armada);
 
 /** True when any mutator is active (career: no map stars). */
@@ -337,9 +338,9 @@ export function applySpawnRank(w: World, u: Unit): void {
 }
 
 /**
- * Is robot infantry this side's whole army? No Fab Plant and no combat
- * aircraft, but an Assembly Bay (Infantry War, or an op's bans to match):
- * the AI then builds Bays where its plan says Fab Plant (ai/commander.ts).
+ * Is robot infantry this side's whole army? No Motor Works and no combat
+ * aircraft, but a Robot Foundry (Infantry War, or an op's bans to match):
+ * the AI then builds Bays where its plan says Motor Works (ai/commander.ts).
  */
 export function infantryArmy(w: World, f: Faction): boolean {
   return bannedBy(w, "fab-plant", f) !== null && bannedBy(w, "wasp", f) !== null && bannedBy(w, "assembly-bay", f) === null;
@@ -347,9 +348,9 @@ export function infantryArmy(w: World, f: Faction): boolean {
 
 /**
  * Can an AI personality play its plan under these rules? (An air-only
- * commander needs an Airpad and aircraft to build there; a tank plan needs
- * the Fab Plant; a ground-raid plan needs it too, or under Infantry War an
- * Assembly Bay to field its early army instead. Measured: Ironclad, playing
+ * commander needs an Aerodrome and aircraft to build there; a tank plan needs
+ * the Motor Works; a ground-raid plan needs it too, or under Infantry War an
+ * Robot Foundry to field its early army instead. Measured: Ironclad, playing
  * Infantry War from Bays, won 20% of 100 AI-vs-AI games; Rush 40%.)
  */
 export function strategyFits(s: Strategy, r: Readonly<Rules>): boolean {

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { POWERS, TICK_RATE, UNITS } from "./balance";
 import { hasGoliath } from "./goliath";
 import { areaBlast, strikeDamage } from "./combat";
@@ -106,7 +107,7 @@ const clock = (t: number) => {
 export function powerBlocker(w: World, faction: Faction, power: PowerKind): string | null {
   if (w.winner) return "The battle is over";
   if (rulesOf(w).noCalldowns) return "No calldowns in this match";
-  if (!hqOf(w, faction) && !hasGoliath(w, faction)) return "Calldowns need an HQ or a Goliath";
+  if (!hqOf(w, faction) && !hasGoliath(w, faction)) return "Calldowns need an HQ or a Colossus";
   if (power === "droppod" && podCrew(w, faction).length === 0) return "Drop Pod is disabled in this match";
   const st = powerStatus(w, faction, power);
   if (st.locked > 0) return `Sky Hammer comes online at ${clock(ticks(POWERS.hammer.unlock))}`;
@@ -124,7 +125,7 @@ export function targetBlocker(w: World, faction: Faction, power: PowerKind, x: n
   if (power === "droppod") {
     if (!isVisible(w, faction, tx, ty)) return "Drop Pods need eyes on the landing zone";
     if (!passable(w, tx, ty, "ground")) return "Drop Pods need open ground to land on";
-    if (!onHomeLand(w, faction, tx, ty)) return "Drop Pods can't land on islands: fly troops in by Condor";
+    if (!onHomeLand(w, faction, tx, ty)) return "Drop Pods can't land on islands: fly troops in by Skyliner";
   }
   return null;
 }
@@ -203,7 +204,7 @@ export function chargePowers(w: World): void {
   for (const f of sides) m[f] += POWERS.passive / TICK_RATE;
   for (const ev of w.fx) {
     if (ev.type !== "death") continue;
-    if (!ev.free) m[ev.faction] += ev.value * POWERS.perScrapLost; // (a free Condor's loss cost nothing)
+    if (!ev.free) m[ev.faction] += ev.value * POWERS.perScrapLost; // (a free Skyliner's loss cost nothing)
     // (a duel's other side made the kill; in a free-for-all, whoever did, when it's known)
     const by = isMulti(w) ? ev.by ?? null : otherSide(ev.faction);
     if (by) m[by] += ev.value * POWERS.perScrapKilled;

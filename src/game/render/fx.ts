@@ -119,12 +119,12 @@ const HEAL: EmitCfg = {
   tex: TEX.spark, additive: true, life: [300, 600], speed: [0.1, 0.4], up: [0.4, 0.9], size: [0.22, 0.3], grow: [0, 0.1],
   alpha: [1, 0], tints: [0x7dff9a]
 };
-/** Steam venting off a Goliath's hydraulics (packing up, a Gantry finishing one): white, quick, rising and thinning downwind. */
+/** Steam venting off a Colossus's hydraulics (packing up, a Gantry finishing one): white, quick, rising and thinning downwind. */
 const STEAM: EmitCfg = {
   tex: TEX.puff, tex2: TEX.puff2, life: [550, 950], speed: [0.15, 0.45], up: [0.6, 1.0], size: [0.16, 0.24], grow: [2.4, 3.2],
   alpha: [0.6, 0], tints: [0xe8eef2, 0xdfe6ea], end: 0xf6f8fa, drag: 0.55, spin: 0.4, rot: 0.4, wind: [0.3, 0.12], fadeIn: 0.12, easeOut: true
 };
-/** Hearts bubbling up out of a Goliath in love: pink and red, rising, rocking and fading. */
+/** Hearts bubbling up out of a Colossus in love: pink and red, rising, rocking and fading. */
 const HEARTS: EmitCfg = {
   tex: TEX.heart, life: [1600, 2500], speed: [0.1, 0.35], up: [0.5, 0.9], size: [0.26, 0.4], grow: [1.15, 1.5],
   alpha: [1, 0], tints: [0xff5fa2, 0xff3b6b, 0xff8cc6, 0xe0245e], drag: 0.5, spin: 0.9, rot: 0.35, fadeIn: 0.08, easeOut: true
@@ -181,7 +181,7 @@ export class Fx {
   squads: SquadFire | null = null;
   /**
    * Where a slow shell fired by unit `sourceId` leaves its barrel, if not
-   * from the usual low launch point (a Goliath's shoulder mortars, set by the
+   * from the usual low launch point (a Colossus's shoulder mortars, set by the
    * entity renderer): read once, as the shell appears.
    */
   shellFrom: ((sourceId: number) => P3 | null) | null = null;
@@ -344,7 +344,7 @@ export class Fx {
     });
   }
 
-  /** The Sniper's rail shot: one instant, white-hot streak, a glowing wake along it and a crack. */
+  /** The Longshot's rail shot: one instant, white-hot streak, a glowing wake along it and a crack. */
   private rail(from: P3, to: P3): void {
     this.beam(from, to, 0xffc65a, 3.2, 300);
     this.muzzle(from, 0.36, 0xfff0c8);
@@ -366,7 +366,7 @@ export class Fx {
     this.sound("clank", p.x, p.y, 0.5);
   }
 
-  /** A Mastodon grinds through a squad: sparks and scrap kicked out from under its tracks. */
+  /** A Behemoth grinds through a squad: sparks and scrap kicked out from under its tracks. */
   crush(x: number, y: number): void {
     const p = { x, y, h: this.v.terrain.surfaceAt(x, y) + 0.08 };
     this.emit({ ...SPARKS, speed: [0.8, 2.6], up: [0.4, 1.6] }, p, 7);
@@ -596,7 +596,7 @@ export class Fx {
       this.emit({ ...SPARKS, speed: [0.8, 2.6] }, { ...at, h: at.h + 0.1 }, 6);
       this.flash(at, 0.5, 0xffd27a, 0.6);
     } else if (ev.kind === "unit") {
-      // small hulls pop smaller; Mastodons and Hornets keep their big fireball. A ground
+      // small hulls pop smaller; Behemoths and Thunderheads keep their big fireball. A ground
       // unit's wreck appears where it died: the blast erupts out of it, not hidden inside it
       const c = ev.air ? at : { x: at.x, y: at.y, h: at.h + 0.22 };
       this.boom(c, ev.size >= 1 ? 0.8 + ev.size : 0.5 + ev.size * 0.85, ev.air, true, 0.9, 0.85);
@@ -681,7 +681,7 @@ export class Fx {
    * drawn from memory, and a plume would give away how hurt it is now.
    */
   buildingSmoke(p: P3, burning: boolean, always = false): void {
-    // (`always`: smoke off something the enemy always sees, a Goliath's or a Gantry's)
+    // (`always`: smoke off something the enemy always sees, a Colossus's or a Gantry's)
     if (!always && fogged(p.x, p.y)) return;
     const pt = this.v.particles;
     const cfg = burning ? BURN_SMOKE : DAMAGE_SMOKE;
@@ -709,7 +709,7 @@ export class Fx {
 
   /**
    * A ring of light racing out along the ground from radius `r0` to `r1`
-   * tiles over `ms` (a Goliath's build ring pulsing out as it anchors).
+   * tiles over `ms` (a Colossus's build ring pulsing out as it anchors).
    */
   ring(x: number, y: number, tint: number, r0: number, r1: number, ms: number, alpha = 1): void {
     tmpC.setHex(tint);
@@ -722,7 +722,7 @@ export class Fx {
     );
   }
 
-  /** Steam venting at `p` (a Goliath's hydraulics). */
+  /** Steam venting at `p` (a Colossus's hydraulics). */
   steam(p: P3, n = 1): void {
     this.emit(STEAM, p, n);
   }
@@ -764,7 +764,7 @@ export class Fx {
   }
 
   /**
-   * Something huge hits the ground at (x, y) — a toppled Goliath, one dropped
+   * Something huge hits the ground at (x, y) — a toppled Colossus, one dropped
    * off its lift: a blast front, dirt thrown out all round, shards, a dust
    * cloud rolling out (spray on water), `size` tiles across.
    */
@@ -781,8 +781,8 @@ export class Fx {
   }
 
   /**
-   * A Goliath's death blast: its reactor going (a fireball no bigger than a
-   * Mastodon's, sparks and shards out of its chest at `at`) — the fall is
+   * A Colossus's death blast: its reactor going (a fireball no bigger than a
+   * Behemoth's, sparks and shards out of its chest at `at`) — the fall is
    * the show, not the blast (render/goliath.ts topples it).
    */
   goliathBlast(at: P3): void {
@@ -871,7 +871,7 @@ export class Fx {
         m = modelMesh(shell());
         m.userData.acc = 0;
         m.userData.fresh = true;
-        // (a Goliath's mortar shell leaves its shoulder pod: high up and off to one side)
+        // (a Colossus's mortar shell leaves its shoulder pod: high up and off to one side)
         const from = !p.fromAir ? this.shellFrom?.(p.sourceId) ?? null : null;
         m.userData.dx = from ? from.x - p.sx : 0;
         m.userData.dy = from ? from.y - p.sy : 0;

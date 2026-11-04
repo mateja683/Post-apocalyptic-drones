@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { frameOf } from "../src/arena/frame";
 import { parseOrders, suggestSpot } from "../src/arena/orders";
@@ -46,7 +47,7 @@ function armada(side: Faction = "blue") {
   return { w, g, carriers };
 }
 
-describe("arena Goliath modes", () => {
+describe("arena Colossus modes", () => {
   it.each(["pack_up", "pack"])("anchors and %s through both staging and simulation", (pack) => {
     const { w, g } = field();
     const staged = structuredClone(w);
@@ -93,8 +94,8 @@ describe("arena Goliath modes", () => {
   });
 });
 
-describe("arena Goliath lifts", () => {
-  it("hooks two own Condors onto a walking Goliath", () => {
+describe("arena Colossus lifts", () => {
+  it("hooks two own Skyliners onto a walking Colossus", () => {
     const { w, g } = field();
     const a = spawnUnit(w, "condor", "blue", 17.5, 18.5);
     const b = spawnUnit(w, "condor", "blue", 23.5, 18.5);
@@ -135,9 +136,9 @@ describe("arena Goliath lifts", () => {
     expect(anchoredBatch.results[0]).toMatch(/refused:.*pack up/i);
   });
 
-  it.each(["goliath", "first Condor", "second Condor"])("lands an initial Armada lift by addressing its %s", (member) => {
+  it.each(["goliath", "first Skyliner", "second Skyliner"])("lands an initial Armada lift by addressing its %s", (member) => {
     const { w, g, carriers } = armada();
-    const id = member === "goliath" ? g.id : carriers[member === "first Condor" ? 0 : 1]!.id;
+    const id = member === "goliath" ? g.id : carriers[member === "first Skyliner" ? 0 : 1]!.id;
     const staged = structuredClone(w);
     const batch = accepted(staged, [{ unload: [id] }]);
     expect(batch.commands).toEqual([{ type: "unload", faction: "blue", unitIds: [id] }]);
@@ -174,7 +175,7 @@ describe("arena Goliath lifts", () => {
     expect(sg.goliath!.lift).toMatchObject({ dest: destination, setDown: true });
   });
 
-  it("still unloads ordinary infantry from a Condor", () => {
+  it("still unloads ordinary infantry from a Skyliner", () => {
     const { w } = field();
     const c = spawnUnit(w, "condor", "blue", 10.5, 10.5);
     const squad = spawnUnit(w, "trooper", "blue", 10.5, 10.5);
@@ -186,7 +187,7 @@ describe("arena Goliath lifts", () => {
     expect(w.units.get(squad.id)!.hp).toBe(UNITS.trooper.hp);
   });
 
-  it("refuses boarding a carrying Condor after staging a move", () => {
+  it("refuses boarding a carrying Skyliner after staging a move", () => {
     const { w, g, carriers } = armada();
     const carrier = carriers[0]!;
     const squad = spawnUnit(w, "trooper", "blue", carrier.x, carrier.y);
@@ -204,7 +205,7 @@ describe("arena Goliath lifts", () => {
   });
 });
 
-describe("arena Goliath production and placement", () => {
+describe("arena Colossus production and placement", () => {
   it.each([
     ["harvester", true], ["harvester", false], ["trooper", true], ["trooper", false]
   ] as const)("queues and cancels %s with explicit producer = %s", (kind, explicit) => {
@@ -230,7 +231,7 @@ describe("arena Goliath production and placement", () => {
     expect(w.factions.blue.scrap).toBe(before);
   });
 
-  it("finishes an accepted Goliath production order", () => {
+  it("finishes an accepted Colossus production order", () => {
     const { w, g } = anchored();
     const batch = accepted(structuredClone(w), [{ produce: "harvester", at: g.id }]);
     step(w, batch.commands);
@@ -254,7 +255,7 @@ describe("arena Goliath production and placement", () => {
     expect(w.factions.blue.scrap).toBe(before);
   });
 
-  it("refuses production and rally at an enemy Goliath", () => {
+  it("refuses production and rally at an enemy Colossus", () => {
     const { w, enemy } = anchored();
     const batch = parseOrders(w, "blue", [{ produce: "trooper", at: enemy.id }, { rally: enemy.id, to: [25, 25] }], "play");
     expect(batch.commands).toEqual([]);
@@ -263,7 +264,7 @@ describe("arena Goliath production and placement", () => {
     expect(enemy.goliath!.rally).toBeNull();
   });
 
-  it("automatically suggests a legal building spot around the first anchored Goliath with no buildings", () => {
+  it("automatically suggests a legal building spot around the first anchored Colossus with no buildings", () => {
     const { w } = field();
     const g = spawnUnit(w, "goliath", "blue", 10.5, 30.5);
     expect(w.buildings.size).toBe(0);
@@ -283,7 +284,7 @@ describe("arena Goliath production and placement", () => {
 });
 
 describe("arena lifted target validation", () => {
-  it("treats a carried enemy Goliath as an air target", () => {
+  it("treats a carried enemy Colossus as an air target", () => {
     const { w } = armada();
     const target = goliathsOf(w, "red")[0]!;
     const ground = spawnUnit(w, "stinger", "blue", 15.5, 15.5);

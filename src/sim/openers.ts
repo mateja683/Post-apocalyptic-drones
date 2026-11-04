@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, UNITS } from "./balance";
 import { canPlaceBuilding, inBaseRange } from "./economy";
 import { anchoredGoliaths } from "./goliath";
@@ -41,7 +42,7 @@ export interface OpenerDef {
   building: BuildingKind;
   /** Units waiting beside it. */
   units: UnitKind[];
-  /** Harvesters the side starts with in total (the classic start has 1). */
+  /** Prospectors the side starts with in total (the classic start has 1). */
   harvesters: number;
   /** Scrap added to (or, if negative, taken from) the starting stockpile. */
   scrap: number;
@@ -52,7 +53,7 @@ export const OPENERS: Record<OpenerId, OpenerDef> = {
     id: "blitz",
     name: "Blitz",
     tagline: "Strike first. Raid their harvesters before they're ready.",
-    rollout: "3 Stingers ready. Hit their harvesters!",
+    rollout: "3 Roadsters ready. Hit their harvesters!",
     building: "fab-plant",
     units: ["stinger", "stinger", "stinger"],
     harvesters: 2,
@@ -72,11 +73,11 @@ export const OPENERS: Record<OpenerId, OpenerDef> = {
   airwing: {
     id: "airwing",
     name: "Air Wing",
-    tagline: "Own the skies. Wasps hunt tanks and harvesters.",
-    rollout: "3 Wasps ready. Beware their Flak.",
+    tagline: "Own the skies. Comets hunt tanks and harvesters.",
+    rollout: "3 Comets ready. Beware their Skyguard.",
     building: "airpad",
-    // the Airpad is a side-grade (you still want a Fab for anti-air and
-    // tanks), so the wing carries a third Wasp
+    // the Aerodrome is a side-grade (you still want a Fab for anti-air and
+    // tanks), so the wing carries a third Comet
     units: ["wasp", "wasp", "wasp"],
     harvesters: 2,
     scrap: 0
@@ -123,7 +124,7 @@ export function pickAiOpener(strategy: StrategyName, seed: number, faction: Fact
 
 /** Why this side can't take this opener under the match rules (a banned factory or crew), or null. */
 export function openerBlocked(w: World, faction: Faction, id: OpenerId): string | null {
-  if (rulesOf(w).armada) return `Disabled: ${MUTATORS.armada.name}`; // (a side starts with its Goliaths and nothing else)
+  if (rulesOf(w).armada) return `Disabled: ${MUTATORS.armada.name}`; // (a side starts with its Colossi and nothing else)
   const o = OPENERS[id];
   for (const kind of [o.building, ...o.units]) {
     const why = bannedBy(w, kind, faction);
@@ -168,7 +169,7 @@ export function applyOpener(w: World, faction: Faction, id: OpenerId): AppliedOp
   if (site) {
     const size = BUILDINGS[o.building].size;
     const [tx, ty] = fr.tile(site.fx, site.fy, size);
-    const outpost = !inBaseRange(w, faction, tx + size / 2, ty + size / 2); // (Nomads: built round the Goliath)
+    const outpost = !inBaseRange(w, faction, tx + size / 2, ty + size / 2); // (Nomads: built round the Colossus)
     const b = spawnBuilding(w, o.building, faction, tx, ty);
     if (outpost) b.outpost = true;
     out.buildingId = b.id;
@@ -203,10 +204,10 @@ export function applyOpener(w: World, faction: Faction, id: OpenerId): AppliedOp
 }
 
 /**
- * Extra starting units (the Airborne mutator's Condor and squads), parked
- * round the side's starting Trooper Squad at `near` (world coords) on the
+ * Extra starting units (the Airborne mutator's Skyliner and squads), parked
+ * round the side's starting Tin Soldiers at `near` (world coords) on the
  * HQ's flank, facing the map centre: squads on the open tiles beside it, the
- * Condor two tiles up the flank (toward the enemy's edge of the map) so it
+ * Skyliner two tiles up the flank (toward the enemy's edge of the map) so it
  * doesn't hide them. Searched in the side's own frame, where every HQ sits
  * bottom left, so both sides get mirror-image setups.
  */
@@ -237,7 +238,7 @@ export function predictOpenerSite(w: World, faction: Faction, kind: BuildingKind
 
 // ------------------------------------------------------------ internals ---
 
-/** Where a side's base is (world coords): its HQ's centre, or under Nomads its anchored Goliath. */
+/** Where a side's base is (world coords): its HQ's centre, or under Nomads its anchored Colossus. */
 function basePoint(w: World, faction: Faction): { x: number; y: number } | null {
   const hq = hqOf(w, faction);
   if (hq) return buildingCenter(hq);

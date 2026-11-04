@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Command UX widgets mounted into the HUD (no template changes to hud.ts):
  *
@@ -9,8 +10,8 @@
  *   you've seen (and on their tab), and an "idle" tag on the Vehicles /
  *   Infantry / Aircraft tab when a factory sits idle while you can afford
  *   its units.
- * - One-time hints that teach the squad gesture, infantry, the Condor, the
- *   Goliath's anchor and the two-Condor lift.
+ * - One-time hints that teach the squad gesture, infantry, the Skyliner, the
+ *   Colossus's anchor and the two-Skyliner lift.
  *
  * Rules live in ../game/squads.ts and ../game/advisor.ts (tested).
  */
@@ -49,7 +50,7 @@ const icon = (kind: string) => iconUrl(kind, PLAYER);
 
 /**
  * Build-bar tab of each build option (for the tab's ⚔ dot): a unit sits on
- * its factory's tab, and the Goliath on Vehicles (the Gantry isn't one of
+ * its factory's tab, and the Colossus on Vehicles (the Gantry isn't one of
  * the factories the idle watch nags about, so it has no tab of its own).
  */
 const TAB_OF = (key: string): "build" | FactoryTab => {
@@ -67,10 +68,10 @@ const DEFENCES = (Object.keys(COUNTERS) as (UnitKind | BuildingKind)[]).filter((
 /** One-time tips offered when the selection calls for them (CommandUi.update). */
 const SELECTION_HINTS: [string, string][] = [
   ["squads", "Squads: hold 1, 2 or 3 to save the selected units. Tap it to select them, double-tap to fly there."],
-  ["infantry", "Infantry cross woods at full speed and take half damage there. Keep them clear of Mastodons: they get crushed."],
-  ["condor", "Condor: select squads, then tap the Condor to load them. Long-press the map (or tap an island) to fly there and drop them, or tap ⇣ Unload."],
+  ["infantry", "Infantry cross woods at full speed and take half damage there. Keep them clear of Behemoths: they get crushed."],
+  ["condor", "Skyliner: select squads, then tap the Skyliner to load them. Long-press the map (or tap an island) to fly there and drop them, or tap ⇣ Unload."],
   ["goliath", `⚓ Anchor (G) to take scrap, train squads and build within ${GOLIATH.buildRing} tiles. Pack up to move.`],
-  ["lift", "Two empty Condors lift a Goliath: tap your Goliath to hook on, then long-press where to set it down."]
+  ["lift", "Two empty Skyliners lift a Colossus: tap your Colossus to hook on, then long-press where to set it down."]
 ];
 
 interface SquadEl {
@@ -272,8 +273,8 @@ export class CommandUi {
    * Offer a once-per-device hint ("squads", "place", "infantry", "condor",
    * "goliath", "lift") to the HUD's hint queue; it counts as seen only once
    * it is shown, and only while it still applies (a group selected / a
-   * building being placed / infantry, a Condor or a Goliath selected / two
-   * empty Condors selected while a Goliath could be lifted). Safe to call
+   * building being placed / infantry, a Skyliner or a Colossus selected / two
+   * empty Skyliners selected while a Colossus could be lifted). Safe to call
    * every frame.
    */
   hint(id: string, msg: string): void {
@@ -321,7 +322,7 @@ export class CommandUi {
     }
   }
 
-  /** The lift tip's moment: two empty Condors selected while we have a Goliath walking (a lift on its way counts as begun). */
+  /** The lift tip's moment: two empty Skyliners selected while we have a Colossus walking (a lift on its way counts as begun). */
   private liftMoment(): boolean {
     const w = this.h.world;
     const ahead = this.h.ctrl.ahead();
@@ -345,7 +346,7 @@ export class CommandUi {
     return false;
   }
 
-  /** The Condor tip's moment: a Condor selected, or squads selected while we own one. */
+  /** The Skyliner tip's moment: a Skyliner selected, or squads selected while we own one. */
   private condorMoment(): boolean {
     if (this.selecting(isTransport)) return true;
     if (!this.selecting(isInfantry)) return false;
@@ -361,7 +362,7 @@ export class CommandUi {
     if (this.h.spectator) return;
     this.h.ctrl.squads.events(fx, performance.now());
     this.intel.update(t);
-    // a squad dropped from a Condor: the player has found the whole load-and-drop loop
+    // a squad dropped from a Skyliner: the player has found the whole load-and-drop loop
     if (!this.hints.has("condor") && fx.some((e) => e.type === "disembark" && !e.bailout && e.faction === PLAYER)) this.seen("condor");
   }
 
@@ -397,7 +398,7 @@ export class CommandUi {
         } else c.count.textContent = "";
       }
       // one tip each, the first time it applies: the squad gesture (a real group selected),
-      // robot infantry and the Condor (the first time the player picks them up)
+      // robot infantry and the Skyliner (the first time the player picks them up)
       if (ctrl.selectedUnits.size > 0)
         for (const [id, msg] of SELECTION_HINTS)
           if (!this.hints.has(id) && (id !== "squads" || ctrl.squads.isEmpty()) && this.hintApplies(id)) this.hint(id, msg);

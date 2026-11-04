@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, TERRAIN, TICK_RATE, UNITS } from "./balance";
 import { anchoredGoliaths, goliathTrainer, goliathsOf, hasGoliath, inGoliathRing, isAnchored, overlapsGoliath, trainableAt, unitCost } from "./goliath";
 import { moveUnitToward } from "./movement";
@@ -47,7 +48,7 @@ export function buildingBlocker(w: World, faction: Faction, kind: BuildingKind):
   if (kind === "hq") return "Unique";
   const banned = bannedBy(w, kind, faction);
   if (banned) return banned;
-  // a Gantry builds nothing but Goliaths: banned with them
+  // a Gantry builds nothing but Colossi: banned with them
   if (kind === "gantry") {
     const noGoliaths = bannedBy(w, "goliath", faction);
     if (noGoliaths) return noGoliaths;
@@ -63,15 +64,15 @@ export function buildingBlocker(w: World, faction: Faction, kind: BuildingKind):
 /** "A", "A and B", "A, B and C". */
 const andList = (xs: string[]): string => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
-/** Why this unit can't be queued right now (null = it can). An anchored Goliath stands in for an Assembly Bay. */
+/** Why this unit can't be queued right now (null = it can). An anchored Colossus stands in for a Robot Foundry. */
 export function unitBlocker(w: World, faction: Faction, kind: UnitKind): string | null {
   const stats = UNITS[kind];
   const banned = bannedBy(w, kind, faction);
   if (banned) return banned;
   if (!hasBuilding(w, faction, stats.builtAt) && !(trainableAt(w, kind) && anchoredGoliaths(w, faction).length > 0))
-    // (with a Goliath on the move and no HQ, which can never be built: say how to get the button back)
+    // (with a Colossus on the move and no HQ, which can never be built: say how to get the button back)
     return trainableAt(w, kind) && hasGoliath(w, faction) && stats.builtAt === "hq"
-      ? "Anchor a Goliath"
+      ? "Anchor a Colossus"
       : `Needs ${BUILDINGS[stats.builtAt].name}`;
   if (stats.requires && !hasBuilding(w, faction, stats.requires))
     return `Needs ${BUILDINGS[stats.requires].name}`;
@@ -104,7 +105,7 @@ export function canPlaceBuilding(
   ty: number
 ): boolean {
   const size = BUILDINGS[kind].size;
-  // in an anchored Goliath's build ring (an outpost, anything but an HQ): even out on an island
+  // in an anchored Colossus's build ring (an outpost, anything but an HQ): even out on an island
   const ring = kind !== "hq" && inGoliathRing(w, faction, tx, ty, size);
   for (let dy = 0; dy < size; dy++)
     for (let dx = 0; dx < size; dx++) {
@@ -115,7 +116,7 @@ export function canPlaceBuilding(
       if (buildingAtTile(w, x, y)) return false;
       if (!ring && !onHomeLand(w, faction, x, y)) return false; // never out on an island (or across the sea)
     }
-  // no ground unit parked inside the footprint, and no Goliath's body over it
+  // no ground unit parked inside the footprint, and no Colossus's body over it
   for (const u of w.units.values())
     if (
       domainOf(u) === "ground" &&
@@ -125,7 +126,7 @@ export function canPlaceBuilding(
       return false;
   if (overlapsGoliath(w, tx, ty, size)) return false;
   if (blocksObjective(w, tx, ty, size)) return false; // Uplink platforms and crates stay open ground
-  // within build radius of a friendly building (outposts don't count), or in a Goliath's ring
+  // within build radius of a friendly building (outposts don't count), or in a Colossus's ring
   return ring || inBaseRange(w, faction, tx + size / 2, ty + size / 2);
 }
 
@@ -144,7 +145,7 @@ export function placeBuilding(w: World, faction: Faction, tx: number, ty: number
   if (!f.pending || !f.pending.ready) return;
   if (!canPlaceBuilding(w, faction, f.pending.kind, tx, ty)) return;
   const size = BUILDINGS[f.pending.kind].size;
-  // out of base range, so in a Goliath's build ring: an outpost (decided now, for good)
+  // out of base range, so in a Colossus's build ring: an outpost (decided now, for good)
   const outpost = !inBaseRange(w, faction, tx + size / 2, ty + size / 2);
   const b = spawnBuilding(w, f.pending.kind, faction, tx, ty);
   if (outpost) b.outpost = true;
@@ -169,13 +170,13 @@ export function sellBuilding(w: World, faction: Faction, buildingId: number): vo
 /** What a queued unit cost (and a cancel refunds): its price when queued. */
 export const paidFor = (q: QueueItem): number => q.paid ?? UNITS[q.kind].cost;
 
-/** Most units a producer queues at once (a Gantry: one Goliath on the cradle). */
+/** Most units a producer queues at once (a Gantry: one Colossus on the cradle). */
 const queueCap = (kind: UnitKind): number => (kind === "goliath" ? GOLIATH.queueMax : ECONOMY.maxQueue);
 
 /**
- * Why an anchored Goliath can't train `kind` now (null = it can): robot
- * infantry (and under Nomads, Harvesters) only, while anchored, under the
- * usual tech and bans — but no Assembly Bay needed (the Goliath is the barracks).
+ * Why an anchored Colossus can't train `kind` now (null = it can): robot
+ * infantry (and under Nomads, Prospectors) only, while anchored, under the
+ * usual tech and bans — but no Robot Foundry needed (the Colossus is the barracks).
  */
 export function trainBlocker(w: World, g: Unit, kind: UnitKind): string | null {
   if (!g.goliath || !trainableAt(w, kind)) return "Can't train that";
@@ -193,7 +194,7 @@ export function produceUnit(w: World, faction: Faction, buildingId: number, kind
   if (!stats) return;
   const b = w.buildings.get(buildingId);
   if (!b) {
-    // an anchored Goliath trains infantry
+    // an anchored Colossus trains infantry
     const g = goliathTrainer(w, buildingId, faction);
     if (!g || trainBlocker(w, g, kind)) return;
     const q = g.goliath!.queue;
@@ -211,17 +212,17 @@ export function produceUnit(w: World, faction: Faction, buildingId: number, kind
   b.queue.push({ kind, remaining: stats.buildTime * TICK_RATE, ...(cost !== stats.cost ? { paid: cost } : {}) });
 }
 
-/** Somewhere `kind` can be queued: a building, or an anchored Goliath (infantry). */
+/** Somewhere `kind` can be queued: a building, or an anchored Colossus (infantry). */
 export interface Producer {
   id: number;
   queue: QueueItem[];
-  /** The Goliath, when it is one (else null: a building). */
+  /** The Colossus, when it is one (else null: a building). */
   goliath: Unit | null;
 }
 
 /**
  * Every producer of `kind` for `faction`, buildings first (in id order), then
- * anchored Goliaths for robot infantry. The HUD's queue counts, the shortest-
+ * anchored Colossi for robot infantry. The HUD's queue counts, the shortest-
  * queue pick and "cancel one" all go through this.
  */
 export function producersOf(w: World, faction: Faction, kind: UnitKind): Producer[] {
@@ -233,7 +234,7 @@ export function producersOf(w: World, faction: Faction, kind: UnitKind): Produce
 }
 
 /**
- * Every queue holding `kind` for `faction`: producersOf's, plus a Goliath's
+ * Every queue holding `kind` for `faction`: producersOf's, plus a Colossus's
  * that packed up with squads still queued (paused till it digs in again, and
  * paid for, so the HUD still counts them and can cancel one).
  */
@@ -248,7 +249,7 @@ export function queuesOf(w: World, faction: Faction, kind: UnitKind): Producer[]
 /** Most units producer `p` queues of `kind` (a Gantry: GOLIATH.queueMax). */
 export const producerCap = (kind: UnitKind): number => queueCap(kind);
 
-/** A producer's queue: a building's, or an (own) Goliath's training queue. */
+/** A producer's queue: a building's, or an (own) Colossus's training queue. */
 function queueOf(w: World, faction: Faction, id: number): QueueItem[] | null {
   const b = w.buildings.get(id);
   if (b) return b.faction === faction ? b.queue : null;
@@ -311,7 +312,7 @@ export function tickProduction(w: World): void {
     if (u.goliath) w.fx.push({ type: "goliathRollout", faction: b.faction, id: u.id, buildingId: b.id, x: u.x, y: u.y });
     applyRally(w, u, b.rally);
   }
-  // anchored Goliaths train infantry (paused while it walks, packs up or is EMP'd)
+  // anchored Colossi train infantry (paused while it walks, packs up or is EMP'd)
   for (const g of w.units.values()) {
     const head = g.goliath?.queue[0];
     if (!head || !isAnchored(g) || isStunned(w, g.id)) continue;
@@ -319,7 +320,7 @@ export function tickProduction(w: World): void {
     if ((head.remaining -= rulesOf(w).buildSpeed) > 0) continue;
     g.goliath!.queue.shift();
     const size = GOLIATH.footprint;
-    // around its feet, even out on an island (no special island rules for a Goliath)
+    // around its feet, even out on an island (no special island rules for a Colossus)
     const spot = findSpawnSpot(w, { tx: g.x - size / 2, ty: g.y - size / 2, size, faction: g.faction }, head.kind, false);
     const u = spawnUnit(w, head.kind, g.faction, spot.x, spot.y);
     applySpawnRank(w, u);
@@ -330,7 +331,7 @@ export function tickProduction(w: World): void {
   }
 }
 
-/** A Gantry's Goliath build ticked from `before` to `after` (of `total`) remaining: public news when it starts and nears the end. */
+/** A Gantry's Colossus build ticked from `before` to `after` (of `total`) remaining: public news when it starts and nears the end. */
 function goliathBuildNews(w: World, b: Building, total: number, before: number, after: number): void {
   const c = buildingCenter(b);
   const ev = (stage: "started" | "nearlyDone") =>
@@ -340,7 +341,7 @@ function goliathBuildNews(w: World, b: Building, total: number, before: number, 
   if (before > line && after <= line && after > 0) ev("nearlyDone");
 }
 
-/** A producer's footprint (a building's, or the ground an anchored Goliath stands on). */
+/** A producer's footprint (a building's, or the ground an anchored Colossus stands on). */
 interface Footprint {
   tx: number;
   ty: number;
@@ -351,7 +352,7 @@ interface Footprint {
 /**
  * Where a unit made at footprint `b` rolls out: the nearest free tile around
  * it, the back of the base first. `homeOnly`: on an island map, only land
- * joined to the side's HQ (a building's spawn); a Goliath trains anywhere.
+ * joined to the side's HQ (a building's spawn); a Colossus trains anywhere.
  */
 function findSpawnSpot(w: World, b: Footprint, kind: UnitKind, homeOnly = true): { x: number; y: number } {
   const size = b.size;
@@ -362,7 +363,7 @@ function findSpawnSpot(w: World, b: Footprint, kind: UnitKind, homeOnly = true):
   // runs backwards — or red's units would roll out toward the enemy and
   // blue's away from it (part of the old Ashlands red-side bias).
   const flip = b.faction === "red";
-  // (a Goliath is too big to step out right at the cradle's edge)
+  // (a Colossus is too big to step out right at the cradle's edge)
   for (let r = UNITS[kind].radius > 0.6 ? 2 : 1; r <= 4; r++) {
     const ring: { x: number; y: number; pref: number }[] = [];
     for (let i = -r; i <= size + r - 1; i++)
@@ -591,10 +592,10 @@ export function tickHarvest(w: World): void {
         o.phase = "toBase";
       }
     } else if (o.phase === "toBase") {
-      // (an anchored Goliath counts; once it starts packing up it doesn't, and this reroutes)
+      // (an anchored Colossus counts; once it starts packing up it doesn't, and this reroutes)
       const home = nearestDropSite(w, u.faction, u.x, u.y, "ground");
       if (!home) {
-        // a base on the move (a Goliath packing up, walking or on a lift) will dig in again: wait for it, loaded
+        // a base on the move (a Colossus packing up, walking or on a lift) will dig in again: wait for it, loaded
         if (!hasGoliath(w, u.faction)) u.order = { type: "idle" };
         continue;
       }

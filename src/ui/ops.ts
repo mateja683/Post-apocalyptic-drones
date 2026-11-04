@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { DIFFICULTY } from "../sim/ai/commander";
 import { BUILDINGS, UNITS } from "../sim/balance";
 import { MAPS } from "../sim/maps";
@@ -77,7 +78,7 @@ function goalIcon(g: Goal): string {
   }
 }
 
-/** Pill shorthand for a goal: "Turrets 2/2", "⏱ 1:12", "✝ 2/6", "🏚 0/1", "Mastodons 1/2". */
+/** Pill shorthand for a goal: "Pillboxes 2/2", "⏱ 1:12", "✝ 2/6", "🏚 0/1", "Behemoths 1/2". */
 function compact(g: Goal, e: GoalEval): string {
   switch (g.type) {
     case "within":
@@ -109,7 +110,7 @@ function rulesNote(op: OpDef): string {
   if (bans?.units?.length === Object.keys(UNITS).length && bans.buildings?.length) bits.push("⛔ No production");
   else {
     if (bans?.buildings?.length) bits.push(`⛔ No ${bans.buildings.map((k) => `${BUILDINGS[k].name}s`).join(", ")}`);
-    // every ground combat kind reads "ground units"; anything else banned (the Condor) is named
+    // every ground combat kind reads "ground units"; anything else banned (the Skyliner) is named
     const ground = !!bans?.units && GROUND_COMBAT.every((k) => bans.units!.includes(k));
     const named = (bans?.units ?? []).filter((k) => !ground || !GROUND_COMBAT.includes(k)).map((k) => `${UNITS[k].name}s`);
     if (bans?.units?.length) bits.push(`⛔ No ${[...(ground ? ["ground units"] : []), ...named].join(", ")}`);

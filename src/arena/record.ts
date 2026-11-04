@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /**
  * Battle records (AGENT-BATTLES.md "Battle records"): a small JSON file that
  * replays a battle exactly. The sim is deterministic — the seed and the
@@ -54,7 +55,7 @@ export interface BattleEnd {
   tick: number;
   winner: Faction | null;
   /**
-   * "hq": a side was beaten (its HQ and every Goliath gone); "love": a Robot Love draw (no winner);
+   * "hq": a side was beaten (its HQ and every Colossus gone); "love": a Robot Love draw (no winner);
    * "resign": a side gave up (a sound duel, SOUND-DUEL.md).
    */
   reason: "hq" | "time" | "aborted" | "love" | "resign";

@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 // Every unit's and building's description, read from balance.ts so it never
 // drifts from the game, plus hand-written notes on what makes each one
 // special: the cards on the vehicles page (vehicles.html) and the 3D models
@@ -24,47 +25,47 @@ export const FEATURES: Record<UnitKind, string[]> = {
   stinger: [
     "Cheap, fast light tank with a turreted cannon — the backbone of an early army.",
     "Quick enough to raid harvesters and outrun slower armour.",
-    "Wins cost-for-cost against Flak Crawlers, Mortars and Lancers, but cannot shoot at aircraft."
+    "Wins cost-for-cost against Skyguards, Bombards and Ray Skiffs, but cannot shoot at aircraft."
   ],
   "flak-crawler": [
     "The dedicated anti-air answer: rapid flak bursts that shred drones, extra-effective against light airframes.",
-    "Beats every aircraft cost-for-cost, including Hornet bombers.",
+    "Beats every aircraft cost-for-cost, including Thunderhead bombers.",
     "Completely helpless against ground units — escort it with tanks."
   ],
   mortar: [
-    "Long-range artillery: out-ranges every turret and SAM Site, making it the tool for cracking a base.",
+    "Long-range artillery: out-ranges every turret and Sky Battery, making it the tool for cracking a base.",
     "Shells are real projectiles with splash, aimed where the target was — fast units can dodge them.",
     "Has a minimum range and light armour: anything that closes the distance tears it apart."
   ],
   mastodon: [
     "Super-heavy twin-cannon tank with by far the most HP of any tank.",
-    "Its cannons hit heavy armour harder, and it crushes Stingers, Flak and Mortars.",
-    "Slow and unable to shoot at air — Wasps and Lancers are its nightmare."
+    "Its cannons hit heavy armour harder, and it crushes Roadsters, Skyguard and Bombards.",
+    "Slow and unable to shoot at air — Comets and Ray Skiffs are its nightmare."
   ],
   lancer: [
     "Hover tank: crosses water and shallows and ignores rough ground, opening routes no tracked unit can take.",
-    "Its laser burns through heavy armour (1.55×), making it the Mastodon killer.",
+    "Its laser burns through heavy armour (1.55×), making it the Behemoth killer.",
     "The only tank that can also shoot aircraft, at reduced effect."
   ],
   wasp: [
     "Rocket strike drone that flies over every obstacle to hit ground targets.",
-    "Beats tanks and artillery cost-for-cost — great for harassing harvesters and Mortars.",
-    "Dies quickly to Flak, Raptors and SAM Sites."
+    "Beats tanks and artillery cost-for-cost — great for harassing harvesters and Bombards.",
+    "Dies quickly to Skyguard, Jetstreams and Sky Batteries."
   ],
   raptor: [
     "Air superiority interceptor: fast missiles that hunt other aircraft.",
-    "Counters Wasps, Hornets and Menders.",
+    "Counters Comets, Thunderheads and Tinkers.",
     "Cannot attack anything on the ground."
   ],
   hornet: [
     "Heavy armoured bomber that carpet-bombs ground units and buildings with splash damage.",
     "Explosive bombs do 1.35× damage to structures — ideal for flattening a base.",
-    "Bombs are projectiles that can be dodged, and it needs an escort against Flak, Raptors and SAMs."
+    "Bombs are projectiles that can be dodged, and it needs an escort against Skyguard, Jetstreams and Sky Batteries."
   ],
   mender: [
     "Repair drone: a beam that heals one damaged friendly unit or building in range at a time.",
     "Keeps an army in the fight longer; the AI uses them as army escorts.",
-    "Unarmed and lightly armoured — Raptors and Flak pick them off."
+    "Unarmed and lightly armoured — Jetstreams and Skyguard pick them off."
   ],
   trooper: [
     `Five rifle bots fighting as one squad: one HP pool, and a robot falls each time it loses a fifth of it — the squad's firepower falls with them.`,
@@ -73,42 +74,42 @@ export const FEATURES: Record<UnitKind, string[]> = {
     `Captures Uplinks ${INFANTRY.captureWeight}× as fast as a vehicle and picks up supply crates. Leaves no wreck.`
   ],
   "rocket-squad": [
-    `Three bots with shoulder-fired rockets: cannon damage that hits heavy armour ${DAMAGE_VS.cannon.heavy}× — the cheap answer to Mastodons.`,
-    `Also fires at aircraft (${UNITS["rocket-squad"].airMult}×), so Hornets and Wasps pay for low passes.`,
-    "Weak against other infantry: Troopers and Snipers cut it down."
+    `Three bots with shoulder-fired rockets: cannon damage that hits heavy armour ${DAMAGE_VS.cannon.heavy}× — the cheap answer to Behemoths.`,
+    `Also fires at aircraft (${UNITS["rocket-squad"].airMult}×), so Thunderheads and Comets pay for low passes.`,
+    "Weak against other infantry: Tin Soldiers and Longshots cut it down."
   ],
   sniper: [
-    `Two marksmen with rail-rifles: precision damage, ${Math.round(shotDamage(UNITS.sniper))} per shot and ${DAMAGE_VS.precision.infantry}× against infantry — one shot drops about three Trooper robots.`,
+    `Two marksmen with rail-rifles: precision damage, ${Math.round(shotDamage(UNITS.sniper))} per shot and ${DAMAGE_VS.precision.infantry}× against infantry — one shot drops about three Tin Soldier robots.`,
     `Hidden in woods: enemies only see it within ${INFANTRY.concealRadius} tiles, until ${INFANTRY.concealAfterShot} s after it fires.`,
     "Next to useless against armour and buildings, and slow to fire: keep vehicles away from it."
   ],
   condor: [
     `Dropship: carries ${UNITS.condor.capacity} infantry squads over water, rock and anything else in the way. Unarmed.`,
-    `Select squads and tap the Condor to load them (1 s each, once they reach it); long-press the map to fly there and drop them (it hovers ${INFANTRY.unloadHover} s), or tap Unload.`,
+    `Select squads and tap the Skyliner to load them (1 s each, once they reach it); long-press the map to fly there and drop them (it hovers ${INFANTRY.unloadHover} s), or tap Unload.`,
     `Shot down over land, its squads bail out with at most ${Math.round(INFANTRY.bailoutHp * 100)}% HP; over water or rock they are lost with it.`
   ],
   goliath: [
     "A giant walking mech and a mobile base: shoulder mortars, an eye laser, arm cannons and machine guns that hit aircraft too.",
     `Anchor it (${GOLIATH.anchorTime} s to dig in, ${GOLIATH.packTime} s to pack up) and it takes harvesters' scrap, trains infantry, and lets you build outposts within ${GOLIATH.buildRing} tiles of it, anywhere on the map.`,
-    `Loses its weapons as it is hurt: mortars below ${Math.round(GOLIATH.weapons.mortars.lostBelow * 100)}% HP, the laser below ${Math.round(GOLIATH.weapons.laser.lostBelow * 100)}%, the cannons below ${Math.round(GOLIATH.weapons.cannons.lostBelow * 100)}%. Only Menders repair it, and each weapon reboots once it is mended.`,
-    `Always visible to the enemy. Two empty Condors can carry it; while a side has a Goliath, losing its HQ doesn't lose the game. Each one costs ${Math.round(GOLIATH.costStep * 100)}% more for every Goliath you already have.`
+    `Loses its weapons as it is hurt: mortars below ${Math.round(GOLIATH.weapons.mortars.lostBelow * 100)}% HP, the laser below ${Math.round(GOLIATH.weapons.laser.lostBelow * 100)}%, the cannons below ${Math.round(GOLIATH.weapons.cannons.lostBelow * 100)}%. Only Tinkers repair it, and each weapon reboots once it is mended.`,
+    `Always visible to the enemy. Two empty Skyliners can carry it; while a side has a Colossus, losing its HQ doesn't lose the game. Each one costs ${Math.round(GOLIATH.costStep * 100)}% more for every Colossus you already have.`
   ]
 };
 
 export const GROUPS: { title: string; kinds: UnitKind[] }[] = [
   { title: "Built at the HQ", kinds: ["harvester"] },
-  { title: "Fab Plant — ground vehicles", kinds: ["stinger", "flak-crawler", "mortar", "mastodon", "lancer"] },
-  { title: "Assembly Bay — robot infantry", kinds: ["trooper", "rocket-squad", "sniper"] },
-  { title: "Airpad — flying drones", kinds: ["scout", "wasp", "raptor", "hornet", "mender", "condor"] },
-  { title: "Gantry — Goliath", kinds: ["goliath"] }
+  { title: "Motor Works — ground vehicles", kinds: ["stinger", "flak-crawler", "mortar", "mastodon", "lancer"] },
+  { title: "Robot Foundry — robot infantry", kinds: ["trooper", "rocket-squad", "sniper"] },
+  { title: "Aerodrome — flying drones", kinds: ["scout", "wasp", "raptor", "hornet", "mender", "condor"] },
+  { title: "Gantry — Colossus", kinds: ["goliath"] }
 ];
 
-const BUILT_AT: Record<string, string> = { hq: "HQ", "fab-plant": "Fab Plant", airpad: "Airpad", "assembly-bay": "Assembly Bay", gantry: "Gantry" };
+const BUILT_AT: Record<string, string> = { hq: "HQ", "fab-plant": "Motor Works", airpad: "Aerodrome", "assembly-bay": "Robot Foundry", gantry: "Gantry" };
 const TARGETS = { ground: "Ground", air: "Air", both: "Ground + air", none: "Unarmed" };
 
 type Threat = UnitKind | "turret" | "sam-site";
 const threatName = (k: Threat): string =>
-  k === "turret" ? "Turret" : k === "sam-site" ? "SAM Site" : UNITS[k].name;
+  k === "turret" ? "Pillbox" : k === "sam-site" ? "Sky Battery" : UNITS[k].name;
 const threatLink = (k: Threat): string =>
   k in UNITS ? `<a href="#${k}">${threatName(k)}</a>` : threatName(k);
 
@@ -121,7 +122,7 @@ const stat = (value: string | number, label: string): string =>
 
 const fmt = (n: number): string => String(Math.round(n * 100) / 100);
 
-/** One of the Goliath's weapon systems: what it fires, how hard and how far, and when damage takes it offline. */
+/** One of the Colossus's weapon systems: what it fires, how hard and how far, and when damage takes it offline. */
 function goliathWeapon(w: GoliathWeaponStats): string {
   const bits = [
     `<b>${w.name}</b> ${w.dmgType}`,
@@ -173,7 +174,7 @@ export function card(kind: UnitKind, { portrait = true, id = true } = {}): strin
     `<span class="tag">${u.armor === "infantry" ? `squad of ${u.squad}` : `${u.armor} armour`}</span>`,
     u.capacity ? `<span class="tag">Carries ${u.capacity} squads</span>` : "",
     `<span class="tag">${BUILT_AT[u.builtAt]}</span>`,
-    u.requires ? `<span class="tag tech">⚗ Needs Tech Lab</span>` : ""
+    u.requires ? `<span class="tag tech">⚗ Needs Atomic Lab</span>` : ""
   ].join("");
   const matchups =
     beats.length || fears.length
@@ -234,7 +235,7 @@ const OBJECTIVE_INFO: Record<ObjectiveKind, { name: string; role: string; tags: 
       `Park units in its ${U.radius}-tile zone to swing the capture bar your way: neutral to yours takes about ${Math.round(100 / U.maxRate)} s with four units, taking it off the enemy twice that.`,
       `Infantry squads count ${INFANTRY.captureWeight}× and aircraft ${U.airWeight}×; harvesters don't count.`,
       `Its holder earns ${U.income} scrap a second, sees ${U.sight} tiles around it and charges their command meter for calldowns.`,
-      "Some sit on islands only robot infantry flown in by Condor can take, and an island relay pays only while troops stand on it."
+      "Some sit on islands only robot infantry flown in by Skyliner can take, and an island relay pays only while troops stand on it."
     ]
   },
   "supply-crate": {
@@ -245,7 +246,7 @@ const OBJECTIVE_INFO: Record<ObjectiveKind, { name: string; role: string; tags: 
     features: [
       `The first drop lands at ${mmss(D.first)}, then one every ${D.every} s, announced to both sides ${D.warning} s ahead with a pillar of light where they'll land.`,
       `Any unit but a harvester that comes within ${D.claimRadius} tiles claims it; unclaimed, it burns out after ${D.ttl} s.`,
-      `Inside: ${D.scrap} scrap, Veterans (+1 rank to the claimer and allies within ${D.veteranRadius} tiles), Field Repair (${Math.round(D.repairShare * 100)}% HP to your units within ${D.repairRadius}), +${D.charge} command charge, or a rare free Lancer.`
+      `Inside: ${D.scrap} scrap, Veterans (+1 rank to the claimer and allies within ${D.veteranRadius} tiles), Field Repair (${Math.round(D.repairShare * 100)}% HP to your units within ${D.repairRadius}), +${D.charge} command charge, or a rare free Ray Skiff.`
     ]
   }
 };
@@ -273,49 +274,49 @@ export function siteCard(kind: SiteKind, { id = true } = {}): string {
 const BUILDING_FEATURES: Record<BuildingKind, string[]> = {
   hq: [
     "Every side starts with one, and it can't be built: the heart of your base.",
-    `Builds Harvesters and takes their scrap, and salvages ${ECONOMY.hqTrickle} scrap a second on its own, so a broke side is never stuck.`,
+    `Builds Prospectors and takes their scrap, and salvages ${ECONOMY.hqTrickle} scrap a second on its own, so a broke side is never stuck.`,
     "Its point-defence gun swats early drone raids. It can't hit ground units: leave those to real defences.",
-    "Lose it and every Goliath, and you lose the game."
+    "Lose it and every Colossus, and you lose the game."
   ],
   "fab-plant": [
     "The ground-vehicle factory: tanks, anti-air, artillery and hover tanks roll out of its hall.",
     `Queue up to ${ECONOMY.maxQueue} at a time, and tap the map to set where they rally.`,
-    "Heavier models need a Tech Lab too."
+    "Heavier models need an Atomic Lab too."
   ],
   airpad: [
-    "Launches every flying drone, from the Scout to the Condor dropship.",
+    "Launches every flying drone, from the Skylark to the Skyliner dropship.",
     `Queue up to ${ECONOMY.maxQueue} at a time, and tap the map to set where they rally.`,
-    "Aircraft ignore terrain, so an Airpad anywhere can strike everywhere."
+    "Aircraft ignore terrain, so an Aerodrome anywhere can strike everywhere."
   ],
   "assembly-bay": [
-    "Assembles robot infantry: Trooper Squads, Rocket Squads and Sniper Teams.",
+    "Assembles robot infantry: Tin Soldier squads, Bazooka Squads and Longshot Teams.",
     "Squads are cheap, take cover in woods and capture Uplinks fastest.",
-    "An anchored Goliath trains infantry too, wherever it stands."
+    "An anchored Colossus trains infantry too, wherever it stands."
   ],
   "tech-lab": [
     "Research, not production: it unlocks the heavier units at the other factories.",
-    "Needs a Fab Plant, an Airpad or an Assembly Bay first.",
+    "Needs a Motor Works, an Aerodrome or a Robot Foundry first.",
     "Lose it and those units can't be built again until you rebuild it."
   ],
   gantry: [
-    `Builds the Goliath, one at a time over ${UNITS.goliath.buildTime} s: the mech goes up on its cradle in stages, the crane swinging armour plates on.`,
-    "Needs every other factory and the Tech Lab. One per side.",
-    "The enemy can always see it, and the Goliath taking shape on it: expect them to come for it."
+    `Builds the Colossus, one at a time over ${UNITS.goliath.buildTime} s: the mech goes up on its cradle in stages, the crane swinging armour plates on.`,
+    "Needs every other factory and the Atomic Lab. One per side.",
+    "The enemy can always see it, and the Colossus taking shape on it: expect them to come for it."
   ],
   depot: [
     "A forward drop-off: harvesters unload at the nearest one, so a Depot by a distant field cuts their trip.",
-    "Harvesters drop off at it just as at the HQ; it builds nothing.",
-    "Built near an anchored Goliath, an outpost Depot takes scrap anywhere on the map."
+    "Prospectors drop off at it just as at the HQ; it builds nothing.",
+    "Built near an anchored Colossus, an outpost Depot takes scrap anywhere on the map."
   ],
   turret: [
     "Autocannon defence that hits ground and air.",
-    `Mortars out-range it (${UNITS.mortar.range} tiles to its ${BUILDINGS.turret.range}): crack it with artillery, not tanks.`,
-    `Kinetic shells: weaker against heavy armour (×${DAMAGE_VS.kinetic.heavy}), so Mastodons shrug it off.`
+    `Bombards out-range it (${UNITS.mortar.range} tiles to its ${BUILDINGS.turret.range}): crack it with artillery, not tanks.`,
+    `Kinetic shells: weaker against heavy armour (×${DAMAGE_VS.kinetic.heavy}), so Behemoths shrug it off.`
   ],
   "sam-site": [
     `Long-range anti-air missiles, reaching ${BUILDINGS["sam-site"].range} tiles: further than any aircraft's weapon.`,
     "Can't shoot at anything on the ground: tanks and artillery roll right past it.",
-    "Pair it with a Turret to cover both."
+    "Pair it with a Pillbox to cover both."
   ],
   radar: [
     `Sees ${BUILDINGS.radar.sight} tiles in every direction, the widest view in the game, its dish sweeping round.`,

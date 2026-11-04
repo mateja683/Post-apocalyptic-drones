@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { STRATEGIES, createAiState, tickAi } from "../src/sim/ai/commander";
 import { planCalldowns } from "../src/sim/ai/powers";
@@ -21,7 +22,7 @@ function field(): World {
   return w;
 }
 
-/** A red army of Stingers: `staged` of them at the staging point, `guards` at home. */
+/** A red army of Roadsters: `staged` of them at the staging point, `guards` at home. */
 function armyAt(w: World, staged: number, guards: number) {
   const c = buildingCenter(hqOf(w, "red")!);
   const far = { x: w.width - c.x, y: w.height - c.y };
@@ -46,7 +47,7 @@ describe("AI waves", () => {
   const per = UNITS.stinger.cost;
 
   it("holds a wave at the staging point until three quarters of the assault threshold has gathered", () => {
-    // 1,800 of army: assault mode. 8 Stingers staged = 1,200, under 75% of 1,700 (the old 60% bar launched it)
+    // 1,800 of army: assault mode. 8 Roadsters staged = 1,200, under 75% of 1,700 (the old 60% bar launched it)
     const w = field();
     const p = armyAt(w, 8, 4);
     expect(8 * per).toBeLessThan(assaultAt * 0.75);
@@ -69,7 +70,7 @@ describe("AI waves", () => {
   });
 
   it("lowers the bar for an all-in push from 7:00, not before", () => {
-    // 11 Stingers = 1,650: short of 1,700 at 7:00, enough at 9:00 (6% a minute off)
+    // 11 Roadsters = 1,650: short of 1,700 at 7:00, enough at 9:00 (6% a minute off)
     const at = (minutes: number) => {
       const w = field();
       armyAt(w, 7, 4);
@@ -104,7 +105,7 @@ describe("calldowns stay big moments", () => {
     return { w, cmds };
   }
 
-  it("the AI doesn't spend a Barrage on a handful of Stingers, but shells a real column", () => {
+  it("the AI doesn't spend a Barrage on a handful of Roadsters, but shells a real column", () => {
     const small = clump(5); // 750
     expect(small.cmds.some((c) => c.type === "calldown" && c.power === "barrage")).toBe(false);
     const big = clump(6); // 900

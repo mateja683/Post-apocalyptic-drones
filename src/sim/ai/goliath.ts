@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { BUILDINGS, ECONOMY, GOLIATH, TERRAIN, TICK_RATE, UNITS } from "../balance";
 import { engageable } from "../combat";
 import { canPlaceBuilding } from "../economy";
@@ -42,52 +43,52 @@ import { AA_COVER, USELESS, aaSources, aaStrengthAt, aaWeight, effectivenessVs, 
 import { cos, sin } from "../fmath";
 
 /**
- * The commander's Goliaths (GOLIATH.md), and its answer to the enemy's.
+ * The commander's Colossi (GOLIATH.md), and its answer to the enemy's.
  *
  * - THE GANTRY comes late and only when the side can afford it: from a
  *   personality's hour (Ironclad and Boom keenest, Rush and the air forces
  *   last, Easy never), with the income and an army to show for it, never
  *   while the base is under attack. The prerequisites it lacks are built
  *   first (commander.ts nextBuilding). Then a share of each pass's income is
- *   set aside for the next Goliath (never all of it: the army keeps being
+ *   set aside for the next Colossus (never all of it: the army keeps being
  *   built), at the escalating price, one at a time and only a couple a match.
- * - SITES: a Goliath digs in at a rich field no drop-off serves (out of
+ * - SITES: a Colossus digs in at a rich field no drop-off serves (out of
  *   reach of the enemy's known guns), at an island relay on the island maps
- *   (two Condors fly it there: it trains the squads that crew the relay), or
+ *   (two Skyliners fly it there: it trains the squads that crew the relay), or
  *   at a forward post toward the enemy when nothing pays better. Anchored,
  *   it is the drop-off for the harvesters sent to work its field, trains
  *   squads to stand by it and gets OUTPOSTS in its ring (a Depot that serves
- *   the field after it leaves, a Turret, a SAM site). It packs up and moves
+ *   the field after it leaves, a Pillbox, a Sky Battery). It packs up and moves
  *   on when the field runs dry, and backs off when it is losing a fight.
  * - ESCORTS: idle army with some anti-air walks with it and stands guard at
- *   its site; Menders (ai/menders.ts) favour it when a weapon is down.
+ *   its site; Tinkers (ai/menders.ts) favour it when a weapon is down.
  * - LIFTS: where it can't walk (an island, or far round by ground), two
- *   Condors (none of them on a drop or an airlift trip) hook on once a route
+ *   Skyliners (none of them on a drop or an airlift trip) hook on once a route
  *   clear of anti-air is there, and fly it; anti-air turning up on the way
- *   sends it round by a flank or back where it came from, and a hurt Condor
- *   sets it down on the nearest land at once. The Condor planners never
- *   touch a Condor on a lift (liftCondors).
- * - SIEGE: Rush and Ironclad Goliaths fall in with a wave going by their
+ *   sends it round by a flank or back where it came from, and a hurt Skyliner
+ *   sets it down on the nearest land at once. The Skyliner planners never
+ *   touch a Skyliner on a lift (liftCondors).
+ * - SIEGE: Rush and Ironclad Colossi fall in with a wave going by their
  *   post and walk a few tiles behind its lead — never alone into the
  *   enemy's base.
- * - HUNTS: enemy Goliaths are always in sight; idle units that can hurt one
- *   strike it when they outweigh what it can still fire (its Menders first,
- *   and sooner while a weapon is down), and anti-air goes for a Condor
+ * - HUNTS: enemy Colossi are always in sight; idle units that can hurt one
+ *   strike it when they outweigh what it can still fire (its Tinkers first,
+ *   and sooner while a weapon is down), and anti-air goes for a Skyliner
  *   carrying one. An enemy Gantry building one is a wave's first target
  *   (commander.ts pickPriorityTarget).
  *
- * After the HQ falls (and under Nomads, which starts that way) a Goliath is
- * the base: it digs in, builds Harvesters (Nomads) and trains squads, takes
+ * After the HQ falls (and under Nomads, which starts that way) a Colossus is
+ * the base: it digs in, builds Prospectors (Nomads) and trains squads, takes
  * the harvesters' scrap, buildings go up in its ring, and it moves the base
  * on to a fresh field when its own runs dry or the ring is full. Under Robot
- * Love its Goliaths keep clear of the enemy's (a meeting is a draw), unless
+ * Love its Colossi keep clear of the enemy's (a meeting is a draw), unless
  * it is plainly losing.
  */
 
 export const GOLIATH_AI = {
   /** Seconds into a match from which each personality considers a Gantry (Infinity: never). */
   gantryFrom: { balanced: 300, rush: 480, airswarm: 420, boom: 240, skyforce: 450, ironclad: 210 } as Record<StrategyName, number>,
-  /** That hour, scaled by difficulty (Easy never builds one: a first-week player meets no Goliath). */
+  /** That hour, scaled by difficulty (Easy never builds one: a first-week player meets no Colossus). */
   gantryPace: { easy: Infinity, normal: 1, hard: 0.85 } as Record<Difficulty, number>,
   /** …and this much sooner (share of it) once an enemy Gantry is known. */
   answerGantry: 0.75,
@@ -96,10 +97,10 @@ export const GOLIATH_AI = {
   /**
    * …or this much scrap floating in the bank. (At 900, sides on the
    * Archipelago's lean income put up Gantries 58 times in 30 round-robin
-   * matches for 25 Goliaths: a Gantry with no Goliath to follow is 600 thrown away.)
+   * matches for 25 Colossi: a Gantry with no Colossus to follow is 600 thrown away.)
    */
   gantryBank: 2000,
-  /** No Gantry or Goliath while the army is worth less than this (scrap): the army comes first. */
+  /** No Gantry or Colossus while the army is worth less than this (scrap): the army comes first. */
   armyFloor: 900,
   /** A Gantry that found no room (or was lost) is not started again for this long (s)… */
   gantryRetry: 90,
@@ -108,26 +109,26 @@ export const GOLIATH_AI = {
   /**
    * Field scrap (crystal at its worth) that must be left on our side of the map
    * for a Gantry: a mobile base pays only with fields to work. (The Proving
-   * Grounds hold ~13k a side by 4:00 and run dry by 9:00: Goliaths there only
+   * Grounds hold ~13k a side by 4:00 and run dry by 9:00: Colossi there only
    * dragged short matches into 25-minute stalls; the bigger maps hold 25–70k.)
    */
   gantryFields: 15000,
-  /** Goliaths alive or on the cradle, at most. */
+  /** Colossi alive or on the cradle, at most. */
   max: { easy: 1, normal: 2, hard: 2 } as Record<Difficulty, number>,
   /**
-   * …and one on the island maps, where the war is squads, Condors and air over
+   * …and one on the island maps, where the war is squads, Skyliners and air over
    * the islands and a slow walk by the bridges (with two, the Archipelago's
    * lean economy stalled: island matches ran the full 25 minutes undecided).
    */
   islandMax: 1,
-  /** Seconds between ordering one Goliath and the next. */
+  /** Seconds between ordering one Colossus and the next. */
   again: 150,
-  /** Share of income set aside for the next Goliath while one is wanted (the rest keeps the army coming). */
+  /** Share of income set aside for the next Colossus while one is wanted (the rest keeps the army coming). */
   save: { balanced: 0.45, rush: 0.35, airswarm: 0.35, boom: 0.5, skyforce: 0.35, ironclad: 0.55 } as Record<StrategyName, number>,
 
   /** A field within this many tiles of one of our drop-offs is served already. */
   siteServed: 8,
-  /** Scrap a field must hold (crystal at its worth) to be worth a Goliath's walk. */
+  /** Scrap a field must hold (crystal at its worth) to be worth a Colossus's walk. */
   siteMin: 2200,
   /** Fields this close to the enemy HQ are theirs. */
   enemyHome: 16,
@@ -150,13 +151,13 @@ export const GOLIATH_AI = {
   frontShare: 0.4,
   /** Personalities that dig in at a forward post when no field pays (the rest guard home). */
   front: { balanced: true, rush: true, airswarm: false, boom: false, skyforce: false, ironclad: true } as Record<StrategyName, boolean>,
-  /** Personalities whose Goliaths walk with an assault. */
+  /** Personalities whose Colossi walk with an assault. */
   siege: { balanced: false, rush: true, airswarm: false, boom: false, skyforce: false, ironclad: true } as Record<StrategyName, boolean>,
-  /** With no HQ, the base Goliath moves on once the field within this many tiles runs dry… */
+  /** With no HQ, the base Colossus moves on once the field within this many tiles runs dry… */
   baseField: 9,
   /** …to a field no farther than this (tiles): it is the base, and it is slow. */
   baseMove: 36,
-  /** Robot Love: our Goliaths keep this far (tiles) from the enemy's (GOLIATH.love.range is a draw)… */
+  /** Robot Love: our Colossi keep this far (tiles) from the enemy's (GOLIATH.love.range is a draw)… */
   loveGap: 9,
   /** …unless what we field is under this share of what we see of theirs, the base in trouble: a draw beats a loss. */
   loveLosing: 0.5,
@@ -167,9 +168,9 @@ export const GOLIATH_AI = {
   /** Sites given up on (no way there, no room, taken) are left alone this long (s). */
   avoid: 120,
 
-  /** Harvesters sent to work an anchored Goliath's field (more are built for it). */
+  /** Prospectors sent to work an anchored Colossus's field (more are built for it). */
   harvesters: { balanced: 2, rush: 2, airswarm: 2, boom: 3, skyforce: 2, ironclad: 2 } as Record<StrategyName, number>,
-  /** Outposts a Goliath puts up in its ring at a field, in order (Depot only for a rich field). */
+  /** Outposts a Colossus puts up in its ring at a field, in order (Depot only for a rich field). */
   outposts: {
     balanced: ["depot", "turret", "sam-site"],
     rush: ["turret", "depot"],
@@ -178,22 +179,22 @@ export const GOLIATH_AI = {
     skyforce: ["sam-site", "depot"],
     ironclad: ["turret", "depot", "sam-site"]
   } as Record<StrategyName, BuildingKind[]>,
-  /** A field must still hold this much for an outpost Depot (it serves the field after the Goliath moves on). */
+  /** A field must still hold this much for an outpost Depot (it serves the field after the Colossus moves on). */
   depotMin: 3000,
-  /** A SAM site only once this much enemy air has been seen (Flak-weighted ai/commander seenAir). */
+  /** A Sky Battery only once this much enemy air has been seen (Skyguard-weighted ai/commander seenAir). */
   samAir: 2,
   /** Seconds between outposts… */
   outpostEvery: 20,
   /** …and past the first at a site, only on this much income (scrap a minute): a dry economy builds an army first. */
   outpostIncome: 600,
-  /** Sites keep this far (tiles) from an enemy Goliath (beyond its mortars' reach, 8). */
+  /** Sites keep this far (tiles) from an enemy Colossus (beyond its mortars' reach, 8). */
   goliathGap: 11,
-  /** Squads an anchored Goliath trains to stand by it (more at an island relay, more still with no HQ). */
+  /** Squads an anchored Colossus trains to stand by it (more at an island relay, more still with no HQ). */
   garrison: 2,
   relayGarrison: 3,
   lastGarrison: 4,
 
-  /** Menders the Airpads add for our Goliaths, at most (one with any; three for each hurt one). */
+  /** Tinkers the Aerodromes add for our Colossi, at most (one with any; three for each hurt one). */
   menders: 4,
   /** Escort value (share of its list price) of idle army that walks with it… */
   escort: 0.35,
@@ -201,7 +202,7 @@ export const GOLIATH_AI = {
   escortReach: 24,
   /** …standing this far from it (off its footprint and the harvesters' dock). */
   post: 3.2,
-  /** Walking below this share of its HP (or with its arm cannons down): back to Menders and home… */
+  /** Walking below this share of its HP (or with its arm cannons down): back to Tinkers and home… */
   retreatHp: 0.35,
   /** …until it is back up to this share. */
   resumeHp: 0.7,
@@ -211,7 +212,7 @@ export const GOLIATH_AI = {
   behind: 3,
   /** …and falls in with one whose lead passes within this many tiles of it. */
   join: 16,
-  /** From this many minutes in, a Goliath with nothing better to hold (a forward post) joins any assault. */
+  /** From this many minutes in, a Colossus with nothing better to hold (a forward post) joins any assault. */
   lateSiege: 12,
   /** Visible enemy firepower within `danger` tiles over this many times what holds the site (and it hurt): pack up and go. */
   loseEdge: 1.5,
@@ -221,25 +222,25 @@ export const GOLIATH_AI = {
   /** …once within this many tiles of the enemy HQ. */
   deep: 18,
 
-  /** A walk this many times the straight line (and `liftGain` tiles longer) is a lift if two Condors are free. */
+  /** A walk this many times the straight line (and `liftGain` tiles longer) is a lift if two Skyliners are free. */
   liftDetour: 1.8,
   liftGain: 20,
-  /** Seconds a lift waits for its two Condors (or a clear sky) before the site is given up. */
+  /** Seconds a lift waits for its two Skyliners (or a clear sky) before the site is given up. */
   liftWait: 90,
-  /** A Condor that loses this share of its HP on the way sets the Goliath down on the nearest land. */
+  /** A Skyliner that loses this share of its HP on the way sets the Colossus down on the nearest land. */
   liftAbort: 0.25,
-  /** Anti-air (Flak-weighted) on a lift's route above this calls it off: a downed Condor drops the Goliath. */
+  /** Anti-air (Skyguard-weighted) on a lift's route above this calls it off: a downed Skyliner drops the Colossus. */
   liftAa: 0.2,
   /** A lift given up on isn't tried again for this long (s). */
   liftRetry: 150,
-  /** Seconds the Condors have to hook on before the lift is called off. */
+  /** Seconds the Skyliners have to hook on before the lift is called off. */
   liftHook: 30,
 
-  /** An enemy Goliath counts as this many heavy units (Rocket Squads, Lancers, Hornets answer it). */
+  /** An enemy Colossus counts as this many heavy units (Bazooka Squads, Ray Skiffs, Thunderheads answer it). */
   heavyWeight: 3,
-  /** A Goliath on an enemy Gantry pre-arms the counters as this many heavy units. */
+  /** A Colossus on an enemy Gantry pre-arms the counters as this many heavy units. */
   gantryWeight: 2,
-  /** Strike an enemy Goliath with this many times what it can still do (its firepower and health, plus its escort)… */
+  /** Strike an enemy Colossus with this many times what it can still do (its firepower and health, plus its escort)… */
   huntEdge: 1.3,
   /** …and at least this much… */
   huntMin: 700,
@@ -247,7 +248,7 @@ export const GOLIATH_AI = {
   huntReach: 32,
   /** …this much less when a weapon of it is down (strike while it's weak)… */
   huntWeak: 0.8,
-  /** …no more often than this (s) per Goliath; units that can hit them go for its Menders first, this many each. */
+  /** …no more often than this (s) per Colossus; units that can hit them go for its Tinkers first, this many each. */
   huntEvery: 12,
   medicHunters: 2
 };
@@ -263,7 +264,7 @@ interface Site {
   field: P | null;
   value: number;
   score: number;
-  /** Over water (or the long way round by ground): two Condors fly it. */
+  /** Over water (or the long way round by ground): two Skyliners fly it. */
   lift: boolean;
   relayId?: number;
 }
@@ -278,7 +279,7 @@ interface Plan {
   harvesters: number[];
   /** Outposts started at the site it holds now (each kind once a stay). */
   outposts: BuildingKind[];
-  /** Condors held for its lift, their HP at take-off, a flank waypoint. */
+  /** Skyliners held for its lift, their HP at take-off, a flank waypoint. */
   carriers: number[];
   launchHp: number[];
   waypoint: P | null;
@@ -287,7 +288,7 @@ interface Plan {
   /** Where the lift took off (a called-off lift flies back there), and where a called-off one comes down. */
   origin: P | null;
   landing: P | null;
-  /** No lift is tried again before this tick (one just failed for want of Condors or a clear sky). */
+  /** No lift is tried again before this tick (one just failed for want of Skyliners or a clear sky). */
   noLift: number;
   tries: number;
   /** Tick of the last move order, and of the last re-check of a held site. */
@@ -297,7 +298,7 @@ interface Plan {
 
 interface Memo {
   plans: Map<number, Plan>;
-  /** Scrap set aside for the next Goliath. */
+  /** Scrap set aside for the next Colossus. */
   fund: number;
   /** Our income tally (harvest, salvage, objectives) at the last pass, and a minute of samples. */
   tally: number | null;
@@ -314,7 +315,7 @@ interface Memo {
   gantriesLost: number;
   /** Tick a building last found no room (no HQ: the rings are full). */
   noRoom: number;
-  /** Strikes on enemy Goliaths: when, and who went. */
+  /** Strikes on enemy Colossi: when, and who went. */
   hunts: Map<number, { tick: number; ids: number[] }>;
   /** Field clusters, re-read every few seconds. */
   clusters: { tick: number; list: Cluster[] } | null;
@@ -342,7 +343,7 @@ const kbCentre = (kb: KnownBuilding): P => ({ x: kb.tx + BUILDINGS[kb.kind].size
 
 /**
  * What an enemy unit is worth as a threat right now: its price, except a
- * Goliath, which is worth its list price times what it can still fire and
+ * Colossus, which is worth its list price times what it can still fire and
  * how much of it is left.
  */
 export function threatValue(u: Unit): number {
@@ -359,7 +360,7 @@ export function noteHome(s: AiState, at: P): void {
 
 /**
  * Home for a side with no HQ: where it stood (the frame stays the same),
- * else — never had one (Nomads) — where its first Goliath stood when first
+ * else — never had one (Nomads) — where its first Colossus stood when first
  * asked (where the HQ would have been), else the map centre.
  */
 export function lostHome(w: World, faction: Faction, s: AiState): P {
@@ -371,7 +372,7 @@ export function lostHome(w: World, faction: Faction, s: AiState): P {
   return m.home;
 }
 
-// --- income and the Goliath fund ----------------------------------------
+// --- income and the Colossus fund ----------------------------------------
 
 /** Our scrap income so far (harvest, salvage, Uplinks and crates: what a player sees in their own stats). */
 function incomeTally(w: World, faction: Faction): number {
@@ -396,9 +397,9 @@ export interface FundContext {
 }
 
 /**
- * One pass of the Goliath savings (call once per decision pass, before
+ * One pass of the Colossus savings (call once per decision pass, before
  * production): a GOLIATH_AI.save share of the income since the last pass
- * goes into the fund while a Goliath is wanted (a Gantry, room for one more,
+ * goes into the fund while a Colossus is wanted (a Gantry, room for one more,
  * an army, no attack on the base). Returns the scrap to hold back from the
  * army this pass (never more than the bank).
  */
@@ -420,7 +421,7 @@ export function goliathFund(w: World, faction: Faction, s: AiState, ctx: FundCon
   return m.fund;
 }
 
-/** Room for another Goliath (alive and on the cradle under GOLIATH_AI.max)? */
+/** Room for another Colossus (alive and on the cradle under GOLIATH_AI.max)? */
 function roomForGoliath(w: World, faction: Faction, s: AiState): boolean {
   let n = goliathsOf(w, faction).length;
   for (const b of w.buildings.values()) if (b.faction === faction) for (const q of b.queue) if (q.kind === "goliath") n++;
@@ -428,7 +429,7 @@ function roomForGoliath(w: World, faction: Faction, s: AiState): boolean {
 }
 
 /**
- * Should the Gantry start a Goliath now? Room for one more, a pause since the
+ * Should the Gantry start a Colossus now? Room for one more, a pause since the
  * last, an army, no attack on the base, and the scrap (`spendable`, the
  * fund included) for its escalating price.
  */
@@ -441,7 +442,7 @@ export function wantGoliath(w: World, faction: Faction, s: AiState, ctx: FundCon
   return ctx.spendable >= goliathCost(w, faction);
 }
 
-/** A Goliath was queued: the fund is spent. */
+/** A Colossus was queued: the fund is spent. */
 export function noteGoliathOrdered(w: World, s: AiState): void {
   const m = memo(s);
   m.fund = 0;
@@ -450,7 +451,7 @@ export function noteGoliathOrdered(w: World, s: AiState): void {
 
 /**
  * Is it time for a Gantry? Not on Easy, in Last Stand or an Op, nor under
- * rules that ban the Goliath; one per side; from the personality's hour
+ * rules that ban the Colossus; one per side; from the personality's hour
  * (sooner once the enemy has one); with the income (or the bank) and an
  * army to show for it; never with the base under attack. The prerequisites
  * it lacks are the commander's to build first.
@@ -483,7 +484,7 @@ export function wantGantry(
   if (w.tick < from * TICK_RATE) return false;
   if (ctx.threatened || ctx.armyValue < GOLIATH_AI.armyFloor || !roomForGoliath(w, faction, s)) return false;
   // a mobile base pays only with fields left to work: not on a map already mined out
-  // (the island maps' relays are what a Goliath goes for there)
+  // (the island maps' relays are what a Colossus goes for there)
   if (!w.rules?.islands && fieldsOurSide(w, faction, m, ctx.home, ctx.enemyHome) < GOLIATH_AI.gantryFields) return false;
   return incomeRate(m) >= GOLIATH_AI.gantryIncome || f.scrap >= GOLIATH_AI.gantryBank;
 }
@@ -496,7 +497,7 @@ function fieldsOurSide(w: World, faction: Faction, m: Memo, home: P, enemyHome: 
   return v;
 }
 
-/** A building found no room (no HQ: every ring is full): the base Goliath may move on (planGoliaths). */
+/** A building found no room (no HQ: every ring is full): the base Colossus may move on (planGoliaths). */
 export function noteNoRoom(w: World, s: AiState): void {
   memo(s).noRoom = w.tick;
 }
@@ -611,7 +612,7 @@ function nearestFieldTile(w: World, faction: Faction, p: P, r: number): P | null
 
 // --- sites ---------------------------------------------------------------
 
-/** Open ground all round tile (tx, ty) (a 3×3 block: every 2×2 footprint a Goliath could settle on there is clear). */
+/** Open ground all round tile (tx, ty) (a 3×3 block: every 2×2 footprint a Colossus could settle on there is clear). */
 function openAround(w: World, tx: number, ty: number): boolean {
   for (let dy = -1; dy <= 1; dy++)
     for (let dx = -1; dx <= 1; dx++) {
@@ -698,7 +699,7 @@ function enemyNear(seen: readonly Unit[], p: P, r: number): number {
   return v;
 }
 
-/** Could two Condors fly this Goliath (not on Easy, Condors allowed, an Airpad to build them at or two on the field)? */
+/** Could two Skyliners fly this Colossus (not on Easy, Skyliners allowed, an Aerodrome to build them at or two on the field)? */
 function canLift(w: World, faction: Faction, s: AiState): boolean {
   if (s.difficulty === "easy" || bannedBy(w, "condor", faction)) return false;
   let condors = 0;
@@ -709,7 +710,7 @@ function canLift(w: World, faction: Faction, s: AiState): boolean {
 }
 
 /**
- * Where Goliath `g` should dig in next: the best-scoring rich field no
+ * Where Colossus `g` should dig in next: the best-scoring rich field no
  * drop-off of ours serves (not the enemy's, not under its guns), an island
  * relay (island maps: by lift), or, when none pays, a forward post (for a
  * personality that holds one). Null: nowhere worth it (it guards home).
@@ -721,16 +722,16 @@ function chooseSite(w: World, faction: Faction, s: AiState, g: Unit, ctx: Goliat
   const fr = sideFrame(w, faction);
   const gRegion = regionAt(w, Math.floor(g.x), Math.floor(g.y), "ground");
   const lifts = canLift(w, faction, s) && w.tick >= (m.plans.get(g.id)?.noLift ?? -1e9);
-  // (a site by lift only with a way there clear of anti-air now: the Condors are only held then)
+  // (a site by lift only with a way there clear of anti-air now: the Skyliners are only held then)
   const sky = lifts ? liftAirspace(w, faction, ctx.seen) : null;
   const flyable = (at: P) => !!sky && !sky.covered(at.x, at.y) && route(w, g, at, sky.clear) !== undefined;
   m.avoid = m.avoid.filter((a) => a.until > w.tick);
   const avoided = (p: P) => m.avoid.some((a) => dist(a.x, a.y, p.x, p.y) < 4);
-  // sites other Goliaths of ours have
+  // sites other Colossi of ours have
   const taken: P[] = [];
   for (const [id, plan] of m.plans) if (id !== g.id && plan.site) taken.push(plan.site.field ?? plan.site.at);
   const caution = s.strategy.name === "boom" ? 1 : 0.6;
-  // out of an enemy Goliath's reach (two dug in within mortar range of each other only shell
+  // out of an enemy Colossus's reach (two dug in within mortar range of each other only shell
   // each other's outposts), and under Robot Love well clear of one (a meeting is a draw)
   const gap = rulesOf(w).robotLove ? Math.max(GOLIATH_AI.goliathGap, GOLIATH_AI.loveGap + 4) : GOLIATH_AI.goliathGap;
   const clearOfThem = (p: P) => !ctx.seen.some((e) => !!e.goliath && dist(e.x, e.y, p.x, p.y) < gap);
@@ -764,13 +765,13 @@ function chooseSite(w: World, faction: Faction, s: AiState, g: Unit, ctx: Goliat
     cands.push({ kind: "field", at, field: c, value: cl.value, score, lift, key: cl.key });
   }
 
-  // island relays (the island maps): two Condors fly it out, it trains the crew
+  // island relays (the island maps): two Skyliners fly it out, it trains the crew
   if (lifts && w.rules?.islands)
     for (const l of w.objectives.uplinks) {
       if (!l.infantryOnly) continue;
       const lr = regionAt(w, Math.floor(l.x), Math.floor(l.y), "ground");
       if (!lr || lr === gRegion || taken.some((t) => dist(t.x, t.y, l.x, l.y) < 6) || avoided(l)) continue;
-      // an enemy Goliath already there: not a landing
+      // an enemy Colossus already there: not a landing
       if (ctx.seen.some((e) => e.goliath && regionAt(w, Math.floor(e.x), Math.floor(e.y), "ground") === lr)) continue;
       const at = spotNear(w, faction, l, GOLIATH_AI.relayMin, GOLIATH_AI.relayMax, (p) => dist(p.x, p.y, l.x, l.y) + dist(p.x, p.y, home.x, home.y) * 0.02, lr);
       if (!at || underGuns(known, at) || !clearOfThem(at) || !flyable(at)) continue;
@@ -817,11 +818,11 @@ function chooseSite(w: World, faction: Faction, s: AiState, g: Unit, ctx: Goliat
   return null;
 }
 
-// --- Condors for a lift --------------------------------------------------
+// --- Skyliners for a lift --------------------------------------------------
 
 /**
- * Condors free to lift Goliath `g`: ours, empty, not on a drop (ai/condor.ts)
- * or an airlift trip (ai/airlift.ts), not held for another Goliath; nearest
+ * Skyliners free to lift Colossus `g`: ours, empty, not on a drop (ai/condor.ts)
+ * or an airlift trip (ai/airlift.ts), not held for another Colossus; nearest
  * it first.
  */
 function freeCondors(w: World, faction: Faction, s: AiState, g: Unit, m: Memo): Unit[] {
@@ -839,8 +840,8 @@ function freeCondors(w: World, faction: Faction, s: AiState, g: Unit, m: Memo): 
 }
 
 /**
- * Condors the drop and airlift planners must leave alone: those on a lift
- * (a move, unload or stop to one redirects or sets down the Goliath) and
+ * Skyliners the drop and airlift planners must leave alone: those on a lift
+ * (a move, unload or stop to one redirects or sets down the Colossus) and
  * those held for one.
  */
 export function liftCondors(w: World, faction: Faction, s: AiState): Set<number> {
@@ -851,7 +852,7 @@ export function liftCondors(w: World, faction: Faction, s: AiState): Set<number>
   return out;
 }
 
-/** Condors a lift is still short of (the Airpad builds them: commander.ts runPads). */
+/** Skyliners a lift is still short of (the Aerodrome builds them: commander.ts runPads). */
 export function liftWantsCondors(w: World, faction: Faction, s: AiState): number {
   const m = memos.get(s);
   if (!m) return 0;
@@ -867,7 +868,7 @@ export function liftWantsCondors(w: World, faction: Faction, s: AiState): number
 
 // --- holds -----------------------------------------------------------------
 
-/** Units the Goliath plans have a claim on this pass (escorts, strikes under way): other tactics leave them be. */
+/** Units the Colossus plans have a claim on this pass (escorts, strikes under way): other tactics leave them be. */
 export function goliathHolds(w: World, s: AiState): number[] {
   const m = memos.get(s);
   if (!m) return [];
@@ -877,7 +878,7 @@ export function goliathHolds(w: World, s: AiState): number[] {
   return out;
 }
 
-/** Plans for dead Goliaths go (their escorts and harvesters are free again). */
+/** Plans for dead Colossi go (their escorts and harvesters are free again). */
 function prune(w: World, faction: Faction, m: Memo): Plan[] {
   const gone: Plan[] = [];
   for (const [id, plan] of m.plans) {
@@ -893,10 +894,10 @@ function prune(w: World, faction: Faction, m: Memo): Plan[] {
 // --- the harvesters ------------------------------------------------------
 
 /**
- * Harvesters for the fields our anchored Goliaths work (call from the
+ * Prospectors for the fields our anchored Colossi work (call from the
  * economy pass): `extra` more wanted beyond the base's count, `keep` (ids
  * the base must not re-task) and the harvest orders that send them out — or
- * bring them home when their Goliath has moved on and no outpost Depot
+ * bring them home when their Colossus has moved on and no outpost Depot
  * serves the field.
  */
 export function goliathHarvest(
@@ -968,10 +969,10 @@ function ownBuildingsNear(w: World, faction: Faction, p: P, r: number): Building
 }
 
 /**
- * The outpost an anchored Goliath wants started now (construction pass,
+ * The outpost an anchored Colossus wants started now (construction pass,
  * when the slot is free), or null: the personality's list for a field (a
  * Depot only while the field is rich, a SAM only once enemy air is about),
- * a Turret and a SAM at an island relay or a forward post, one every
+ * a Pillbox and a SAM at an island relay or a forward post, one every
  * GOLIATH_AI.outpostEvery seconds, never one it can't place.
  */
 export function outpostWanted(w: World, faction: Faction, s: AiState, scrap: number): BuildingKind | null {
@@ -1004,8 +1005,8 @@ export function outpostWanted(w: World, faction: Faction, s: AiState, scrap: num
 
 /**
  * Where a finished building goes if it was started as an outpost (construction
- * pass, `kind` ready): a spot in its Goliath's ring, or null (not an outpost,
- * or its Goliath has gone: the commander places it as usual).
+ * pass, `kind` ready): a spot in its Colossus's ring, or null (not an outpost,
+ * or its Colossus has gone: the commander places it as usual).
  */
 export function outpostSpot(w: World, faction: Faction, s: AiState, kind: BuildingKind, enemyHq: P): { tx: number; ty: number } | null {
   const m = memos.get(s);
@@ -1019,7 +1020,7 @@ export function outpostSpot(w: World, faction: Faction, s: AiState, kind: Buildi
 }
 
 /**
- * A spot for outpost `kind` in anchored Goliath `g`'s ring: a tile's lane
+ * A spot for outpost `kind` in anchored Colossus `g`'s ring: a tile's lane
  * left all round its footprint (it walks out again), lanes round the
  * building too (tooCramped), the Depot nearest the field, defences toward
  * the enemy. Searched in the side's own frame.
@@ -1072,9 +1073,9 @@ function cramped(w: World, tx: number, ty: number, size: number): boolean {
 // --- training ------------------------------------------------------------
 
 /**
- * Anchored Goliaths that want a squad trained now, with what (runBays):
+ * Anchored Colossi that want a squad trained now, with what (runBays):
  * squads to stand by it (GOLIATH_AI.garrison; more at an island relay, more
- * still with the HQ gone), Rocket Squads once enemy air or armour is about.
+ * still with the HQ gone), Bazooka Squads once enemy air or armour is about.
  */
 export function goliathBarracks(
   w: World,
@@ -1122,7 +1123,7 @@ function avoidSite(w: World, m: Memo, site: Site | null): void {
 }
 
 /**
- * One decision pass for our Goliaths: pick sites, walk or fly there, dig in,
+ * One decision pass for our Colossi: pick sites, walk or fly there, dig in,
  * hold, move on, walk with a wave, fall back; escorts with them. Call after
  * the threat response and home defence, before the other tactics.
  */
@@ -1132,7 +1133,7 @@ export function planGoliaths(w: World, faction: Faction, s: AiState, ctx: Goliat
   prune(w, faction, m);
   const goliaths = goliathsOf(w, faction).sort(byId);
   if (goliaths.length === 0) return cmds;
-  // with no HQ (lost, or Nomads) one Goliath is the base: the first dug in (else the first);
+  // with no HQ (lost, or Nomads) one Colossus is the base: the first dug in (else the first);
   // any other plays as if the HQ stood
   const base = ctx.hasHq ? null : goliaths.find(isAnchored) ?? goliaths[0]!;
   const love = loveMood(w, ctx, goliaths);
@@ -1157,12 +1158,12 @@ export function planGoliaths(w: World, faction: Faction, s: AiState, ctx: Goliat
 // --- Robot Love ------------------------------------------------------------
 
 /**
- * Under Robot Love (two enemy Goliaths within GOLIATH.love.range: a draw),
- * how our Goliaths should feel about theirs: "shy" — keep clear, the usual
+ * Under Robot Love (two enemy Colossi within GOLIATH.love.range: a draw),
+ * how our Colossi should feel about theirs: "shy" — keep clear, the usual
  * case — or "court" when we're plainly losing (what we field and see of
  * ours is under GOLIATH_AI.loveLosing of what we see of theirs, and the base
  * is under attack or gone): a draw beats a defeat. Null without the mutator
- * or an enemy Goliath.
+ * or an enemy Colossus.
  */
 function loveMood(w: World, ctx: GoliathContext, ours: readonly Unit[]): "shy" | "court" | null {
   if (!rulesOf(w).robotLove || !ctx.seen.some((e) => !!e.goliath)) return null;
@@ -1173,8 +1174,8 @@ function loveMood(w: World, ctx: GoliathContext, ours: readonly Unit[]): "shy" |
 }
 
 /**
- * One Goliath's pass under Robot Love; true when it took the Goliath's orders.
- * Shy: an enemy Goliath within GOLIATH_AI.loveGap sends ours the other way
+ * One Colossus's pass under Robot Love; true when it took the Colossus's orders.
+ * Shy: an enemy Colossus within GOLIATH_AI.loveGap sends ours the other way
  * (packing up first if it is dug in and the other is close). Courting: ours
  * walks to meet the nearest of theirs.
  */
@@ -1185,7 +1186,7 @@ function loveStep(w: World, faction: Faction, g: Unit, plan: Plan, ctx: GoliathC
   const e = foes[0];
   if (!e) return false;
   const d = dist(e.x, e.y, g.x, g.y);
-  /** Taking its orders: a lift it was getting (a Condor held for it) is off. */
+  /** Taking its orders: a lift it was getting (a Skyliner held for it) is off. */
   const leaveLift = () => {
     if (plan.phase !== "lift") return;
     plan.carriers = [];
@@ -1243,7 +1244,7 @@ function step(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, ctx: 
     return;
   }
 
-  // --- hurt: fall back to the Menders and home ----------------------------
+  // --- hurt: fall back to the Tinkers and home ----------------------------
   // (walking with a wave it falls back sooner: its laser gone, the long walk home is under fire)
   const floor = plan.phase === "siege" ? GOLIATH_AI.siegeRetreat : GOLIATH_AI.retreatHp;
   if (canWalk(g) && plan.phase !== "retreat" && (hp < floor || !gs.weapons.cannons.online)) {
@@ -1483,10 +1484,10 @@ function step(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, ctx: 
       }
       const home = ctx.hasHq ? ctx.hqC : ctx.guardPoint;
       const d = dist(g.x, g.y, home.x, home.y);
-      // just short of home, toward where it is (the Menders come to it: ai/menders.ts)
+      // just short of home, toward where it is (the Tinkers come to it: ai/menders.ts)
       const k = d > 4 ? 4 / d : 0;
       const to = { x: home.x + (g.x - home.x) * k, y: home.y + (g.y - home.y) * k };
-      // (no walking home from an island: it digs in where it stands, and the Menders fly to it)
+      // (no walking home from an island: it digs in where it stands, and the Tinkers fly to it)
       const stranded = !walkable(w, g, to);
       if (dist(g.x, g.y, to.x, to.y) > 1.5 && !stranded) move(to);
       else if ((!ctx.hasHq || stranded) && anchorBlocker(w, g) === null) {
@@ -1500,14 +1501,14 @@ function step(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, ctx: 
 }
 
 /**
- * Does Goliath `g` (a siege personality's, healthy, the HQ standing) fall in
+ * Does Colossus `g` (a siege personality's, healthy, the HQ standing) fall in
  * with our wave now: one is out, its lead within GOLIATH_AI.join tiles (a
- * Goliath walks at a tank's half speed: it joins a wave going by its post,
+ * Colossus walks at a tank's half speed: it joins a wave going by its post,
  * it doesn't chase one across the map)?
  */
 function joinsWave(w: World, s: AiState, g: Unit, ctx: GoliathContext, m: Memo, hp: number, idle = false): boolean {
   if (ctx.mode !== "assault" || !ctx.hasHq || hp < GOLIATH_AI.resumeHp) return false;
-  // (late on, a Goliath with nothing better to hold — a forward post — joins the assault whatever
+  // (late on, a Colossus with nothing better to hold — a forward post — joins the assault whatever
   // the personality: dried-out fields and trickling waves otherwise stall into a 25-minute draw)
   if (idle && w.tick >= GOLIATH_AI.lateSiege * 60 * TICK_RATE) return true;
   if (!GOLIATH_AI.siege[s.strategy.name]) return false;
@@ -1540,10 +1541,10 @@ function waveLead(ctx: GoliathContext, escorts: ReadonlySet<number>): P | null {
   return lead && best >= GOLIATH_AI.company ? { x: lead.x, y: lead.y } : null;
 }
 
-/** Can Goliath `g` walk to within reach of `p` (not across the water)? */
+/** Can Colossus `g` walk to within reach of `p` (not across the water)? */
 const walkable = (w: World, g: Unit, p: P): boolean => canGetWithin(w, "ground", g.x, g.y, p.x, p.y, 2.5);
 
-/** Our own units standing on an anchoring Goliath's footprint step aside. */
+/** Our own units standing on an anchoring Colossus's footprint step aside. */
 function shoveAside(w: World, faction: Faction, g: Unit, ctx: GoliathContext, cmds: Command[]): void {
   const fr = sideFrame(w, faction);
   for (const u of w.units.values()) {
@@ -1566,7 +1567,7 @@ function shoveAside(w: World, faction: Faction, g: Unit, ctx: GoliathContext, cm
 // --- escorts -------------------------------------------------------------
 
 /**
- * Keep Goliath `g`'s escort: top it up from idle army nearby (some anti-air
+ * Keep Colossus `g`'s escort: top it up from idle army nearby (some anti-air
  * first once enemy air is about), and send whoever strays back to a post
  * round it. Escorts that can't get there (it's on an island) are let go.
  */
@@ -1581,7 +1582,7 @@ function keepEscorts(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan
     .map((id) => w.units.get(id))
     .filter((u): u is Unit => !!u && armyIds.has(u.id) && reachable(u) && (!ctx.used.has(u.id) || plan.escorts.includes(u.id)));
   plan.escorts = escorts.map((u) => u.id);
-  // home from home: the escort stands down when the Goliath guards the base anyway
+  // home from home: the escort stands down when the Colossus guards the base anyway
   const atHome = ctx.hasHq && dist(g.x, g.y, ctx.hqC.x, ctx.hqC.y) < 10;
   const remote = plan.phase === "hold" && plan.site?.kind !== "front";
   const want = atHome ? 0 : UNITS.goliath.cost * GOLIATH_AI.escort * (remote ? 0.6 : 1);
@@ -1630,10 +1631,10 @@ function keepEscorts(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan
 
 // --- the lift ------------------------------------------------------------
 
-/** Anti-air (Flak-weighted) the lift reckons with along a straight leg: clear when nothing above GOLIATH_AI.liftAa covers it. */
+/** Anti-air (Skyguard-weighted) the lift reckons with along a straight leg: clear when nothing above GOLIATH_AI.liftAa covers it. */
 function liftAirspace(w: World, faction: Faction, seen: readonly Sighting[]) {
   const sources = aaSources(w, faction, seen);
-  // (under Robot Love a lift never flies within loveGap of an enemy Goliath: a meeting is a draw)
+  // (under Robot Love a lift never flies within loveGap of an enemy Colossus: a meeting is a draw)
   const love = rulesOf(w).robotLove ? seen.filter((e) => e.kind === "goliath") : [];
   const covered = (x: number, y: number) =>
     aaStrengthAt(sources, x, y) > GOLIATH_AI.liftAa || love.some((e) => dist(e.x, e.y, x, y) < GOLIATH_AI.loveGap);
@@ -1645,7 +1646,7 @@ function liftAirspace(w: World, faction: Faction, seen: readonly Sighting[]) {
   return { covered, clear };
 }
 
-/** The nearest ground a Goliath can stand on to (x, y), within 12 tiles (frame order for ties), or null. */
+/** The nearest ground a Colossus can stand on to (x, y), within 12 tiles (frame order for ties), or null. */
 function nearestLand(w: World, faction: Faction, p: P): P | null {
   const fr = sideFrame(w, faction);
   const q = fr.toFrame(p);
@@ -1667,17 +1668,17 @@ function nearestLand(w: World, faction: Faction, p: P): P | null {
 }
 
 /**
- * The lift, step by step: pack up if dug in; hold two free Condors (more are
+ * The lift, step by step: pack up if dug in; hold two free Skyliners (more are
  * built: liftWantsCondors); hook on once the way there is clear of anti-air;
  * fly (by a flank waypoint if need be) and set down at the site; hurt on the
  * way, or anti-air turning up on the route, set down on the nearest land at
- * once. Orders go to the Goliath (lift.ts routes them), never to a Condor
+ * once. Orders go to the Colossus (lift.ts routes them), never to a Skyliner
  * still hooking on (that would call the lift off).
  */
 function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, ctx: GoliathContext, m: Memo, cmds: Command[]): void {
   const gs = g.goliath!;
   const lift = gs.lift;
-  // carried with nowhere to go yet (a Goliath Armada start): a site first, flown to, rather
+  // carried with nowhere to go yet (a Colossus Armada start): a site first, flown to, rather
   // than down where it hangs (each picks clear of the sites the others took)
   if (lift?.phase === "carrying" && !plan.site && !plan.landing && !lift.setDown) {
     plan.site = chooseSite(w, faction, s, g, ctx, m);
@@ -1694,7 +1695,7 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
   };
   if (!lift) {
     if (plan.lifting) {
-      // set down (or the lift was called off, or a Condor went down): walk the rest, or think again
+      // set down (or the lift was called off, or a Skyliner went down): walk the rest, or think again
       release();
       if (site && dist(g.x, g.y, site.at.x, site.at.y) <= 3 && canWalk(g)) {
         setPhase(w, plan, "march");
@@ -1720,7 +1721,7 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
       plan.noLift = w.tick + GOLIATH_AI.liftRetry * TICK_RATE;
       setPhase(w, plan, "muster");
     };
-    // a clear way there first (the Condors are only held once there is one: the airlift needs them)
+    // a clear way there first (the Skyliners are only held once there is one: the airlift needs them)
     const { covered, clear } = liftAirspace(w, faction, ctx.seen);
     const wp = covered(site.at.x, site.at.y) ? undefined : route(w, g, site.at, clear);
     if (wp === undefined) {
@@ -1728,7 +1729,7 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
       if (late) giveUp();
       return;
     }
-    // hold two Condors
+    // hold two Skyliners
     plan.carriers = plan.carriers.filter((id) => {
       const c = w.units.get(id);
       return !!c && canCarry(c) && !isLoaded(c);
@@ -1751,12 +1752,12 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
     plan.waypoint = wp;
     return;
   }
-  // it's ours to steer now: the lift's own Condors
+  // it's ours to steer now: the lift's own Skyliners
   plan.lifting = true;
   if (plan.carriers.length < 2) plan.carriers = [...lift.carriers];
   if (lift.phase === "hooking") {
     if (w.tick - plan.liftTick > GOLIATH_AI.liftHook * TICK_RATE) {
-      // the Condors never got there: call it off (a stop to a Condor still hooking on does)
+      // the Skyliners never got there: call it off (a stop to a Skyliner still hooking on does)
       cmds.push({ type: "stop", faction, unitIds: [...lift.carriers] });
       avoidSite(w, m, site);
       release();
@@ -1792,7 +1793,7 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
     plan.landing = to;
     setDownAt(to);
   };
-  // hurt (a Condor going down drops it): down on the nearest land, now
+  // hurt (a Skyliner going down drops it): down on the nearest land, now
   if (hurt || !goal) {
     callOff(null);
     return;
@@ -1821,7 +1822,7 @@ function liftStep(w: World, faction: Faction, s: AiState, g: Unit, plan: Plan, c
   cmds.push({ type: "unload", faction, unitIds: [g.id], x: goal!.x, y: goal!.y });
 }
 
-// --- hunting enemy Goliaths ----------------------------------------------
+// --- hunting enemy Colossi ----------------------------------------------
 
 export interface HuntContext {
   army: Unit[];
@@ -1833,12 +1834,12 @@ export interface HuntContext {
 }
 
 /**
- * Strikes on enemy Goliaths (always in sight): for each (by id), idle units
+ * Strikes on enemy Colossi (always in sight): for each (by id), idle units
  * within GOLIATH_AI.huntReach that can hurt it and get at it, worth
  * GOLIATH_AI.huntEdge times what it can still do (threatValue, plus the
  * escort round it; less while a weapon is down), go for it — those that can
- * hit aircraft take its Menders first. One carried by Condors is struck
- * through its weaker Condor. Not one dug in under its own base's guns
+ * hit aircraft take its Tinkers first. One carried by Skyliners is struck
+ * through its weaker Skyliner. Not one dug in under its own base's guns
  * (that's a wave's job), and not while our base is under attack. Strikers
  * stay on it (goliathHolds) until it, or they, are done.
  */
@@ -1869,7 +1870,7 @@ export function huntGoliaths(w: World, faction: Faction, s: AiState, ctx: HuntCo
     if (homeGuns && ctx.mode !== "assault") continue;
     const lifted = isLifted(e);
     const carriers = lifted ? e.goliath!.lift!.carriers.map((id) => w.units.get(id)).filter((c): c is Unit => !!c) : [];
-    // a carried Goliath: down its weaker Condor (over water, that's the Goliath too)
+    // a carried Colossus: down its weaker Skyliner (over water, that's the Colossus too)
     const mark = lifted ? [...carriers].sort((a, b) => a.hp - b.hp || a.id - b.id)[0] ?? e : e;
     const domain = domainOf(mark);
     const escortValue = ctx.seen.reduce((v, o) => (o.id !== e.id && !o.goliath && UNITS[o.kind].dps > 0 && dist(o.x, o.y, e.x, e.y) <= 6 ? v + UNITS[o.kind].cost : v), 0);
@@ -1881,7 +1882,7 @@ export function huntGoliaths(w: World, faction: Faction, s: AiState, ctx: HuntCo
       .filter((u) => !ctx.used.has(u.id) && u.order.type === "idle" && u.kind !== "mender")
       .filter((u) => dist(u.x, u.y, e.x, e.y) <= GOLIATH_AI.huntReach)
       .sort((a, b) => dist(a.x, a.y, e.x, e.y) - dist(b.x, b.y, e.x, e.y) || a.id - b.id);
-    // its Menders first (a mended Goliath never goes down): a couple of units that can hit each
+    // its Tinkers first (a mended Colossus never goes down): a couple of units that can hit each
     const menders = lifted
       ? []
       : ctx.seen
@@ -1901,7 +1902,7 @@ export function huntGoliaths(w: World, faction: Faction, s: AiState, ctx: HuntCo
       }
       if (ids.length > 0) onMender.set(md.id, ids.map((u) => u.id));
     }
-    // then what it takes to bring the Goliath down
+    // then what it takes to bring the Colossus down
     let v = 0;
     const onIt: number[] = [];
     for (const u of able) {
@@ -1922,7 +1923,7 @@ export function huntGoliaths(w: World, faction: Faction, s: AiState, ctx: HuntCo
 }
 
 /**
- * Enemy Gantries known to have a Goliath on the cradle (public: the build
+ * Enemy Gantries known to have a Colossus on the cradle (public: the build
  * shows on the model, GOLIATH.md), and how far along each is.
  */
 export function enemyGantryBuilds(w: World, faction: Faction): { id: number; x: number; y: number; progress: number }[] {
@@ -1938,19 +1939,19 @@ export function enemyGantryBuilds(w: World, faction: Faction): { id: number; x: 
   return out;
 }
 
-/** Is the enemy HQ known to be gone (its spot seen empty)? Then its Goliaths are what's left to beat. */
+/** Is the enemy HQ known to be gone (its spot seen empty)? Then its Colossi are what's left to beat. */
 export function enemyHqGone(w: World, faction: Faction, enemyHqGuess: P): boolean {
   if (knownBuildings(w, faction).some((kb) => kb.kind === "hq")) return false;
   return isVisible(w, faction, Math.floor(enemyHqGuess.x), Math.floor(enemyHqGuess.y));
 }
 
-/** The Goliath plans' phases (tests and tools). */
+/** The Colossus plans' phases (tests and tools). */
 export function goliathPhases(s: AiState): Map<number, string> {
   const m = memos.get(s);
   return new Map([...(m?.plans ?? new Map<number, Plan>())].map(([id, p]) => [id, p.phase]));
 }
 
-/** A Goliath's site as the plan sees it (tests and tools). */
+/** A Colossus's site as the plan sees it (tests and tools). */
 export function goliathSite(s: AiState, id: number): { kind: string; x: number; y: number; lift: boolean } | null {
   const site = memos.get(s)?.plans.get(id)?.site;
   return site ? { kind: site.kind, x: site.at.x, y: site.at.y, lift: site.lift } : null;

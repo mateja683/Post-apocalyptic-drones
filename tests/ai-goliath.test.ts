@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { STRATEGIES, createAiState, tickAi, type AiState, type Difficulty, type StrategyName } from "../src/sim/ai/commander";
 import { canPlaceBuilding } from "../src/sim/economy";
@@ -13,10 +14,10 @@ import { buildingCenter, hqOf, regionAt, removeBuilding, spawnBuilding, spawnUni
 import { perSide } from "../src/sim/sides";
 
 /**
- * The commander and the Goliath (GOLIATH.md "Balancing and playtesting": the
- * AI has to use Goliaths before automated playtesting means anything). It
- * builds a Gantry late and rich, digs a Goliath in at a distant field with
- * outposts, harvesters and squads, mends it, lifts it by two Condors to an
+ * The commander and the Colossus (GOLIATH.md "Balancing and playtesting": the
+ * AI has to use Colossi before automated playtesting means anything). It
+ * builds a Gantry late and rich, digs a Colossus in at a distant field with
+ * outposts, harvesters and squads, mends it, lifts it by two Skyliners to an
  * island, keeps fighting with it after the HQ falls, hunts the enemy's, and
  * plays the Nomads and Robot Love mutators.
  */
@@ -60,7 +61,7 @@ function placeNear(w: World, kind: BuildingKind, x: number, y: number): void {
 
 /**
  * Proving Grounds, red well along: its personality's build order up (with a
- * Fab Plant, Airpad and Tech Lab), its Assembly Bay only with `bay`, an army,
+ * Motor Works, Aerodrome and Atomic Lab), its Robot Foundry only with `bay`, an army,
  * scrap, and the clock at `secs`.
  */
 function midGame(strategy: StrategyName, difficulty: Difficulty = "normal", secs = 330, bay = false) {
@@ -79,7 +80,7 @@ function midGame(strategy: StrategyName, difficulty: Difficulty = "normal", secs
 }
 
 describe("the Gantry", () => {
-  it("comes late and rich: Boom builds the Assembly Bay it lacks, then a Gantry behind its HQ", () => {
+  it("comes late and rich: Boom builds the Robot Foundry it lacks, then a Gantry behind its HQ", () => {
     const { w, ai, hq } = midGame("boom");
     const started: string[] = [];
     runRed(w, 90, ai, (cmds) => {
@@ -119,7 +120,7 @@ describe("the Gantry", () => {
     expect(cmds.some((c) => c.type === "startBuilding" && c.building === "gantry")).toBe(false);
   });
 
-  /** Ironclad at 6:40 with a Gantry and 5,000 scrap; every Goliath it orders, and the price it paid. */
+  /** Ironclad at 6:40 with a Gantry and 5,000 scrap; every Colossus it orders, and the price it paid. */
   function gantrySide() {
     const { w, ai, hq } = midGame("ironclad", "normal", 400, true);
     placeNear(w, "gantry", buildingCenter(hq).x, buildingCenter(hq).y + 10);
@@ -131,7 +132,7 @@ describe("the Gantry", () => {
     return { w, ai, orders, watch };
   }
 
-  it("queues a Goliath, and no second within GOLIATH_AI.again", () => {
+  it("queues a Colossus, and no second within GOLIATH_AI.again", () => {
     const { w, ai, orders, watch } = gantrySide();
     runRed(w, 90, ai, watch);
     expect(orders).toHaveLength(1);
@@ -155,8 +156,8 @@ describe("the Gantry", () => {
   }, 30000);
 });
 
-describe("a Goliath in the field", () => {
-  /** Red's Goliath by its HQ, Boom's (an expander's) plan, a minute and a half to go about it. */
+describe("a Colossus in the field", () => {
+  /** Red's Colossus by its HQ, Boom's (an expander's) plan, a minute and a half to go about it. */
   function expander() {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("boom", "normal", 1);
@@ -164,7 +165,7 @@ describe("a Goliath in the field", () => {
     const c = buildingCenter(hq);
     const g = spawnUnit(w, "goliath", "red", c.x - 3, c.y + 5);
     for (let i = 0; i < 3; i++) spawnUnit(w, "harvester", "red", c.x + 2 + i, c.y + 4);
-    spawnBuilding(w, "tech-lab", "red", hq.tx - 3, hq.ty); // (Rocket Squads at the Goliath)
+    spawnBuilding(w, "tech-lab", "red", hq.tx - 3, hq.ty); // (Bazooka Squads at the Colossus)
     w.factions.red.scrap = 2500;
     return { w, ai, hq: c, g };
   }
@@ -224,8 +225,8 @@ describe("a Goliath in the field", () => {
   }, 30000);
 });
 
-describe("Menders and a Goliath", () => {
-  it("the commander sends two or three Menders to a Goliath with a weapon down, none to one under an EMP", () => {
+describe("Tinkers and a Colossus", () => {
+  it("the commander sends two or three Tinkers to a Colossus with a weapon down, none to one under an EMP", () => {
     const w = createMapWorld("proving-grounds");
     const c = buildingCenter(hqOf(w, "red")!);
     const g = spawnUnit(w, "goliath", "red", 24.5, 18.5);
@@ -242,7 +243,7 @@ describe("Menders and a Goliath", () => {
     );
     expect(toIt.length).toBeGreaterThanOrEqual(2);
     expect(toIt.length).toBeLessThanOrEqual(3);
-    // under an EMP repair is blocked: the Menders see to the rest
+    // under an EMP repair is blocked: the Tinkers see to the rest
     const army = units(w, "red").filter((u) => u.kind !== "harvester" && u.kind !== "goliath");
     w.powers.stunned.set(g.id, w.tick + 100);
     const frozen = planMenders("red", army, [], new Set(), c, { x: 5, y: 41 }, [g], w);
@@ -250,8 +251,8 @@ describe("Menders and a Goliath", () => {
   });
 });
 
-describe("the two-Condor lift", () => {
-  it("on the Archipelago, two Condors fly a Goliath to an island relay; no other planner touches a lift Condor", () => {
+describe("the two-Skyliner lift", () => {
+  it("on the Archipelago, two Skyliners fly a Colossus to an island relay; no other planner touches a lift Skyliner", () => {
     const w = createMapWorld("archipelago", { objectives: true });
     const ai = createAiState("boom", "normal", 1);
     const hq = hqOf(w, "red")!;
@@ -264,12 +265,12 @@ describe("the two-Condor lift", () => {
     const lifts: Extract<FxEvent, { type: "goliathLift" }>[] = [];
     for (let i = 0; i < 150 * TICK_RATE && !lifts.some((e) => e.state === "setDown"); i++) {
       const cmds = tickAi(w, "red", ai);
-      // a move, unload, stop or board sent to a Condor on a lift would redirect, set down or call it off
+      // a move, unload, stop or board sent to a Skyliner on a lift would redirect, set down or call it off
       for (const cmd of cmds)
         if ("unitIds" in cmd && cmd.type !== "lift")
           for (const id of cmd.unitIds) {
             const u = w.units.get(id);
-            expect(u?.order.type === "lift", `${cmd.type} to lift Condor ${id}`).toBe(false);
+            expect(u?.order.type === "lift", `${cmd.type} to lift Skyliner ${id}`).toBe(false);
           }
       step(w, cmds);
       for (const e of w.fx) if (e.type === "goliathLift" && e.faction === "red") lifts.push(e);
@@ -289,7 +290,7 @@ describe("the two-Condor lift", () => {
 });
 
 describe("the calldown dodge", () => {
-  it("never moves a dug-in Goliath (a move packs it up) or a Condor on a lift; a walking Goliath steps out", () => {
+  it("never moves a dug-in Colossus (a move packs it up) or a Skyliner on a lift; a walking Colossus steps out", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("boom", "normal", 1);
     const c = buildingCenter(hqOf(w, "red")!);
@@ -324,14 +325,14 @@ describe("the calldown dodge", () => {
     expect(moved.has(walker.id)).toBe(true);
     expect(moved.has(dug.id)).toBe(false);
     expect(dug.goliath!.mode).not.toBe("packing");
-    // (a Condor on a lift is never told to move; set down, it's free to step out like anyone)
+    // (a Skyliner on a lift is never told to move; set down, it's free to step out like anyone)
     expect(liftMoved).toEqual([]);
     for (const u of condors) expect(u.order.type === "lift" ? moved.has(u.id) : false).toBe(false);
   });
 });
 
 describe("after the HQ falls", () => {
-  it("fights on with its Goliath: digs in, takes the harvesters' scrap, trains squads and builds in its ring", () => {
+  it("fights on with its Colossus: digs in, takes the harvesters' scrap, trains squads and builds in its ring", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const hq = hqOf(w, "red")!;
@@ -352,15 +353,15 @@ describe("after the HQ falls", () => {
   }, 30000);
 });
 
-describe("hunting enemy Goliaths", () => {
-  it("strikes a visible enemy Goliath with units that can hurt it (no Sniper Teams), its Menders first", () => {
+describe("hunting enemy Colossi", () => {
+  it("strikes a visible enemy Colossus with units that can hurt it (no Longshot Teams), its Tinkers first", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const c = buildingCenter(hqOf(w, "red")!);
     const foe = spawnUnit(w, "goliath", "blue", 22.5, 22.5);
     foe.hp = UNITS.goliath.hp * 0.6; // (mortars down)
     const medic = spawnUnit(w, "mender", "blue", 23.5, 23.5);
-    // (a scout of ours overhead: the Goliath is always in sight, its Mender only where we look)
+    // (a scout of ours overhead: the Colossus is always in sight, its Tinker only where we look)
     const eye = spawnUnit(w, "scout", "red", 25.5, 21.5);
     eye.hp = 1e9;
     for (const u of [foe, medic, eye]) w.powers.stunned.set(u.id, 1e9);
@@ -381,7 +382,7 @@ describe("hunting enemy Goliaths", () => {
     expect([...onFoe, ...onMedic].every((id) => strike.some((u) => u.id === id))).toBe(true);
   });
 
-  it("an enemy Goliath counts as heavy armour: the counters come (Rocket Squads at the Bay)", () => {
+  it("an enemy Colossus counts as heavy armour: the counters come (Bazooka Squads at the Bay)", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const hq = hqOf(w, "red")!;
@@ -395,7 +396,7 @@ describe("hunting enemy Goliaths", () => {
     expect(cmds.some((cmd) => cmd.type === "produce" && cmd.unit === "rocket-squad")).toBe(true);
   });
 
-  it("a wave goes for an enemy Gantry with a Goliath on the cradle before anything else", () => {
+  it("a wave goes for an enemy Gantry with a Colossus on the cradle before anything else", () => {
     const w = createMapWorld("proving-grounds");
     const ai = createAiState("balanced", "normal", 1);
     const red = buildingCenter(hqOf(w, "red")!);
@@ -432,7 +433,7 @@ describe("mutators", () => {
   }
 
   for (const [map, blue, red] of [["riverlands", "balanced", "ironclad"], ["ashlands", "boom", "rush"]] as const)
-    it(`Nomads on ${map}: both sides build an economy and an army round their Goliaths, and the match ends`, () => {
+    it(`Nomads on ${map}: both sides build an economy and an army round their Colossi, and the match ends`, () => {
       const { w, peak, harvestersBuilt } = play(map, blue, red, 25, ["nomads"]);
       for (const f of ["blue", "red"] as const) {
         expect(harvestersBuilt[f], f).toBeGreaterThanOrEqual(2);
@@ -441,7 +442,7 @@ describe("mutators", () => {
       expect(w.winner).not.toBeNull();
     }, 120000);
 
-  it("Nomads: the AI builds Harvesters at its Goliath and its base in the ring, and keeps a Goliath dug in", () => {
+  it("Nomads: the AI builds Prospectors at its Colossus and its base in the ring, and keeps a Colossus dug in", () => {
     const w = createMapWorld("riverlands", { mutators: ["nomads"] });
     const ai = createAiState("balanced", "normal", 1);
     const g = goliathsOf(w, "red")[0]!;
@@ -457,7 +458,7 @@ describe("mutators", () => {
     expect(unanchored).toBeLessThan(30 * TICK_RATE);
   }, 30000);
 
-  it("Robot Love: a commander that isn't losing walks its Goliath away from an enemy one", () => {
+  it("Robot Love: a commander that isn't losing walks its Colossus away from an enemy one", () => {
     const w = createMapWorld("proving-grounds", { mutators: ["robotlove"] });
     const ai = createAiState("boom", "normal", 1);
     const c = buildingCenter(hqOf(w, "red")!);
@@ -470,13 +471,13 @@ describe("mutators", () => {
     expect(w.winner).toBeNull();
   });
 
-  it("Robot Love: a commander plainly losing goes to meet the enemy's Goliath (a draw beats a loss)", () => {
+  it("Robot Love: a commander plainly losing goes to meet the enemy's Colossus (a draw beats a loss)", () => {
     const w = createMapWorld("proving-grounds", { mutators: ["robotlove"] });
     const ai = createAiState("boom", "normal", 1);
     const c = buildingCenter(hqOf(w, "red")!);
     const g = spawnUnit(w, "goliath", "red", c.x - 4, c.y + 6);
     g.hp = UNITS.goliath.hp * 0.5;
-    // a big enemy army at the gates (frozen), and their Goliath a little way off
+    // a big enemy army at the gates (frozen), and their Colossus a little way off
     for (let i = 0; i < 12; i++) w.powers.stunned.set(spawnUnit(w, "mastodon", "blue", c.x - 6 + (i % 4), c.y + 1 + Math.floor(i / 4)).id, 1e9);
     const suitor = spawnUnit(w, "goliath", "blue", g.x - 12, g.y + 8);
     w.powers.stunned.set(suitor.id, 1e9);
@@ -487,7 +488,7 @@ describe("mutators", () => {
 });
 
 describe("determinism", () => {
-  it("the Goliath plans are plain data: the same match twice gives the same phases", () => {
+  it("the Colossus plans are plain data: the same match twice gives the same phases", () => {
     const run = () => {
       const w = createMapWorld("proving-grounds");
       const ai = createAiState("boom", "normal", 5);
@@ -503,7 +504,7 @@ describe("determinism", () => {
 export type { Unit };
 
 describe("final review regressions", () => {
-  /** Red Boom on the Archipelago with an Airpad, a Goliath by its HQ and `condors` Condors, 2,000 scrap. */
+  /** Red Boom on the Archipelago with an Aerodrome, a Colossus by its HQ and `condors` Skyliners, 2,000 scrap. */
   function islands(condors: number, mutators: ("robotlove")[] = []) {
     const w = createMapWorld("archipelago", { objectives: true, mutators });
     const ai = createAiState("boom", "normal", 1);
@@ -517,18 +518,18 @@ describe("final review regressions", () => {
     return { w, ai, g, cs, c };
   }
 
-  it("a lift whose Condors the sim hooks on the other way round isn't called off for the wrong Condor's HP", () => {
+  it("a lift whose Skyliners the sim hooks on the other way round isn't called off for the wrong Skyliner's HP", () => {
     const { w, ai, g, cs } = islands(3);
     let issued = false;
     const states: string[] = [];
     for (let i = 0; i < 200 * TICK_RATE && !states.includes("setDown"); i++) {
-      // one Condor at full HP and two hurt ones, until the AI picks two
+      // one Skyliner at full HP and two hurt ones, until the AI picks two
       if (!issued) [cs[0]!.hp, cs[1]!.hp, cs[2]!.hp] = [UNITS.condor.hp, UNITS.condor.hp * 0.55, UNITS.condor.hp * 0.55];
       const cmds = tickAi(w, "red", ai);
       for (const cmd of cmds)
         if (cmd.type === "lift") {
           issued = true;
-          // the first-named Condor by the right hook point, the other off to the side: the sim swaps them
+          // the first-named Skyliner by the right hook point, the other off to the side: the sim swaps them
           const [a, b] = cmd.unitIds.map((id) => w.units.get(id)!);
           const r = { x: Math.cos(g.facing), y: Math.sin(g.facing) };
           a!.x = g.x + r.x * 2;
@@ -547,7 +548,7 @@ describe("final review regressions", () => {
     expect(Math.hypot(g.x - goliathSite(ai, g.id)!.x, g.y - goliathSite(ai, g.id)!.y)).toBeLessThan(2);
   }, 60000);
 
-  it("Robot Love: a lift never flies over an enemy Goliath, even one with its laser down", () => {
+  it("Robot Love: a lift never flies over an enemy Colossus, even one with its laser down", () => {
     const { w, ai, g } = islands(3, ["robotlove"]);
     for (let i = 0; i < w.scrap.length; i++) w.scrap[i] = Math.min(w.scrap[i]!, 20); // (no field worth a walk)
     const relay = { x: 57.5, y: 54.5 };
@@ -560,7 +561,7 @@ describe("final review regressions", () => {
     expect(w.winner).toBeNull();
   }, 60000);
 
-  it("a Goliath dug in at an island relay that starts losing stays dug in (it can't walk home)", () => {
+  it("a Colossus dug in at an island relay that starts losing stays dug in (it can't walk home)", () => {
     const { w, ai, g, c } = islands(3);
     const fields = Float64Array.from(w.scrap);
     for (let i = 0; i < w.scrap.length; i++) w.scrap[i] = Math.min(w.scrap[i]!, 20);
@@ -584,7 +585,7 @@ describe("final review regressions", () => {
     expect(g.goliath!.mode).toBe("anchored");
   }, 60000);
 
-  it("Robot Love: a Condor held for a lift is let go when love calls the lift off", () => {
+  it("Robot Love: a Skyliner held for a lift is let go when love calls the lift off", () => {
     const { w, ai, g, cs } = islands(1, ["robotlove"]);
     const condor = cs[0]!;
     let suitor: Unit | null = null;
@@ -603,12 +604,12 @@ describe("final review regressions", () => {
     expect(liftCondors(w, "red", ai).has(condor.id)).toBe(false);
   }, 60000);
 
-  it("Nomads + Robot Love: with its base not under attack, the AI doesn't uproot its only Goliath to court", () => {
+  it("Nomads + Robot Love: with its base not under attack, the AI doesn't uproot its only Colossus to court", () => {
     const w = createMapWorld("riverlands", { mutators: ["nomads", "robotlove"] });
     const ai = createAiState("balanced", "normal", 1);
     const red = goliathsOf(w, "red")[0]!;
     const blue = goliathsOf(w, "blue")[0]!;
-    // blue fields three Goliaths at home, far from red's base: red is "losing", but nothing threatens it
+    // blue fields three Colossi at home, far from red's base: red is "losing", but nothing threatens it
     for (const [dx, dy] of [[0, 0], [6, -6], [6, -1]] as const) {
       const u = dx === 0 ? blue : spawnUnit(w, "goliath", "blue", blue.x + dx, blue.y + dy);
       w.powers.stunned.set(u.id, 1e9);

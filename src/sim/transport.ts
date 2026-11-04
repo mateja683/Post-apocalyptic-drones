@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { INFANTRY, TICK_RATE, UNITS } from "./balance";
 import { isInfantry, isTransport } from "./infantry";
 import { moveUnitToward } from "./movement";
@@ -7,7 +8,7 @@ import { inBounds, passable, sideFrame, type SideFrame } from "./world";
 import { cos, hypot, sin } from "./fmath";
 
 /**
- * The Condor dropship (INFANTRY.md). Infantry squads BOARD it — walk up, and
+ * The Skyliner dropship (INFANTRY.md). Infantry squads BOARD it — walk up, and
  * after INFANTRY.boardTime within INFANTRY.boardRange they are taken off the
  * map into `condor.passengers` — and it UNLOADS them: flies to a drop point,
  * hovers INFANTRY.unloadHover, puts them back (same ids) around the point,
@@ -23,7 +24,7 @@ import { cos, hypot, sin } from "./fmath";
 
 // ----------------------------------------------------------- helpers ---
 
-/** A unit by id, on the field or aboard a Condor (null when it is gone). */
+/** A unit by id, on the field or aboard a Skyliner (null when it is gone). */
 export function findUnit(w: World, id: number): Unit | null {
   const u = w.units.get(id);
   if (u) return u;
@@ -34,15 +35,15 @@ export function findUnit(w: World, id: number): Unit | null {
   return null;
 }
 
-/** The Condor carrying unit `unitId`, or null when it is not aboard one. */
+/** The Skyliner carrying unit `unitId`, or null when it is not aboard one. */
 export function carrierOf(w: World, unitId: number): Unit | null {
   for (const c of w.units.values()) if (c.passengers?.some((p) => p.id === unitId)) return c;
   return null;
 }
 
 /**
- * Put a squad straight into a Condor's hold, no walk or climb (a match that
- * starts with the squad aboard; the free replacement Condor's crew).
+ * Put a squad straight into a Skyliner's hold, no walk or climb (a match that
+ * starts with the squad aboard; the free replacement Skyliner's crew).
  */
 export function stowAboard(w: World, c: Unit, squad: Unit): void {
   if (freeSeats(c) === 0) return;
@@ -57,7 +58,7 @@ export function stowAboard(w: World, c: Unit, squad: Unit): void {
   c.passengers!.push(squad);
 }
 
-/** Seats left aboard a transport (0 for anything that carries nothing, and for a Condor lifting a Goliath: lift.ts). */
+/** Seats left aboard a transport (0 for anything that carries nothing, and for a Skyliner lifting a Colossus: lift.ts). */
 export function freeSeats(c: Unit): number {
   if (c.order.type === "lift") return 0;
   return Math.max(0, (UNITS[c.kind].capacity ?? 0) - (c.passengers?.length ?? 0));
@@ -187,7 +188,7 @@ const SEAT_STEPS = [0, 1, -1, 2, -2, 3, -3, 4];
 const SEAT_RINGS = [0.45, 0.9, 1.35];
 
 /**
- * Where a Condor's passengers step off around a (clear) drop point: a small
+ * Where a Skyliner's passengers step off around a (clear) drop point: a small
  * ring, in the side's own frame. Each takes the first spot round the ring
  * from its own (then round wider rings), nudged clear (isClear) of ground it
  * can't stand on, that is a separation's width from the squads already down,
@@ -219,7 +220,7 @@ function seatSpots(w: World, faction: Faction, x: number, y: number, ps: readonl
   return out.map((q) => fr.toWorld(q));
 }
 
-/** Put a Condor's passengers back on the field around (x, y); returns their ids. */
+/** Put a Skyliner's passengers back on the field around (x, y); returns their ids. */
 function disembarkAll(w: World, c: Unit, x: number, y: number, bailout: boolean): number[] {
   const ps = c.passengers ?? [];
   const ids: number[] = [];
@@ -244,7 +245,7 @@ function disembarkAll(w: World, c: Unit, x: number, y: number, bailout: boolean)
 
 // ---------------------------------------------------------- shot down ---
 
-/** Is the Condor over ground its passengers could bail out onto? (Not Water, Rock or a building; the tile under it in its side's frame.) */
+/** Is the Skyliner over ground its passengers could bail out onto? (Not Water, Rock or a building; the tile under it in its side's frame.) */
 export function canBailOut(w: World, c: Unit): boolean {
   const fr = sideFrame(w, c.faction);
   const p = fr.toFrame(c);
@@ -252,7 +253,7 @@ export function canBailOut(w: World, c: Unit): boolean {
 }
 
 /**
- * A Condor was shot down over walkable ground (cleanupDeaths): its passengers
+ * A Skyliner was shot down over walkable ground (cleanupDeaths): its passengers
  * bail out where it fell, each with at most INFANTRY.bailoutHp of its max HP.
  * Returns their ids.
  */
@@ -296,7 +297,7 @@ export function applyTransportCommand(w: World, c: Extract<Command, { type: "boa
 // --------------------------------------------------------------- tick ---
 
 /**
- * After a drop the Condor lifts off its squads' heads (it would hide them):
+ * After a drop the Skyliner lifts off its squads' heads (it would hide them):
  * it backs off INFANTRY.dropBackOff the way it came (against its facing, so
  * mirror-image drops part as mirror images), then idles there.
  */
@@ -311,18 +312,18 @@ function backOff(w: World, c: Unit): UnitOrder {
 
 /**
  * Per tick, after combat and before movement: boarding squads walk to their
- * Condor and climb in; idle Condors drift to meet squads boarding them;
- * unloading Condors fly to the drop point, hover, put their squads down and
+ * Skyliner and climb in; idle Skyliners drift to meet squads boarding them;
+ * unloading Skyliners fly to the drop point, hover, put their squads down and
  * back off them (backOff).
- * EMP-stunned squads and Condors pause. Passengers ride along (their x/y
- * follow the Condor, for the UI).
+ * EMP-stunned squads and Skyliners pause. Passengers ride along (their x/y
+ * follow the Skyliner, for the UI).
  */
 export function tickTransport(w: World): void {
   const boardTicks = Math.round(INFANTRY.boardTime * TICK_RATE);
   const hoverTicks = Math.round(INFANTRY.unloadHover * TICK_RATE);
-  /** Condor id → the squads walking to board it (for idle Condors to meet). */
+  /** Skyliner id → the squads walking to board it (for idle Skyliners to meet). */
   const boarders = new Map<number, Unit[]>();
-  /** Condors a squad is climbing into right now: they hold still until it is aboard. */
+  /** Skyliners a squad is climbing into right now: they hold still until it is aboard. */
   const climbing = new Set<number>();
 
   // collected first: embarking takes squads out of w.units, dropping puts them back
@@ -381,7 +382,7 @@ export function tickTransport(w: World): void {
         c.order = at ? backOff(w, c) : { type: "idle" };
       }
     } else if (c.order.type === "idle" && !stunned && freeSeats(c) > 0 && !climbing.has(c.id)) {
-      // an idle Condor comes to meet the nearest squad boarding it (not drifting off one that is climbing in)
+      // an idle Skyliner comes to meet the nearest squad boarding it (not drifting off one that is climbing in)
       let near: Unit | null = null;
       let nearD = Infinity;
       for (const s of boarders.get(c.id) ?? []) {

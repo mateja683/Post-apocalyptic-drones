@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { describe, expect, it } from "vitest";
 import { tickAi } from "../src/sim/ai/commander";
 import { BUILDINGS, TERRAIN, TICK_RATE } from "../src/sim/balance";
@@ -82,7 +83,7 @@ describe("Ops: rules", () => {
     expect(buildingBlocker(w, "blue", "fab-plant")).toBe("Disabled in this op");
     expect(buildingBlocker(w, "red", "fab-plant")).toBeNull();
     expect(unitBlocker(w, "blue", "raptor")).toBeNull();
-    // ground units banned: so is the Condor that would fly the starting squad into the fight
+    // ground units banned: so is the Skyliner that would fly the starting squad into the fight
     expect(unitBlocker(w, "blue", "condor")).toBe("Disabled in this op");
   });
 

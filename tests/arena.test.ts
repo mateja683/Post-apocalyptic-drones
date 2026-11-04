@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAiState, tickAi } from "../src/sim/ai/commander";
 import { seenEnemies } from "../src/sim/ai/intel";
@@ -142,7 +143,7 @@ describe("orders", () => {
     const one = (o: unknown) => parseOrders(structuredClone(w), "blue", [o], "play");
     expect(sorted(one({ attack_move: "all stinger", to: [30, 30] }).commands[0] as { unitIds: number[] })).toEqual(stingers);
     expect(sorted(one({ attackMove: "stingers", to: [30, 30] }).commands[0] as { unitIds: number[] })).toEqual(stingers);
-    // the army: the Stingers and the Trooper Squad, not the harvesters
+    // the army: the Roadsters and the Tin Soldiers, not the harvesters
     const army = one({ move: "idle army", to: [30, 30] }).commands[0] as { unitIds: number[] };
     expect(army.unitIds.map((id) => w.units.get(id)!.kind).sort()).toEqual(["stinger", "stinger", "stinger", "trooper"]);
     // "near": only what stands within 6 tiles of the point (own frame)
@@ -158,7 +159,7 @@ describe("orders", () => {
   it("produce finds the building, spends scrap and stops when it runs out", () => {
     const w = start();
     const b = parseOrders(structuredClone(w), "blue", [{ produce: "stinger", count: 5 }], "play");
-    // 500 scrap after Blitz: three Stingers, then "Not enough scrap"
+    // 500 scrap after Blitz: three Roadsters, then "Not enough scrap"
     expect(b.commands.filter((c) => c.type === "produce")).toHaveLength(3);
     expect(b.results[0]).toMatch(/queued 3 stinger at fab-plant #\d+.*Not enough scrap \(have 50, need 150\)/);
   });
@@ -166,8 +167,8 @@ describe("orders", () => {
   it("refusals carry the HUD's reasons", () => {
     const w = start();
     const r = (o: unknown, side: Faction = "blue") => parseOrders(structuredClone(w), side, [o], "play").results[0]!;
-    expect(r({ produce: "mortar" })).toMatch(/refused: Needs Tech Lab/);
-    expect(r({ produce: "wasp" })).toMatch(/refused: Needs Airpad/);
+    expect(r({ produce: "mortar" })).toMatch(/refused: Needs Atomic Lab/);
+    expect(r({ produce: "wasp" })).toMatch(/refused: Needs Aerodrome/);
     expect(r({ build: "tech-lab" })).toMatch(/refused: Not enough scrap \(have 500, need 450\)|ok/);
     expect(r({ build: "turret", at: [40, 10] })).toMatch(/refused: can't put a turret at 40,10: Too far from base/);
     expect(r({ calldown: "barrage", at: [10, 10] })).toMatch(/refused: Barrage needs 60 charge/);
@@ -305,7 +306,7 @@ describe("the loopback seat server", () => {
       expect((await post(`${srv.urls.blue}/observe`))[1]).toMatch(/ROUND 0: CHOOSE YOUR OPENER/);
       expect((await post(`${srv.urls.blue}/orders`, { orders: [{ opener: "airwing" }] }))[1]).toMatch(/1\. ok: opener airwing/);
       // end_round waits for the round to play, then hands back the next observation
-      const [, next] = await post(`${srv.urls.blue}/end_round`, { notes: "air first", radio: "Wasps up" });
+      const [, next] = await post(`${srv.urls.blue}/end_round`, { notes: "air first", radio: "Comets up" });
       expect(next).toMatch(/ROUND 1\/6/);
       expect(next).toMatch(/wasp ×3/);
       // a wrong token is no seat at all
@@ -324,7 +325,7 @@ describe("the loopback seat server", () => {
       const state = (await (await fetch(`${srv.urls.control}/state`)).json()) as { over: boolean };
       expect(state.over).toBe(true);
       expect(a.record.end?.reason).toBe("time");
-      expect(a.record.radio).toEqual([[0, "blue", "Wasps up"]]);
+      expect(a.record.radio).toEqual([[0, "blue", "Comets up"]]);
       expect(worldHash(replay(a.record).world)).toBe(worldHash(a.w));
     } finally {
       await srv.close();

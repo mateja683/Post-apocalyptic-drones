@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { STRATEGIES, type StrategyName } from "../sim/ai/commander";
 import { mapById } from "../sim/maps";
 import { hash32, saltOf } from "../sim/rand";
@@ -45,14 +46,14 @@ export function dayLabel(day: number): string {
  * The maps a Daily Op can land on, in a frozen order: the op is a hash of the
  * date into this list, so reordering the map picker or adding a map must not
  * change which map any past or future day gets. Maps added later stay out
- * unless they suit any random mutator pair (Air War bans the Condor).
+ * unless they suit any random mutator pair (Air War bans the Skyliner).
  */
 export const DAILY_MAPS = ["riverlands", "dune-sea", "frostbite", "ashlands", "proving-grounds"] as const;
 
 /**
  * The mutators a Daily Op draws its pair from, frozen like DAILY_MAPS: the
  * pair is a hash of the date into this list, so adding a mutator to the game
- * must not change any day's op. (Nomads, Robot Love and Goliath Armada came
+ * must not change any day's op. (Nomads, Robot Love and Colossus Armada came
  * later, and stay out: they are menu picks.)
  */
 export const DAILY_MUTATORS: readonly MutatorId[] = [

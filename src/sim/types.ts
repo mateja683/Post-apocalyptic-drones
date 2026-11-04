@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 /** The sides: blue and red in every match; green and purple join them on a four-player map (sides.ts). */
 export type Faction = "blue" | "red" | "green" | "purple";
 /**
@@ -45,7 +46,7 @@ export type BuildingKind =
   | "radar"
   /** Builds robot infantry. */
   | "assembly-bay"
-  /** Top of the tree: builds the Goliath (one per side, always visible to the enemy). */
+  /** Top of the tree: builds the Colossus (one per side, always visible to the enemy). */
   | "gantry";
 
 /** Armor classes: weapons deal a damage-type-specific multiple vs each. */
@@ -65,9 +66,9 @@ export type WeaponFx =
   | "shell"
   | "bomb"
   | "mg"
-  /** Trooper rifles: a crackle of light tracers from each robot standing. */
+  /** Tin Soldier rifles: a crackle of light tracers from each robot standing. */
   | "rifle"
-  /** Sniper rail-rifle: one bright, instant streak. */
+  /** Longshot rail-rifle: one bright, instant streak. */
   | "snipe";
 
 export const enum Terrain {
@@ -92,7 +93,7 @@ export const enum Terrain {
   Deep = 10
 }
 
-/** Harvester internal cycle state. */
+/** Prospector internal cycle state. */
 export type HarvestPhase = "toField" | "harvesting" | "toBase" | "unloading";
 
 export type UnitOrder =
@@ -102,24 +103,24 @@ export type UnitOrder =
   | { type: "attack"; targetId: number }
   | { type: "harvest"; fieldX: number; fieldY: number; phase: HarvestPhase }
   /**
-   * Infantry: walk to Condor `carrierId` and climb aboard (transport.ts).
+   * Infantry: walk to Skyliner `carrierId` and climb aboard (transport.ts).
    * `ticks` counts up while the squad is within boarding range; at
-   * INFANTRY.boardTime it is taken off the map into the Condor.
+   * INFANTRY.boardTime it is taken off the map into the Skyliner.
    */
   | { type: "board"; carrierId: number; ticks: number }
   /**
-   * Condor: fly to (x, y) — already snapped to the nearest tile infantry can
+   * Skyliner: fly to (x, y) — already snapped to the nearest tile infantry can
    * stand on — hover for INFANTRY.unloadHover, then drop every passenger.
    * `hover` is -1 while flying, then counts ticks spent hovering.
    */
   | { type: "unload"; x: number; y: number; hover: number }
   /**
-   * Condor: one of the two carrying Goliath `goliathId` (lift.ts). The lift
+   * Skyliner: one of the two carrying Colossus `goliathId` (lift.ts). The lift
    * moves it; tickMovement leaves it alone.
    */
   | { type: "lift"; goliathId: number };
 
-/** The Goliath's weapon systems (goliath.ts). The machine guns never go offline. */
+/** The Colossus's weapon systems (goliath.ts). The machine guns never go offline. */
 export type GoliathWeapon = "mortars" | "laser" | "cannons" | "mg";
 
 /** Walking ⇄ anchored, through the timed transitions between them (goliath.ts). */
@@ -138,19 +139,19 @@ export interface GoliathWeaponState {
   firedTick: number;
 }
 
-/** Two Condors carrying a walking Goliath (lift.ts). */
+/** Two Skyliners carrying a walking Colossus (lift.ts). */
 export interface GoliathLift {
-  /** The two Condors (each on a `lift` order naming this Goliath). */
+  /** The two Skyliners (each on a `lift` order naming this Colossus). */
   carriers: [number, number];
-  /** "hooking": the Condors are flying in to hook on; "carrying": it is off the ground. */
+  /** "hooking": the Skyliners are flying in to hook on; "carrying": it is off the ground. */
   phase: "hooking" | "carrying";
   /** Where the lift is flying (null: hovering where it is). */
   dest: { x: number; y: number } | null;
-  /** On arrival at `dest`, set the Goliath down (else hover there). */
+  /** On arrival at `dest`, set the Colossus down (else hover there). */
   setDown: boolean;
 }
 
-/** Everything a Goliath carries beyond a plain unit (Unit.goliath; goliath.ts). */
+/** Everything a Colossus carries beyond a plain unit (Unit.goliath; goliath.ts). */
 export interface GoliathState {
   mode: GoliathMode;
   /** Ticks left of an anchoring or packing transition (0 once settled). */
@@ -159,7 +160,7 @@ export interface GoliathState {
   /** Infantry training queue: advances only while anchored. */
   queue: QueueItem[];
   rally: { x: number; y: number } | null;
-  /** Two Condors hooking on or carrying it, or null. */
+  /** Two Skyliners hooking on or carrying it, or null. */
   lift: GoliathLift | null;
   /**
    * Dug in (anchoring, anchored or packing up): the top-left tile of the
@@ -205,7 +206,7 @@ export interface Unit {
   /** Enemy units and buildings this unit has destroyed. */
   kills: number;
   /**
-   * Condor only: the infantry squads aboard (at most INFANTRY.capacity).
+   * Skyliner only: the infantry squads aboard (at most INFANTRY.capacity).
    * Passengers are taken OUT of `World.units` while aboard — hidden, unable
    * to fire, no vision, no presence — and put back (same id) when dropped.
    * Absent on every other unit.
@@ -217,13 +218,13 @@ export interface Unit {
    */
   ignore?: { id: number; until: number };
   /**
-   * Handed out by the map, not bought: the island map's starting Condor and
-   * the free replacement Condor with its squad (lifeline.ts). A free unit
+   * Handed out by the map, not bought: the island map's starting Skyliner and
+   * the free replacement Skyliner with its squad (lifeline.ts). A free unit
    * leaves no wreck and its loss charges no one's ⚡ meter, so throwing one
    * away gains nothing.
    */
   free?: boolean;
-  /** Goliath only: its modes, weapon systems, training queue and lift (goliath.ts). Absent on every other unit. */
+  /** Colossus only: its modes, weapon systems, training queue and lift (goliath.ts). Absent on every other unit. */
   goliath?: GoliathState;
 }
 
@@ -231,7 +232,7 @@ export interface QueueItem {
   kind: UnitKind;
   /** Ticks of build time remaining. */
   remaining: number;
-  /** Scrap paid, when it isn't the kind's list price (a Goliath's escalating cost): what a cancel refunds. */
+  /** Scrap paid, when it isn't the kind's list price (a Colossus's escalating cost): what a cancel refunds. */
   paid?: number;
 }
 
@@ -245,14 +246,14 @@ export interface Building {
   hp: number;
   queue: QueueItem[];
   rally: { x: number; y: number } | null;
-  /** Turret head facing, radians clockwise from North. */
+  /** Pillbox head facing, radians clockwise from North. */
   facing: number;
   cooldown: number;
   damagedTick: number;
   lastAttackerId: number | null;
   firedTick: number;
   /**
-   * Placed in the build ring of an anchored Goliath, out of normal build range
+   * Placed in the build ring of an anchored Colossus, out of normal build range
    * (goliath.ts). It works like any other building, but never counts as base
    * for build range: nothing can be built off it. Decided when it is placed.
    */
@@ -370,7 +371,7 @@ export type FxEvent =
     }
   | {
       /**
-       * A free-for-all: `faction` is out (its HQ and every Goliath gone, or it
+       * A free-for-all: `faction` is out (its HQ and every Colossus gone, or it
        * resigned), finished off by `by`; `left` sides remain (combat.ts eliminate).
        */
       type: "eliminated";
@@ -521,7 +522,7 @@ export type FxEvent =
     }
   | { type: "crateExpired"; id: number; x: number; y: number }
   | {
-      /** A free replacement Condor `id` flew in at (x, y) (lifeline.ts), `squad`: with a free squad aboard. */
+      /** A free replacement Skyliner `id` flew in at (x, y) (lifeline.ts), `squad`: with a free squad aboard. */
       type: "lifeline";
       faction: Faction;
       id: number;
@@ -530,7 +531,7 @@ export type FxEvent =
       squad: boolean;
     }
   | {
-      /** Infantry squad `unitId` climbed into Condor `carrierId` (it left World.units). */
+      /** Infantry squad `unitId` climbed into Skyliner `carrierId` (it left World.units). */
       type: "embark";
       faction: Faction;
       carrierId: number;
@@ -540,7 +541,7 @@ export type FxEvent =
     }
   | {
       /**
-       * Condor `carrierId` put squads `unitIds` back on the ground at (x, y):
+       * Skyliner `carrierId` put squads `unitIds` back on the ground at (x, y):
        * a normal drop, or `bailout` when it was shot down (they land hurt).
        */
       type: "disembark";
@@ -552,7 +553,7 @@ export type FxEvent =
       bailout: boolean;
     }
   | {
-      /** A Mastodon rolled over enemy squad `id` this tick (crushing, INFANTRY.crushDps). */
+      /** A Behemoth rolled over enemy squad `id` this tick (crushing, INFANTRY.crushDps). */
       type: "crush";
       faction: Faction;
       id: number;
@@ -562,7 +563,7 @@ export type FxEvent =
     }
   | {
       /**
-       * A Gantry's Goliath build (public: both sides hear it): `started` as a
+       * A Gantry's Colossus build (public: both sides hear it): `started` as a
        * build begins, `nearlyDone` as it passes GOLIATH.nearlyDone.
        */
       type: "goliathBuild";
@@ -573,7 +574,7 @@ export type FxEvent =
       y: number;
     }
   | {
-      /** Goliath `id` walked off its Gantry `buildingId` (public). */
+      /** Colossus `id` walked off its Gantry `buildingId` (public). */
       type: "goliathRollout";
       faction: Faction;
       id: number;
@@ -582,7 +583,7 @@ export type FxEvent =
       y: number;
     }
   | {
-      /** Goliath `id` entered `mode`: anchoring (digging in), anchored, packing (up), walking (free to move). */
+      /** Colossus `id` entered `mode`: anchoring (digging in), anchored, packing (up), walking (free to move). */
       type: "goliathMode";
       faction: Faction;
       id: number;
@@ -591,7 +592,7 @@ export type FxEvent =
       y: number;
     }
   | {
-      /** A Goliath weapon system went `offline` (damage), started `rebooting` (repaired), or came back `online`. */
+      /** A Colossus weapon system went `offline` (damage), started `rebooting` (repaired), or came back `online`. */
       type: "goliathWeapon";
       faction: Faction;
       id: number;
@@ -602,8 +603,8 @@ export type FxEvent =
     }
   | {
       /**
-       * Two Condors `carrierIds` and Goliath `id` (lift.ts): `hooked` (it left
-       * the ground), `setDown` (put down on purpose), or `dropped` (a Condor
+       * Two Skyliners `carrierIds` and Colossus `id` (lift.ts): `hooked` (it left
+       * the ground), `setDown` (put down on purpose), or `dropped` (a Skyliner
        * was lost): it fell, `destroyed` over water, sea, lava or rock.
        */
       type: "goliathLift";
@@ -617,7 +618,7 @@ export type FxEvent =
     }
   | {
       /**
-       * Robot Love: enemy Goliaths `ids` (blue's, red's) came within
+       * Robot Love: enemy Colossi `ids` (blue's, red's) came within
        * GOLIATH.love.range of each other and fell in love; the match ends in
        * a draw this tick. (x, y) is the point between them, where they meet.
        */
@@ -652,7 +653,7 @@ export interface Uplink {
   contested: boolean;
   /**
    * An island relay: only robot infantry count in its zone, to take it AND to
-   * contest it (aircraft, the Condor and vehicles don't), and it pays only
+   * contest it (aircraft, the Skyliner and vehicles don't), and it pays only
    * while the holder's infantry stand in it ("crewed"). Set by the map.
    */
   infantryOnly?: boolean;
@@ -716,7 +717,7 @@ export interface Wreck {
   /** Ticks left while it is still too hot to salvage. */
   hot: number;
   /**
-   * A scrap pile, not a hull: one of the piles a fallen Goliath scatters, or
+   * A scrap pile, not a hull: one of the piles a fallen Colossus scatters, or
    * a half-built one strewn around its destroyed Gantry (goliath.ts). `kind`
    * is "goliath"; its `id` is fresh (several piles share one dead unit).
    */
@@ -782,7 +783,7 @@ export interface World {
   factions: Record<Faction, FactionState>;
   /**
    * null while the match runs; then the winning faction (once a side has lost
-   * its HQ and every Goliath), or "draw" (Robot Love: two enemy Goliaths fell
+   * its HQ and every Colossus), or "draw" (Robot Love: two enemy Colossi fell
    * in love, goliath.ts tickLove). Anything that only asks "is it over?" can
    * test it for truthiness.
    */
@@ -804,9 +805,9 @@ export interface World {
   rules?: Rules | null;
   /** Ops campaign scenario state (ops.ts); absent in skirmish and Last Stand. */
   ops?: OpsState | null;
-  /** Free replacement Condors (lifeline.ts); absent unless the map hands them out. */
+  /** Free replacement Skyliners (lifeline.ts); absent unless the map hands them out. */
   lifeline?: Record<Faction, LifelineSlot> | null;
-  /** Robot Love: the two Goliaths that fell in love and ended the match in a draw, where and when (goliath.ts tickLove). */
+  /** Robot Love: the two Colossi that fell in love and ended the match in a draw, where and when (goliath.ts tickLove). */
   love?: { ids: [number, number]; x: number; y: number; tick: number } | null;
   /** The side that resigned, when a `resign` command decided the match. */
   resigned?: Faction | null;
@@ -822,11 +823,11 @@ export interface World {
   out?: { faction: Faction; tick: number; by: Faction | null }[];
 }
 
-/** One side's free-Condor clock (lifeline.ts). */
+/** One side's free-Skyliner clock (lifeline.ts). */
 export interface LifelineSlot {
-  /** Tick the replacement flies in (null: the side has a Condor, or none is owed). */
+  /** Tick the replacement flies in (null: the side has a Skyliner, or none is owed). */
   due: number | null;
-  /** Free Condors handed out so far. */
+  /** Free Skyliners handed out so far. */
   given: number;
 }
 
@@ -836,7 +837,7 @@ export type Command =
   | { type: "attack"; faction: Faction; unitIds: number[]; targetId: number }
   | { type: "harvest"; faction: Faction; unitIds: number[]; x: number; y: number }
   | { type: "stop"; faction: Faction; unitIds: number[] }
-  /** `buildingId`: a production building, or an anchored Goliath's unit id (it trains infantry, goliath.ts). */
+  /** `buildingId`: a production building, or an anchored Colossus's unit id (it trains infantry, goliath.ts). */
   | { type: "produce"; faction: Faction; buildingId: number; unit: UnitKind }
   | { type: "cancelProduce"; faction: Faction; buildingId: number; unit: UnitKind }
   | { type: "startBuilding"; faction: Faction; building: BuildingKind }
@@ -847,20 +848,20 @@ export type Command =
   /** Last Stand: bring the next wave in now for a scrap bonus. */
   | { type: "callWave"; faction: Faction }
   | { type: "calldown"; faction: Faction; power: PowerKind; x: number; y: number }
-  /** Infantry `unitIds` board Condor `carrierId` (the Condor comes to meet them if idle). */
+  /** Infantry `unitIds` board Skyliner `carrierId` (the Skyliner comes to meet them if idle). */
   | { type: "board"; faction: Faction; unitIds: number[]; carrierId: number }
   /**
-   * Condors `unitIds` drop their passengers: at (x, y) if given (they fly there
+   * Skyliners `unitIds` drop their passengers: at (x, y) if given (they fly there
    * first; the drop snaps to the nearest tile infantry can stand on), else
    * right where they are.
    */
   | { type: "unload"; faction: Faction; unitIds: number[]; x?: number; y?: number }
-  /** Goliaths `unitIds` dig in where they stand (goliath.ts anchorBlocker says where they can't). */
+  /** Colossi `unitIds` dig in where they stand (goliath.ts anchorBlocker says where they can't). */
   | { type: "anchor"; faction: Faction; unitIds: number[] }
-  /** Anchored (or anchoring) Goliaths `unitIds` pack up to walk again. */
+  /** Anchored (or anchoring) Colossi `unitIds` pack up to walk again. */
   | { type: "packUp"; faction: Faction; unitIds: number[] }
   /**
-   * Two empty Condors `unitIds` hook onto walking Goliath `goliathId` and lift
+   * Two empty Skyliners `unitIds` hook onto walking Colossus `goliathId` and lift
    * it (lift.ts). Then `move` flies the lift, `unload` sets it down (at x, y
    * if given) and `stop` hovers it.
    */

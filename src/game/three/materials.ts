@@ -276,12 +276,12 @@ export function modelMat(v: Variant = "normal"): THREE.MeshStandardMaterial {
 
 /**
  * The fog-free twin of a variant's model material, for what the enemy always
- * sees (a Goliath, a Gantry and the mech taking shape on it): drawn live and
+ * sees (a Colossus, a Gantry and the mech taking shape on it): drawn live and
  * in full colour through explored ground and the shroud alike, where the
  * plain material would grey it to memory or hide it under the shroud. It
  * compiles to the same program as the plain one (only its fog switch, a
  * uniform, differs), so it costs no shader and no stall the first time a
- * Goliath walks on.
+ * Colossus walks on.
  */
 export function clearMat(v: Variant = "normal"): THREE.MeshStandardMaterial {
   if (!clearMats) {

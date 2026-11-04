@@ -1,3 +1,4 @@
+// Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0).
 import { beforeAll, describe, expect, it } from "vitest";
 import { Arena, parseSeat } from "../src/arena/match";
 import type { BattleRecord } from "../src/arena/record";
@@ -315,7 +316,7 @@ describe("the command codec", () => {
       const next = (pieces[i + 1] as Extract<Command, { type: "move" }>).unitIds[0]!;
       expect(commandBits({ ...p, unitIds: [...p.unitIds, next] }, ctx)).toBeGreaterThan(C_MAX);
     }
-    // lift picks the nearest two of the Condors it names, so it never splits: one too long is dropped
+    // lift picks the nearest two of the Skyliners it names, so it never splits: one too long is dropped
     expect(canonicalize({ type: "lift", faction: "blue", unitIds: ids, goliathId: 3 }, ctx)).toEqual([]);
     // one unit can't split: past C_MAX only with ids near 2^24, and it still fits an empty turn (capacity − 57)
     const [one, ...rest] = canonicalize({ type: "attack", faction: "blue", unitIds: [TOP], targetId: TOP }, ctx);
