@@ -786,7 +786,7 @@ export function pickTip(i: TipInput): string {
       score: 10,
       text: i.difficulty === "hard" ? `Won on Hard in ${fmtTime(i.duration)}. Can you do it faster?` : "A clean win. Ready to try a harder AI?"
     });
-  tips.push({ score: 5, text: "Scout early and build counters: long-press any build button to see what beats what." });
+  tips.push({ score: 5, text: "Scout early and build counters: tap ⓘ on any build button, or open the 📖 Field Manual, to see what beats what." });
   // (a free-for-all's "they" is every rival together)
   if (rivals.length > 1)
     for (const t of tips) t.text = t.text.replace(/^The enemy fielded/, "Your rivals fielded").replace(/^They (fielded|built)/, "Your rivals $1");

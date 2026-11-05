@@ -511,7 +511,7 @@ function tipHtml(ctx: ReportContext): string | null {
   });
   // (a duel's congratulations: there is no harder AI to try)
   if (duel && /\bAI\b/.test(tip))
-    tip = ctx.won ? "A clean win. Swap sides and see if you can do it again." : "Scout early and build counters: long-press any build button to see what beats what.";
+    tip = ctx.won ? "A clean win. Swap sides and see if you can do it again." : "Scout early and build counters: tap ⓘ on any build button, or open the 📖 Field Manual, to see what beats what.";
   return `<p class="aar-tip"><b>Next time</b><span>${escapeHtml(tip)}</span></p>`;
 }
 

@@ -27,6 +27,7 @@ import type { VersusFeed } from "./versus/feed";
 import type * as FfaLobby from "./ffa/lobby";
 import type { FfaFeed } from "./ffa/feed";
 import { aiStrategy } from "./game/meta";
+import { openManual } from "./ui/manual";
 
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
@@ -369,6 +370,7 @@ function showMenu(linkedMap?: string | null): void {
         <button class="cta alt" id="play-replay">🎬 Watch a replay</button>
         <button class="cta alt" id="howto">? How to play</button>
       </div>
+      <button class="cta alt manual-btn" id="manual">📖 Field Manual: what every unit and building does</button>
       <div class="help" id="helpbox" hidden>${HELP_HTML}</div>
       <p class="credits">A reskin of <a href="https://github.com/simonw/battledrones" target="_blank" rel="noopener">Battle Drones</a> by Simon Willison (Apache 2.0) · terrain art by OpenAI gpt-image-2.5 · sound synthesised live</p>
     </div>
@@ -676,6 +678,7 @@ function showMenu(linkedMap?: string | null): void {
       sync();
     })
   );
+  menu.querySelector("#manual")!.addEventListener("click", () => openManual(menu));
   menu.querySelector("#howto")!.addEventListener("click", () => {
     const h = menu.querySelector<HTMLElement>("#helpbox")!;
     h.hidden = !h.hidden;

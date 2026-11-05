@@ -27,6 +27,7 @@ import { fullscreen } from "./fullscreen";
 import { mapById } from "../sim/maps";
 import { SIDE_NAME, iconUrl } from "../game/side-style";
 import { sidesOf } from "../sim/sides";
+import { openManual } from "./manual";
 
 export interface HudApi {
   world: World;
@@ -395,7 +396,8 @@ export function createHud(api: HudApi): Hud {
       <span class="cost">${cost}</span>
       <span class="badge" hidden></span>
       <span class="prog" hidden></span>
-      <span class="lock" hidden>🔒</span>`;
+      <span class="lock" hidden>🔒</span>
+      <span class="info" role="button" aria-label="What is this?">i</span>`;
     // long-press (touch) or right-click (mouse) opens the info card
     let timer = 0;
     let longFired = false;
@@ -418,8 +420,14 @@ export function createHud(api: HudApi): Hud {
     b.addEventListener("pointerleave", clear);
     b.addEventListener("pointercancel", clear);
     b.addEventListener("contextmenu", (e) => e.preventDefault());
-    b.addEventListener("click", () => {
+    b.addEventListener("click", (e) => {
       if (longFired) return;
+      // (reskin) the ⓘ badge opens the info card with a plain tap
+      if ((e.target as HTMLElement).closest(".info")) {
+        window.clearTimeout(timer);
+        onInfo();
+        return;
+      }
       onTap();
     });
     buttons.set(key, b);
@@ -538,10 +546,16 @@ export function createHud(api: HudApi): Hud {
       ${m ? `<p class="good">▲ ${m.strong}</p><p class="bad">▼ ${m.weak}</p>` : ""}
       ${note ? `<p class="ctr">⚔ ${note}</p>` : ""}
       ${queuedHere > 0 ? `<button class="cta small" id="card-cancel">Cancel one (${queuedHere} queued)</button>` : ""}
-      ${!isUnit && view.pending?.kind === kind ? `<button class="cta small warn" id="card-cancel-b">Cancel construction</button>` : ""}`;
+      ${!isUnit && view.pending?.kind === kind ? `<button class="cta small warn" id="card-cancel-b">Cancel construction</button>` : ""}
+      <button class="card-manual" id="card-manual">📖 Full entry in the Field Manual (pauses)</button>`;
     cardEl.hidden = false;
     layout.refresh(true); // (portrait: kept under the band at its real height)
     cardEl.querySelector("#card-x")!.addEventListener("click", () => (cardEl.hidden = true));
+    cardEl.querySelector("#card-manual")!.addEventListener("click", () => {
+      cardEl.hidden = true;
+      if (!api.ctrl.paused) togglePause();
+      if (api.ctrl.paused) openManual(pauseEl, kind);
+    });
     cardEl.querySelector("#card-cancel")?.addEventListener("click", () => {
       const now = api.ctrl.view();
       const p = queuesOf(w, PLAYER, kind as UnitKind).find((p) => p.queue.some((q) => q.kind === kind) || now.extra(p.id, kind as UnitKind) > 0);
@@ -917,7 +931,7 @@ export function createHud(api: HudApi): Hud {
       msg = "Train tanks in Vehicles. Tap a unit, then tap the map to send it.";
       next = 2;
     } else if (stage === 2 && armySize() >= 3 && secs > 30) {
-      msg = "Long-press any build button to see what it counters. ⚔ Select army grabs everyone.";
+      msg = "Tap ⓘ on any build button to see what it counters. ⚔ Select army grabs everyone.";
       next = 3;
     } else if (stage === 3 && secs > 150) {
       // (one already stands: nothing left to teach)
@@ -998,6 +1012,7 @@ export function createHud(api: HudApi): Hud {
         ${pauseRulesHtml(w)}
         <button class="cta" id="p-resume">▶ Resume</button>
         <div id="p-sound"></div>
+        <button class="cta alt" id="p-manual">📖 Field Manual</button>
         <button class="cta alt" id="p-help">How to play</button>
         ${uncharted || duel ? "" : `<button class="cta alt" id="p-fog">${api.ctrl.showFog ? "Reveal map (debug)" : "Restore fog of war"}</button>`}
         ${duel ? `<div id="p-duel" class="p-duel"></div>` : `<button class="cta alt" id="p-quit">Quit to menu</button>`}
@@ -1006,6 +1021,7 @@ export function createHud(api: HudApi): Hud {
     shield(pauseEl);
     offToggles = mountAudioToggles(pauseEl.querySelector<HTMLElement>("#p-sound")!);
     pauseEl.querySelector("#p-resume")!.addEventListener("click", togglePause);
+    pauseEl.querySelector("#p-manual")!.addEventListener("click", () => openManual(pauseEl));
     pauseEl.querySelector("#p-help")!.addEventListener("click", () => {
       const h = pauseEl.querySelector<HTMLElement>("#p-helptext")!;
       h.hidden = !h.hidden;
@@ -1570,7 +1586,7 @@ export const HELP_HTML = `
   <h3>Skyliner</h3><p>The Aerodrome's dropship carries two squads over water, rock and anything else. Select squads and tap the Skyliner (or select the Skyliner and tap a squad) to load them; then <b>long-press</b> the map to fly there and drop them, or tap <b>⇣ Unload</b> (key U) to drop them where it is. Shot down over land, its squads bail out hurt; over water or rock they go down with it.</p>
   <h3>Gantry and Colossus</h3><p>With a Motor Works, an Aerodrome, an Atomic Lab and a Robot Foundry standing you can build the <b>Gantry</b> (one per side, and the enemy always sees it). It builds the <b>Colossus</b>: a giant walking mech and a base on legs. Each one costs ${Math.round(GOLIATH.costStep * 100)}% more for every Colossus you already have. Select it and tap <b>⚓ Anchor</b> (key G) to dig in where it stands (${GOLIATH.anchorTime} s): anchored, harvesters unload at it, it trains squads (Infantry tab, no Robot Foundry needed; tap the map to set their rally point) and you can build within ${GOLIATH.buildRing} tiles of it, even far from base. Those <b>outposts</b> keep working after it leaves, but never extend your build range. <b>⇡ Pack up</b> (G again, ${GOLIATH.packTime} s) before it can walk. It fires mortars, an eye laser, arm cannons and machine guns, and loses them as it is hurt: mortars below ${Math.round(GOLIATH.weapons.mortars.lostBelow * 100)}%, the laser below ${Math.round(GOLIATH.weapons.laser.lostBelow * 100)}%, the cannons below ${Math.round(GOLIATH.weapons.cannons.lostBelow * 100)}% (the machine guns never). Only <b>Tinkers</b> repair it, and brought back up its weapons reboot. The enemy can always see it.</p>
   <h3>Lift</h3><p>Two empty Skyliners can carry a walking Colossus: select both and tap it to hook on, then <b>long-press</b> where to set it down (a tap flies it there and hovers; <b>⇣ Set down</b> or U puts it down where it is). In the air it fires only its machine guns, and if either Skyliner is shot down it falls: hurt over land, lost over water, sea, lava or rock.</p>
-  <h3>Counters</h3><p>Roadsters beat Skyguard · Skyguard beats aircraft · Comets beat tanks · Jetstreams hunt aircraft · Behemoths crush ground armies · Bombards and Thunderheads smash bases and squads · Bazooka Squads beat Behemoths · Longshots beat infantry · Bazooka Squads, Comets, Ray Skiffs and Thunderheads bring down Colossi. Long-press any build button for details.</p>
+  <h3>Counters</h3><p>Roadsters beat Skyguard · Skyguard beats aircraft · Comets beat tanks · Jetstreams hunt aircraft · Behemoths crush ground armies · Bombards and Thunderheads smash bases and squads · Bazooka Squads beat Behemoths · Longshots beat infantry · Bazooka Squads, Comets, Ray Skiffs and Thunderheads bring down Colossi. Tap ⓘ on any build button for details, or see the 📖 Field Manual in the menu.</p>
   <h3>Terrain</h3><p>Roads are fast, mud and woods are slow, woods give cover. Water blocks tanks — Ray Skiffs hover across, aircraft fly over everything; the open sea round the Archipelago's islands stops Ray Skiffs too. Infantry walk through woods and mud at full speed but can't cross water or rock.</p>
   <h3>Camera</h3><p>Drag to pan, pinch to zoom, tap the minimap to jump. Pulsing arrows at the screen edge point at fights you can't see (red: you're being hit) — tap one to fly there, or tap ⚡ to cycle through them. Watching AI vs AI, the 🎥 cinematic camera (key C) follows the action by itself; pan or zoom and it hands the camera to you, taking it back a few seconds later.</p>
   <h3>Speed</h3><p>Tap the <b>1×</b> chip by the clock for 1.5× or 2×; hold the clock to fast-forward at 3×.</p>`;

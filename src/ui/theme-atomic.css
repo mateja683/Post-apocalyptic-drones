@@ -1,3 +1,4 @@
+/* Modified for Atomic Deco, a reskin of Battle Drones (Apache License 2.0). */
 /*
  * Atomic Deco: the atomic-age art deco reskin.
  *
@@ -222,4 +223,251 @@ h2 {
 /* unit and building portraits: the same sun-bleach as the battlefield */
 img[src*="assets/icons/"] {
   filter: sepia(0.14) saturate(0.86);
+}
+
+/* ---------- build buttons: the ⓘ badge that opens the info card with a tap ---------- */
+
+.bb .info {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  z-index: 3;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: italic 700 11px/1 Georgia, "Times New Roman", serif;
+  color: #1d150b;
+  background: radial-gradient(circle at 40% 35%, var(--brass-hi), var(--brass) 70%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+/* the production-count badge takes the same corner while something is queued */
+.bb .badge:not([hidden]) ~ .info {
+  display: none;
+}
+/* a bigger, invisible finger target round it */
+.bb .info::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.card .card-manual {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 8px;
+  border: 1px solid var(--line-hi);
+  border-radius: 6px;
+  background: rgba(201, 164, 92, 0.12);
+  color: var(--gold);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.menu .manual-btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+/* ---------- the Field Manual sheet ---------- */
+
+.sheet-wrap {
+  pointer-events: auto;
+}
+.sheet.manual {
+  width: min(100vw, 620px);
+  height: 92dvh;
+  padding-bottom: 24px;
+}
+.manual .mn-top {
+  position: sticky;
+  top: -16px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -16px -16px 0;
+  padding: 14px 16px 10px;
+  background: var(--panel-solid);
+  border-bottom: 1px solid var(--line);
+}
+.manual .mn-top .round {
+  width: 36px;
+  height: 36px;
+}
+.manual .sh-sub {
+  margin: 10px 0;
+  color: var(--dim);
+  font-size: 14px;
+}
+.manual .mn-tabs {
+  margin-bottom: 10px;
+}
+.manual .mn-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+.manual .mn-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.manual .mn-chip img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+.manual h3.mn-group {
+  margin: 22px 0 8px;
+  font-family: var(--deco-display);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--brass);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+.manual article {
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(236, 212, 154, 0.04), transparent 40%), rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-margin-top: 70px;
+}
+.manual article.mn-flash {
+  animation: mnFlash 1.4s ease-out;
+}
+@keyframes mnFlash {
+  from { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232, 200, 120, 0.5); }
+}
+.manual .head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.manual .head img {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  padding: 4px;
+  object-fit: contain;
+  border: 1px solid var(--line-hi);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 35%, #3a2f22 0%, #1a1510 75%);
+}
+.manual .head h3 {
+  margin: 0;
+  font-family: var(--deco-display);
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+}
+.manual .role {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.3;
+}
+.manual .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.manual .tag {
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--dim);
+}
+.manual .tag.tech {
+  color: var(--gold);
+  border-color: rgba(232, 200, 120, 0.4);
+}
+.manual .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.manual .stat {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.manual .stat b {
+  display: block;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.manual .stat span {
+  font-size: 11px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.manual .weapon {
+  font-size: 14px;
+  color: var(--dim);
+}
+.manual .weapon b {
+  color: var(--text);
+}
+.manual ul.features {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.manual .matchups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 14px;
+}
+.manual .matchups div {
+  border-radius: 4px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.manual .matchups h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.manual .beats h4 {
+  color: var(--green);
+}
+.manual .fears h4 {
+  color: var(--red);
+}
+.manual .matchups a {
+  color: var(--gold);
+}
+@media (max-width: 420px) {
+  .manual .stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .manual .matchups {
+    grid-template-columns: 1fr;
+  }
 }

@@ -54,6 +54,9 @@ the original author. Changes from upstream, in summary:
   `tools/reskin/rename-units.py` (new) in `src/` and `tests/`.
 - New model details in `src/game/three/models.ts`, `infantry.ts` and `goliath.ts`.
 - Pages: `tools/build-pages.mjs` publishes at the repository's own path.
+- A Field Manual (`src/ui/manual.ts`, new) in the menu and pause menu, built from the
+  unit and building cards in `src/unit-info.ts`; an ⓘ badge on every build button opens
+  the in-battle info card with a tap, and the card links on to the manual.
 - Fonts: Limelight and Big Shoulders Text (SIL Open Font License), via `@fontsource`.
 
 Each changed source file carries a one-line notice saying so at its top.
